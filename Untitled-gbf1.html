@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Skyops Labs</title>
+  <!-- Police Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Responsive root font-size: mobile-first */
+    html { font-size: 0.875rem; /*14px*/ }
+    @media (min-width: 48em) { html { font-size: 1rem; /*16px*/ } }
+    @media (min-width: 62em) { html { font-size: 1.125rem; /*18px*/ } }
+
+    :root {
+      --color-bg: #000;
+      --color-text: #E0E0E0;
+      --color-white: #FFF;
+      --color-primary: #59bbaa;
+      --color-secondary: #d6bc83;
+      --nav-height: 3.75rem;
+      --spacing: 1rem;
+      --blur-level: 0.5rem;
+      --card-bg: rgba(255,255,255,0.05);
+      --card-radius: 0.5rem;
+    }
+
+    /* Reset & base */
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--color-bg);color:var(--color-text);font-family:'Inter',sans-serif;overflow-x:hidden}
+    a{text-decoration:none;color:inherit}
+    ul{list-style:none}
+    .container{max-width:75rem;margin:0 auto;padding:0 calc(var(--spacing)*1.25)}
+
+    /* Buttons */
+    .btn{padding:0.5rem 1rem;font-weight:600;border-radius:1.875rem;text-align:center;transition:background .3s,transform .2s;font-size:1rem;white-space:nowrap;display:inline-block}
+    .btn-primary{background:var(--color-secondary);color:var(--color-bg)}
+    .btn-primary:hover{transform:scale(1.05)}
+    .btn-secondary{background:transparent;border:0.125rem solid var(--color-white);color:var(--color-white)}
+    .btn-secondary:hover{background:rgba(255,255,255,0.1);transform:scale(1.05)}
+
+    /* Nav */
+    nav{position:fixed;top:0;width:100%;z-index:100;background:transparent;transition:background .3s}
+    nav.scrolled{background:rgba(1,4,10,0.8);backdrop-filter:blur(0.75rem)}
+    .nav-inner{display:flex;justify-content:space-between;align-items:center;padding:var(--spacing)}
+    .logo img{height:1.5rem}
+    .nav-toggle{background:none;border:none;cursor:pointer;width:1.5rem;height:1.5rem;z-index:110}
+    .nav-toggle span{display:block;width:100%;height:0.125rem;background:var(--color-white);margin:0.25rem 0;transition:transform .3s,opacity .3s}
+    .nav-container{position:absolute;top:var(--nav-height);right:var(--spacing);display:none;flex-direction:column;gap:1rem;width:calc(100% - 2rem);max-width:20rem;background:rgba(0,0,0,0.6);padding:var(--spacing);border-radius:0.5rem}
+    .nav-list{display:flex;flex-direction:column;gap:1rem}
+    .nav-list li a{padding:0.5rem 0;font-weight:500;color:var(--color-white);position:relative}
+    .nav-list li a::after{content:'';position:absolute;left:0;bottom:-0.125rem;width:0;height:0.125rem;background:var(--color-secondary);transition:width .3s}
+    .nav-list li a:hover::after{width:100%}
+    .nav-list li .btn-login{width:100%}
+    body.nav-open .nav-container{display:flex}
+    body>*:not(nav){transition:filter .3s}
+    body.nav-open>*:not(nav){filter:blur(var(--blur-level));pointer-events:none}
+
+    /* Hero shapes */
+    section.hero{position:relative;height:100vh;overflow:hidden}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+    @keyframes pulse-slow{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+    .hero::before{content:'';position:absolute;border-radius:50%;filter:blur(9rem);background:var(--color-primary);animation:pulse 12s ease-in-out infinite;z-index:1;width:20rem;height:20rem;top:-10rem;left:-5rem}
+    .hero::after{content:'';position:absolute;border-radius:50%;filter:blur(9rem);background:var(--color-primary);animation:pulse 12s ease-in-out infinite 6s;z-index:1;width:30rem;height:30rem;bottom:-15rem;right:-10rem}
+    .shape-overlay::before{content:'';position:absolute;border-radius:50%;filter:blur(7rem);background:var(--color-secondary);animation:pulse-slow 24s ease-in-out infinite;width:18rem;height:18rem;top:-9rem;left:-4rem}
+    .shape-overlay::after{content:'';position:absolute;border-radius:50%;filter:blur(7rem);background:var(--color-secondary);animation:pulse-slow 24s ease-in-out infinite 12s;width:25rem;height:25rem;bottom:-12rem;right:-8rem}
+    .shape-overlay-extra{position:absolute;width:18rem;height:18rem;background:var(--color-secondary);border-radius:50%;filter:blur(7rem);animation:pulse-slow 24s ease-in-out infinite 18s;bottom:-10rem;right:-12rem}
+    .shape-overlay-extra2{position:absolute;width:10rem;height:10rem;background:var(--color-secondary);border-radius:50%;filter:blur(7rem);animation:pulse-slow 24s ease-in-out infinite 21s;bottom:-6rem;right:-3rem}
+
+    /* Hero Content */
+    .hero-content{position:relative;z-index:4;display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center;padding:0 var(--spacing)}
+    .hero-content h1{font-size:2rem;margin-bottom:1.5rem;font-weight:700;line-height:1.2;color:var(--color-white)}
+    .hero-content h1 span{display:block;opacity:0;transform:translateY(1rem);animation:fadeUp .6s ease forwards}
+    .hero-content h1 span:nth-child(1){animation-delay:0.4s}
+    .hero-content h1 span:nth-child(2){animation-delay:0.8s}
+    .hero-content h1 span:nth-child(3){animation-delay:1.2s}
+    @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+    .hero-content p{font-size:1rem;opacity:0;transform:translateY(1rem);animation:fadeUp .6s ease forwards 1.6s;margin-bottom:2rem;max-width:90%}
+    .cta-group{display:flex;gap:1rem;margin-top:1.5rem;opacity:0;animation:fadeUp .6s ease forwards 2s}
+    .cta, .cta-secondary{flex:1;padding:0.5rem 0.75rem;font-size:0.875rem}
+
+    /* Project Section */
+    .project { background: var(--color-bg); padding: calc(var(--spacing) * 2) 0; }
+    .project .container { display: flex; flex-direction: column; gap: 1rem; text-align: center; }
+    .project h2 { font-size: 1.75rem; color: var(--color-white); margin-bottom: 0.5rem; }
+    .project p.lead { font-size: 1rem; max-width: 90%; margin: 0 auto 1.5rem; color: var(--color-text); line-height: 1.4; }
+
+    /* Features Slider on Mobile */
+    .features { display: flex; overflow-x: auto; gap: 1rem; padding-bottom: 1rem; scroll-snap-type: x mandatory; }
+    .features::-webkit-scrollbar { display: none; }
+    .card { position: relative; flex: 0 0 80%; background: var(--card-bg); padding: var(--spacing); border-radius: var(--card-radius); text-align: left; border: 2px solid transparent; border-image: linear-gradient(90deg, var(--color-primary), var(--color-secondary)) 1; scroll-snap-align: start; }
+    .card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.1); border-radius: var(--card-radius); pointer-events: none; }
+    .card .icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+    .card h3 { font-size: 1.125rem; color: var(--color-white); margin-bottom: 0.5rem; }
+    .card p { font-size: 0.875rem; color: var(--color-text); line-height: 1.4; }
+    @media (min-width: 48em) { .features { display: grid; grid-template-columns: repeat(2,1fr); overflow: visible; scroll-snap-type: none; } .card { flex: none; } }
+
+    /* How It Works Section */
+    .steps { background: var(--color-bg); padding: calc(var(--spacing)*2) 0; }
+    .steps .container { display: flex; flex-direction: column; gap: 1.5rem; }
+    .steps h2 { font-size: 1.75rem; color: var(--color-white); text-align: center; margin-bottom: 1rem; }
+    .steps-list { display: flex; flex-direction: column; gap: 1rem; }
+    @media (min-width:48em) { .steps-list { flex-direction: row; } .step { flex:1; } }
+    .step { background: var(--card-bg); padding: var(--spacing); border-radius: var(--card-radius); border: 2px solid transparent; border-image: linear-gradient(90deg, var(--color-primary), var(--color-secondary)) 1; }
+    .step-number { font-size: 1.25rem; font-weight:700; color: var(--color-secondary); margin-bottom: 0.5rem; }
+    .step-title { font-size: 1.25rem; font-weight:600; color: var(--color-white); margin-bottom: 0.25rem; }
+    .step-subtitle { font-size: 1rem; font-weight:500; color: var(--color-white); margin-bottom: 0.5rem; }
+    .step p { font-size: 0.9rem; color: var(--color-text); line-height: 1.4; }
+
+    /* Performance Section */
+    .performance { background: var(--color-bg); padding: calc(var(--spacing)*2) 0; }
+    .performance .container { display: flex; flex-direction: column; gap: 1rem; text-align: center; }
+    .performance h2 { font-size: 1.75rem; color: var(--color-white); margin-bottom: 1rem; }
+    .performance-metrics { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .metric { flex: 1 1 30%; min-width: 8rem; }
+    .metric-value { font-size: 1.5rem; font-weight:700; color: var(--color-white); }
+    .metric-label { font-size: 0.875rem; color: var(--color-text); }
+
+  </style>
+</head>
+<body onload="window.scrollTo(0,0)">
+  <nav id="navbar">
+    <div class="nav-inner container">
+      <div class="logo"><img src="logo-off-blanc.png" alt="Logo"></div>
+      <button class="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-container">
+        <ul class="nav-list">
+          <li><a href="#home">Accueil</a></li>
+          <li><a href="#product">Notre produit</a></li>
+          <li><a href="#about">Documentation</a></li>
+          <li><a href="#performance">Performance</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="#" class="btn btn-primary btn-login">Se connecter</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero" id="home">
+    <div class="shape-overlay"></div>
+    <div class="shape-overlay-extra"></div>
+    <div class="shape-overlay-extra2"></div>
+    <div class="container hero-content">
+      <h1><span>Croissance.</span><span>Simplifié.</span><span>Garantie.</span></h1>
+      <p>Les rendements <strong>DeFI</strong> sont complexes.<br>G12 les rend <strong>Simples</strong>.</p>
+      <div class="cta-group">
+        <a href="#" class="btn btn-primary cta">S'inscrire</a>
+        <a href="#" class="btn btn-secondary cta-secondary">En savoir plus</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Project Section -->
+  <section class="project">
+    <div class="container">
+      <h2>Investir avec maîtrise et sérénité</h2>
+      <p class="lead">Avec G12, vous confiez vos ressources à une équipe d’experts et à des modèles quantitatifs avancés, conçus pour maximiser les rendements tout en maîtrisant le risque. Un reporting clair chaque mois, des frais compétitifs et des distributions hebdomadaires fondées sur la performance vous accompagnent.</p>
+      <div class="features">
+        <div class="card">
+          <span class="icon">🤖</span>
+          <h3>Algorithmes propriétaires</h3>
+          <p>Anticipez les marchés grâce à notre IA et nos modèles quantitatifs.</p>
+        </div>
+        <div class="card">
+          <span class="icon">🔒</span>
+          <h3>Sécurité & Transparence</h3>
+          <p>Reporting mensuel, fonds audité, suivi en temps réel.</p>
+        </div>
+        <div class="card">
+          <span class="icon">🌍</span>
+          <h3>Accessibilité</h3>
+          <p>Investissez dès 100 €, sans engagement, partout dans le monde.</p>
+        </div>
+        <div class="card">
+          <span class="icon">⚡</span>
+          <h3>Réactivité</h3>
+          <p>Réallocation dynamique selon les cycles et la volatilité du marché.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="steps">
+    <div class="container">
+      <h2>Comment G12 fonctionne ?</h2>
+      <div class="steps-list">
+        <div class="step">
+          <div class="step-number">01</div>
+          <div class="step-title">Entrez dans le cercle G12</div>
+          <div class="step-subtitle">Investissez en un clic</div>
+          <p>Déposez vos dollars, recevez instantanément des G12 à taux fixe 1:1.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">02</div>
+          <div class="step-title">On met votre argent au travail</div>
+          <div class="step-subtitle">Stratégies 100% automatisées</div>
+          <p>Bot trading, arbitrage DeFi et optimisations funding, sans lever le petit doigt.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">03</div>
+          <div class="step-title">Récompenses chaque semaine</div>
+          <div class="step-subtitle">Des airdrops G12 réguliers</div>
+          <p>Conservez vos tokens et voyez votre capital grossir.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">04</div>
+          <div class="step-title">Faites croître votre portefeuille</div>
+          <div class="step-subtitle">Réclamez, convertissez ou réinvestissez</div>
+          <p>Retirez vos gains en dollars ou laissez-les générer des intérêts composés.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Performance Section -->
+  <section class="performance">
+    <div class="container">
+      <h2>Nos performances en un coup d'œil</h2>
+      <div class="performance-metrics">
+        <div class="metric">
+          <div class="metric-value">6 459,45 $</div>
+          <div class="metric-label">TVL Total</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">24,48 %</div>
+          <div class="metric-label">APY estimé</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">1,18 %</div>
+          <div class="metric-label">Dernier airdrop</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 0));
+    document.querySelector('.nav-toggle').addEventListener('click', function() {
+      const open = document.body.classList.toggle('nav-open');
+      this.setAttribute('aria-expanded', open);
+    });
+  </script>
+</body>
+</html>
