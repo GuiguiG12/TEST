@@ -162,7 +162,7 @@
       /* Nav */
       --nav-height: 5rem;
       --nav-bg: rgba(5, 7, 11, 0.044);
-      --nav-bg-scrolled: rgba(5, 7, 11, 0.421);
+      --nav-bg-scrolled: rgba(5, 7, 11, 0.604);
 
       /* Cards */
       --card-bg: rgba(20, 26, 33, 0.95);
@@ -378,7 +378,7 @@
       inset-inline: 0;
       top: 0;
       height: var(--nav-height);
-      z-index: 40;
+      z-index: 100;
     }
 
     .nav-shell {
@@ -390,29 +390,35 @@
     }
 
     .nav-inner {
-      width: 100%;
-      max-width: var(--container-max);
-      padding-inline: var(--page-padding-x);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-radius: 999px;
-      background: var(--nav-bg);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      margin-top: 0.5rem;
-      margin-block: 3rem;
-      padding-block: 0.9rem;
-      transition:
-        background var(--dur-normal) var(--ease-standard),
-        border-color var(--dur-normal) var(--ease-standard),
-        transform var(--dur-normal) var(--ease-standard);
-      pointer-events: auto;
-    }
+  width: 100%;
+  max-width: var(--container-max);
+  padding-inline: var(--page-padding-x);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 999px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 0,5rem;
+  margin-block: 3rem;
+  padding-block: 0.6rem;
+  transition:
+    background var(--dur-normal) var(--ease-standard),
+    border-color var(--dur-normal) var(--ease-standard),
+    transform var(--dur-normal) var(--ease-standard);
+  pointer-events: auto;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+
+  /* 👇 À AJOUTER */
+  position: relative;
+  z-index: 200;
+}
+
 
     .site-header.scrolled .nav-inner {
       background: var(--nav-bg-scrolled);
-      border-color: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.088);
       transform: translateY(-0.35rem);
     }
 
@@ -469,6 +475,8 @@
       gap: 0.75rem;
       margin-left: 1.5rem;
     }
+
+
 
     .lang-switch {
       font-size: 0.8rem;
@@ -539,75 +547,107 @@
     .nav-toggle[aria-expanded='true'] span:nth-child(3) {
       transform: translateY(-4px) rotate(-45deg);
     }
+    /* Desktop navbar — réactiver les liens */
+@media (min-width: 64rem) {
+  .nav-links {
+    display: flex;
+  }
 
-    .nav-menu {
-      position: fixed;
-      inset: calc(var(--nav-height) + 0.5rem) var(--page-padding-x) auto;
-      border-radius: var(--radius-lg);
-      background: rgba(5, 7, 11, 0.97);
-      border: 1px solid var(--border-subtle);
-      box-shadow: var(--shadow-soft);
-      padding: var(--space-4);
-      display: none;
-      flex-direction: column;
-      gap: 1rem;
-      z-index: 35;
-    }
+  .nav-cta {
+    display: flex;
+  }
 
-    .nav-menu.open {
-      display: flex;
-    }
+  .nav-toggle {
+    display: none; /* cache le burger en desktop */
+  }
+}
+    
+/* Menu mobile plein écran façon Modal */
+.nav-menu {
+  position: fixed;
+  top: 0;   /* commence en haut de l'écran */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.24s var(--ease-standard);
+}
 
-    .nav-menu a {
-      font-size: 0.95rem;
-      color: var(--text-primary);
-    }
+/* Fond sombre qui couvre TOUT l'écran */
+.nav-menu::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(24, 58, 52, 0.45), transparent 60%),
+    rgba(3, 7, 12, 0.92);
+  backdrop-filter: blur(22px);
+}
 
-    .nav-menu .nav-menu-secondary {
-      margin-top: var(--space-3);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding-top: var(--space-3);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-    }
+/* Contenu du menu (liens) SOUS la navbar */
+.nav-menu-content {
+  position: absolute;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.5rem var(--page-padding-x) 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 0;
+  overflow-y: auto;
+}
 
-    @media (min-width: 64rem) {
-      .nav-toggle {
-        display: none;
-      }
+/* état ouvert */
+.nav-menu.open {
+  opacity: 1;
+  pointer-events: auto;
+}
 
-      .nav-links {
-        display: flex;
-      }
 
-      .nav-cta {
-        display: flex;
-      }
 
-      .nav-menu {
-        display: none !important;
-      }
-    }
+/* liens principaux sous forme de cases */
+.nav-menu-content > a {
+  display: block;
+  width: 100%;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  padding: 1.2rem 0;                /* zone cliquable bien haute */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
 
-    /* Backdrop for mobile menu */
-    .backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-      z-index: 30;
-      opacity: 0;
-      pointer-events: none;
-      transition:
-        opacity var(--dur-normal) var(--ease-standard);
-    }
+.nav-menu-content > a:first-of-type {
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+}
 
-    .backdrop.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+
+.nav-menu-content .nav-menu-secondary {
+  margin-top: 1.8rem; /* juste sous Performance */
+  padding-top: 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+
+/* blocage du scroll quand le menu est ouvert */
+body.menu-open {
+  overflow: hidden;
+}
+
+/* Desktop : cacher le menu plein écran */
+@media (min-width: 64rem) {
+  .nav-menu {
+    display: none !important;
+  }
+}
+
 
     /* =========================================================
        BUTTONS / CTA
@@ -1851,8 +1891,7 @@ body.is-loaded {
   </style>
 </head>
 <body>
-  <!-- Backdrop for mobile menu -->
-  <div class="backdrop" id="backdrop"></div>
+  
 
   <!-- NAVBAR -->
   <header class="site-header" id="siteHeader">
@@ -1869,6 +1908,8 @@ body.is-loaded {
           <a href="#roadmap">Roadmap</a>
           <a href="blog.html">Journal</a>
           <a href="performance.html">Performance</a>
+          <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
+
         </nav>
 
         <div class="nav-cta">
@@ -1894,20 +1935,24 @@ body.is-loaded {
 
     <!-- Mobile menu -->
     <div class="nav-menu" id="navMenu">
-      <a href="#what-we-do">What we do</a>
-      <a href="#pilot">Pilot phase</a>
-      <a href="#roadmap">Roadmap</a>
-      <a href="blog.html">Journal</a>
-      <a href="performance.html">Performance</a>
+  <div class="nav-menu-content">
+    <a href="#what-we-do">What we do</a>
+    <a href="#pilot">Pilot phase</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="blog.html">Journal</a>
+    <a href="performance.html">Performance</a>
+    <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
 
-      <div class="nav-menu-secondary">
-        <div class="lang-switch">
-          <span class="active">EN</span>
-          <span> / FR</span>
-        </div>
-        <a href="account.html" class="nav-account-btn">Account</a>
+
+    <div class="nav-menu-secondary">
+      <div class="lang-switch">
+        <span class="active">EN</span>
+        <span> / FR</span>
       </div>
+      <a href="account.html" class="nav-account-btn">Account</a>
     </div>
+  </div>
+</div>
   </header>
 
   <!-- MAIN -->
@@ -2400,56 +2445,56 @@ body.is-loaded {
 
  <script>
   // NAVBAR SCROLL + MOBILE MENU
-  (function () {
-    const header = document.getElementById('siteHeader');
-    const navToggle = document.getElementById('navToggle');
-    const navMenu = document.getElementById('navMenu');
-    const backdrop = document.getElementById('backdrop');
+(function () {
+  const header   = document.getElementById('siteHeader');
+  const navToggle = document.getElementById('navToggle');
+  const navMenu   = document.getElementById('navMenu');
 
-    function onScroll() {
-      if (window.scrollY > 8) {
-        header.classList.add('scrolled');
-      } else {
-        header.classList.remove('scrolled');
-      }
+  function onScroll() {
+    if (window.scrollY > 8) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
     }
+  }
 
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
 
-    function closeMenu() {
-      navToggle.setAttribute('aria-expanded', 'false');
-      navMenu.classList.remove('open');
-      backdrop.classList.remove('visible');
+  function closeMenu() {
+    navToggle.setAttribute('aria-expanded', 'false');
+    navMenu.classList.remove('open');
+    document.body.classList.remove('menu-open');
+  }
+
+  function openMenu() {
+    navToggle.setAttribute('aria-expanded', 'true');
+    navMenu.classList.add('open');
+    document.body.classList.add('menu-open');
+  }
+
+  navToggle.addEventListener('click', () => {
+    const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+    if (expanded) {
+      closeMenu();
+    } else {
+      openMenu();
     }
+  });
 
-    function openMenu() {
-      navToggle.setAttribute('aria-expanded', 'true');
-      navMenu.classList.add('open');
-      backdrop.classList.add('visible');
+  // fermer le menu quand on clique sur un lien
+  navMenu.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
+
+  // sécurité : en repassant en desktop, on ferme
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) {
+      closeMenu();
     }
+  });
+})();
 
-    navToggle.addEventListener('click', () => {
-      const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-      if (expanded) {
-        closeMenu();
-      } else {
-        openMenu();
-      }
-    });
-
-    backdrop.addEventListener('click', closeMenu);
-
-    navMenu.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', closeMenu);
-    });
-
-    window.addEventListener('resize', () => {
-      if (window.innerWidth >= 1024) {
-        closeMenu();
-      }
-    });
-  })();
 
   // WHAT WE DO — cartes interactives
   (function () {
