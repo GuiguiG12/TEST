@@ -365,8 +365,96 @@
     /* ==============================
    GLOBAL BUTTONS — G12 STYLE
    ============================== */
+.btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      border-radius: var(--radius-pill);
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 0.7rem 1.5rem;
+      transition:
+        transform var(--dur-fast) var(--ease-standard),
+        box-shadow var(--dur-fast) var(--ease-standard),
+        background var(--dur-fast) var(--ease-standard),
+        color var(--dur-fast) var(--ease-standard);
+      white-space: nowrap;
+    }
+
+    .btn-colour {
+      background: var(--grad-accent);
+      color: #05070b;
+      box-shadow: 0 10px 28px rgba(78, 229, 193, 0.4);
+    }
+
+    .btn-colour:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 40px rgba(78, 229, 193, 0.5);
+    }
 
 
+.btn-colour-flat {
+  background: var(--grad-accent);
+  color: #05070b;
+  /* pas de glow, pas d’ombre */
+  box-shadow: none;
+  padding: 0.45rem 0.95rem; 
+  font-size: 0.82rem; 
+  border-radius: var(--radius-pill);
+}
+
+.btn-colour-flat:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+  box-shadow: none; /* reste clean */
+}
+
+    .btn-line {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    .btn-line:hover {
+      border-color: var(--accent);
+      background: rgba(0, 0, 0, 0.4);
+      transform: translateY(-1px);
+    }
+
+   .btn-grey {
+  align-self: flex-start;
+  margin-top: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  padding: 0.65rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+
+  background: transparent;
+  color: var(--text-primary);
+
+  transition:
+    background 0.2s var(--ease-standard),
+    transform 0.2s cubic-bezier(0.2,0.8,0.3,1),
+    box-shadow 0.2s var(--ease-standard),
+    border-color 0.2s var(--ease-standard);
+}
+
+.btn-grey:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.6);
+}
 
 
     /* =========================================================
@@ -609,8 +697,8 @@
   backdrop-filter: blur(0px);
 
   transition:
-    opacity 0.40s var(--ease-standard),
-    backdrop-filter 0.40s var(--ease-standard);
+    opacity 0.25s var(--ease-standard),
+    backdrop-filter 0.25s var(--ease-standard);
 }
 
 
@@ -656,13 +744,13 @@
   width: 100%;
   font-size: 1.1rem;
   font-weight: 500;
-  color: var(--text-primary);
+  color: rgba(217, 248, 255, 0.95);
   padding: 1.2rem 0;                /* zone cliquable bien haute */
-  border-bottom: 2px solid rgba(255, 255, 255, 0.10);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.259);
 }
 
 .nav-menu-content > a:first-of-type {
-  border-top: 2px solid rgba(255, 255, 255, 0.10);
+  border-top: 2px solid rgba(255, 255, 255, 0.259);
 }
 
 
@@ -687,53 +775,6 @@ body.menu-open {
     display: none !important;
   }
 }
-
-
-    /* =========================================================
-       BUTTONS / CTA
-       ========================================================= */
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4rem;
-      border-radius: var(--radius-pill);
-      border: none;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 500;
-      padding: 0.7rem 1.5rem;
-      transition:
-        transform var(--dur-fast) var(--ease-standard),
-        box-shadow var(--dur-fast) var(--ease-standard),
-        background var(--dur-fast) var(--ease-standard),
-        color var(--dur-fast) var(--ease-standard);
-      white-space: nowrap;
-    }
-
-    .btn-primary {
-      background: var(--grad-accent);
-      color: #05070b;
-      box-shadow: 0 10px 28px rgba(78, 229, 193, 0.4);
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 16px 40px rgba(78, 229, 193, 0.5);
-    }
-
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-primary);
-    }
-
-    .btn-ghost:hover {
-      border-color: var(--accent);
-      background: rgba(0, 0, 0, 0.4);
-      transform: translateY(-1px);
-    }
 
     /* =========================================================
        HERO
@@ -1135,38 +1176,6 @@ body.menu-open {
   color: var(--text-primary);
 }
 
-/* Bouton dark dans la carte de reward */
-.btn-phase-dark {
-  align-self: flex-start;
-  margin-top: 0.3rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-
-  padding: 0.65rem 1.4rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.16);
-
-  font-size: 0.9rem;
-  font-weight: 500;
-  text-decoration: none;
-
-  background: transparent;
-  color: var(--text-primary);
-
-  transition:
-    background 0.2s var(--ease-standard),
-    transform 0.2s cubic-bezier(0.2,0.8,0.3,1),
-    box-shadow 0.2s var(--ease-standard),
-    border-color 0.2s var(--ease-standard);
-}
-
-.btn-phase-dark:hover {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.35);
-  transform: translateY(-1px);
-  box-shadow: 0 12px 26px rgba(0,0,0,0.6);
-}
 
 /* Mobile : on resserre un peu les paddings */
 @media (max-width: 48rem) {
@@ -1394,19 +1403,6 @@ body.menu-open {
     box-shadow: 0 0 0 0 rgba(78, 229, 193, 0);
   }
 }
-
-
-    /* =========================================================
-       JOURNAL PREVIEW
-       ========================================================= */
-
-    /* ==============================
-   LAB JOURNAL
-   ============================== */
-
-/* ==============================
-   LAB JOURNAL — LAYOUT
-   ============================== */
 
 /* ==============================
    LAB JOURNAL — LAYOUT
@@ -1957,7 +1953,7 @@ body.is-loaded {
             <span class="active">EN</span>
             <span> / FR</span>
           </div>
-          <a href="account.html" class="nav-account-btn">
+          <a href="account.html" class="btn btn-colour-flat">
             <span>Account</span>
           </a>
         </div>
@@ -1989,7 +1985,7 @@ body.is-loaded {
         <span class="active">EN</span>
         <span> / FR</span>
       </div>
-      <a href="account.html" class="nav-account-btn">Account</a>
+      <a href="account.html" class="btn btn-colour-flat">Account</a>
     </div>
   </div>
 </div>
@@ -2009,8 +2005,8 @@ body.is-loaded {
           market conditions. Built to operate continuously with disciplined risk management and clear performance tracking.
         </p>
         <div class="hero-cta">
-          <a href="private-raise.html" class="btn btn-primary">Request access</a>
-          <a href="#what-we-do" class="btn btn-ghost">Learn more</a>
+          <a href="private-raise.html" class="btn btn-colour">Request access</a>
+          <a href="#what-we-do" class="btn btn-line">Learn more</a>
         </div>
       </div>
 
@@ -2154,7 +2150,7 @@ body.is-loaded {
         along with <strong>additional benefits</strong> detailed in our GitHub documentation.
       </p>
 
-      <a href="private-raise.html" class="btn-phase-dark">
+      <a href="private-raise.html" class="btn-grey">
         Learn about the private raise →
       </a>
     </div>
@@ -2323,7 +2319,7 @@ body.is-loaded {
         </p>
 
         <div class="journal-footer">
-          <a href="blog.html" class="btn-phase-dark">
+          <a href="blog.html" class="btn-grey">
             View all journal entries
           </a>
         </div>
@@ -2357,7 +2353,7 @@ body.is-loaded {
               placeholder="you@example.com"
               required
             />
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-colour">
               Join the lab update
             </button>
           </div>
