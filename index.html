@@ -162,7 +162,7 @@
       /* Nav */
       --nav-height: 5rem;
       --nav-bg: rgba(5, 7, 11, 0.044);
-      --nav-bg-scrolled: rgba(5, 7, 11, 0.604);
+      --nav-bg-scrolled: rgba(63, 63, 63, 0.748);
 
       /* Cards */
       --card-bg: rgba(20, 26, 33, 0.95);
@@ -495,7 +495,7 @@
     border-color var(--dur-normal) var(--ease-standard),
     transform var(--dur-normal) var(--ease-standard);
   pointer-events: auto;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 5px 15px rgba(10, 10, 10, 0.536);
   position: relative;
   z-index: 200;
 }
@@ -539,7 +539,7 @@
     .nav-links a {
       position: relative;
       padding-block: 0.25rem;
-      color: var(--text-secondary);
+      color: var(--color-quartz-100);
       transition: color var(--dur-fast) var(--ease-standard);
     }
 
@@ -573,12 +573,12 @@
 
     .lang-switch {
       font-size: 0.8rem;
-      color: var(--text-soft);
+      color: var(--color-quartz-text-muted);
       cursor: pointer;
     }
 
     .lang-switch span.active {
-      color: var(--text-primary);
+      color: var(--color-quartz-100);
       font-weight: 500;
     }
 
@@ -711,8 +711,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top, rgba(57, 78, 74, 0.562), transparent 60%),
-    rgba(21, 23, 26, 0.796);
+    radial-gradient(circle at top, rgba(68, 83, 80, 0.522), transparent 60%),
+    rgba(21, 23, 26, 0.69);
 }
   
 
@@ -748,7 +748,7 @@
   width: 100%;
   font-size: 1.1rem;
   font-weight: 500;
-  color: rgba(217, 248, 255, 0.95);
+  color: var(--color-quartz-100);
   padding: 1.2rem 0;                /* zone cliquable bien haute */
   border-bottom: 2px solid rgba(255, 255, 255, 0.259);
 }
