@@ -400,7 +400,6 @@
   background: var(--nav-bg);
   backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  margin-top: 0,5rem;
   margin-block: 3rem;
   padding-block: 0.6rem;
   transition:
@@ -409,10 +408,16 @@
     transform var(--dur-normal) var(--ease-standard);
   pointer-events: auto;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
-
-  /* 👇 À AJOUTER */
   position: relative;
   z-index: 200;
+}
+
+/* Mobile: navbar un peu plus petite et décollée des bords */
+@media (max-width: 63.99rem) {
+  .nav-inner {
+    padding-inline: 1.2rem;
+    margin-inline: 0.9rem;
+  }
 }
 
 
@@ -513,40 +518,66 @@
     }
 
     /* Burger */
-    .nav-toggle {
-      border: none;
-      background: none;
-      padding: 0.35rem;
-      border-radius: var(--radius-pill);
-      display: inline-flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 0.22rem;
-      cursor: pointer;
-    }
+    /* Burger – version stable (sans reflow) */
+.nav-toggle {
+  border: none;
+  background: none;
+  padding: 0.35rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
 
-    .nav-toggle span {
-      width: 1.4rem;
-      height: 2px;
-      border-radius: 999px;
-      background: var(--text-primary);
-      transition:
-        transform var(--dur-fast) var(--ease-standard),
-        opacity var(--dur-fast) var(--ease-standard);
-    }
+  position: relative;
+  width: 1.6rem;   /* largeur de l’icône */
+  height: 1.1rem;  /* hauteur de l’icône */
+  display: inline-block;
+}
 
-    .nav-toggle[aria-expanded='true'] span:nth-child(1) {
-      transform: translateY(4px) rotate(45deg);
-    }
+.nav-toggle span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--text-primary);
 
-    .nav-toggle[aria-expanded='true'] span:nth-child(2) {
-      opacity: 0;
-    }
+  transform-origin: center;
+  transition:
+    transform var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard),
+    top var(--dur-fast) var(--ease-standard),
+    bottom var(--dur-fast) var(--ease-standard);
+}
 
-    .nav-toggle[aria-expanded='true'] span:nth-child(3) {
-      transform: translateY(-4px) rotate(-45deg);
-    }
+/* positions au repos */
+.nav-toggle span:nth-child(1) {
+  top: 0;
+}
+
+.nav-toggle span:nth-child(2) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.nav-toggle span:nth-child(3) {
+  bottom: 0;
+}
+
+/* état ouvert → croix */
+.nav-toggle[aria-expanded='true'] span:nth-child(1) {
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.nav-toggle[aria-expanded='true'] span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle[aria-expanded='true'] span:nth-child(3) {
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
     /* Desktop navbar — réactiver les liens */
 @media (min-width: 64rem) {
   .nav-links {
@@ -572,8 +603,16 @@
   z-index: 50;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.24s var(--ease-standard);
+
+  /* support pour le blur */
+  background: rgba(3, 7, 12, 0.35);
+  backdrop-filter: blur(0px);
+
+  transition:
+    opacity 0.40s var(--ease-standard),
+    backdrop-filter 0.40s var(--ease-standard);
 }
+
 
 /* Fond sombre qui couvre TOUT l'écran */
 .nav-menu::before {
@@ -581,10 +620,10 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top, rgba(24, 58, 52, 0.45), transparent 60%),
-    rgba(3, 7, 12, 0.92);
-  backdrop-filter: blur(22px);
+    radial-gradient(circle at top, rgba(57, 78, 74, 0.562), transparent 60%),
+    rgba(21, 23, 26, 0.796);
 }
+  
 
 /* Contenu du menu (liens) SOUS la navbar */
 .nav-menu-content {
@@ -606,6 +645,7 @@
 .nav-menu.open {
   opacity: 1;
   pointer-events: auto;
+  backdrop-filter: blur(22px);
 }
 
 
@@ -618,11 +658,11 @@
   font-weight: 500;
   color: var(--text-primary);
   padding: 1.2rem 0;                /* zone cliquable bien haute */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.10);
 }
 
 .nav-menu-content > a:first-of-type {
-  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  border-top: 2px solid rgba(255, 255, 255, 0.10);
 }
 
 
