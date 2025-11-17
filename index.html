@@ -532,7 +532,7 @@
     .nav-links {
       display: none;
       align-items: center;
-      gap: 1.6rem;
+      gap: 2.5rem;
       font-size: 0.9rem;
     }
 
@@ -571,16 +571,49 @@
 
 
 
-    .lang-switch {
-      font-size: 0.8rem;
-      color: var(--color-quartz-text-muted);
-      cursor: pointer;
-    }
+        .lang-switch {
+  font-size: 0.8rem;
+  color: var(--color-quartz-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
 
-    .lang-switch span.active {
-      color: var(--color-quartz-100);
-      font-weight: 500;
-    }
+/* transitions */
+.lang-switch span {
+  transition:
+    color 0.2s var(--ease-standard),
+    opacity 0.2s var(--ease-standard);
+}
+
+/* État normal */
+.lang-switch span.active {
+  color: var(--color-quartz-100); /* blanc comme les onglets */
+  opacity: 1;
+  font-weight: 500;
+}
+
+.lang-switch span:not(.active) {
+  color: var(--color-quartz-text-muted);
+  opacity: 1;
+}
+
+/* État hover : inversion légère */
+@media (hover: hover) {
+  .lang-switch:hover span.active {
+    color: var(--color-quartz-text-muted); /* devient plus sombre */
+    opacity: 1;
+  }
+
+  .lang-switch:hover span:not(.active) {
+    color: var(--color-quartz-100); /* devient blanc */
+    opacity: 1;
+  }
+}
+
+
+
 
     .nav-account-btn {
       border-radius: var(--radius-pill);
@@ -1868,46 +1901,163 @@ body.menu-open {
 }
 
 
-    .footer-top {
-      display: grid;
-      gap: var(--space-4);
-      margin-bottom: var(--space-4);
-    }
+    .site-footer {
+  position: relative;
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-subtle);
+}
 
-    @media (min-width: 56rem) {
-      .footer-top {
-        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-        align-items: start;
-      }
-    }
+/* 3 colonnes en haut */
+.footer-columns {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
 
-    .footer-brand {
-      max-width: 20rem;
-    }
+@media (min-width: 40rem) {
+  .footer-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 
-    .footer-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1.25rem;
-    }
+.footer-column {
+  min-width: 0;
+}
 
-    .footer-links a {
-      color: var(--text-soft);
-      font-size: 0.85rem;
-    }
+.footer-heading {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-soft);
+  margin-bottom: var(--space-3);
+}
 
-    .footer-links a:hover {
-      color: var(--text-primary);
-    }
+.footer-links-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
 
-    .footer-bottom {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 0.75rem;
-      align-items: center;
-      font-size: 0.8rem;
-    }
+.footer-links-list a {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.footer-links-list a:hover {
+  color: var(--text-primary);
+}
+
+/* Grande phrase + logo ghost */
+.footer-main {
+  position: relative;
+  padding: var(--space-5) 0 var(--space-6);
+  overflow: hidden;
+}
+
+.footer-tagline-main {
+  position: relative;
+  z-index: 1;
+  max-width: 18ch;
+  font-size: clamp(2.2rem, 5vw, 3.3rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
+}
+
+/* logo énorme, très pâle, qui commence derrière le texte */
+.footer-main-logo-img {
+  position: absolute;
+  right: 10rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(32rem, 80vw);
+  opacity: 0.10;
+  filter: grayscale(1) contrast(1.05);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Bas du footer */
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0 var(--space-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.footer-back-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: var(--text-soft);
+}
+
+.footer-back-top:hover {
+  color: var(--text-primary);
+}
+
+.footer-back-top-arrow {
+  font-size: 0.9rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.footer-bottom-right {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.footer-bottom-right a {
+  text-decoration: none;
+  color: var(--text-soft);
+}
+
+.footer-bottom-right a:hover {
+  color: var(--text-primary);
+}
+
+.footer-separator {
+  opacity: 0.7;
+}
+
+@media (max-width: 40rem) {
+  /* Logo repositionné sous le texte et à droite */
+  .footer-main-logo-img {
+    top: auto;             /* On enlève le centrage vertical */
+    bottom: -1rem;         /* Le mettre en dessous du texte */
+    right: -3rem;          /* Légèrement décalé à droite */
+    transform: none;       /* Supprimer translateY(-50%) */
+    width: min(22rem, 85vw);
+    opacity: 0.06;
+  }
+
+  /* Centrage du bas du footer */
+  .footer-bottom {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-bottom-right {
+    justify-content: center;
+  }
+}
+
+
 
     /* =========================================================
        RESPONSIVE TWEAKS
@@ -1943,14 +2093,13 @@ body.is-loaded {
         </a>
 
         <nav class="nav-links" aria-label="Main navigation">
-          <a href="#what-we-do">What we do</a>
-          <a href="#pilot">Pilot phase</a>
-          <a href="#roadmap">Roadmap</a>
-          <a href="blog.html">Journal</a>
-          <a href="performance.html">Performance</a>
-          <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
+  <a href="#home">Home</a>
+  <a href="performance.html">Performance</a>
+  <a href="blog.html">Blog</a>
+  <a href="private-raise.html">Raise</a>
+  <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
+</nav>
 
-        </nav>
 
         <div class="nav-cta">
           <div class="lang-switch">
@@ -1973,27 +2122,26 @@ body.is-loaded {
       </div>
     </div>
 
-    <!-- Mobile menu -->
+        <!-- Mobile menu -->
     <div class="nav-menu" id="navMenu">
-  <div class="nav-menu-content">
-    <a href="#what-we-do">What we do</a>
-    <a href="#pilot">Pilot phase</a>
-    <a href="#roadmap">Roadmap</a>
-    <a href="blog.html">Journal</a>
-    <a href="performance.html">Performance</a>
-    <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
+      <div class="nav-menu-content">
+        <a href="#home">Home</a>
+        <a href="performance.html">Performance</a>
+        <a href="blog.html">Blog</a>
+        <a href="private-raise.html">Raise</a>
+        <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
 
-
-    <div class="nav-menu-secondary">
-      <div class="lang-switch">
-        <span class="active">EN</span>
-        <span> / FR</span>
+        <div class="nav-menu-secondary">
+          <div class="lang-switch">
+            <span class="active">EN</span>
+            <span> / FR</span>
+          </div>
+          <a href="account.html" class="btn btn-colour-flat">Account</a>
+        </div>
       </div>
-      <a href="account.html" class="btn btn-colour-flat">Account</a>
     </div>
-  </div>
-</div>
   </header>
+
 
   <!-- MAIN -->
   <main>
@@ -2451,37 +2599,77 @@ body.is-loaded {
 
 
   <!-- FOOTER -->
-  <footer>
-    <div class="container">
-      <div class="footer-top">
-        <div class="footer-brand">
-          <div class="nav-brand">
-            <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="nav-brand-logo" />
-          </div>
-          
-        </div>
-
-        <div>
-          <div class="footer-links">
-            <a href="#what-we-do">What we do</a>
-            <a href="#pilot">Pilot</a>
-            <a href="#roadmap">Roadmap</a>
-            <a href="performance.html">Performance</a>
-            <a href="blog.html">Journal</a>
-            <a href="private-raise.html">Private raise</a>
-          </div>
-        </div>
+  <footer class="site-footer">
+  <div class="container">
+    <!-- 3 colonnes en haut -->
+    <div class="footer-columns">
+      <div class="footer-column">
+        <h3 class="footer-heading">Quick links</h3>
+        <ul class="footer-links-list">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#what-we-do">What we do</a></li>
+          <li><a href="#pilot">Pilot program</a></li>
+          <li><a href="#roadmap">Roadmap</a></li>
+          <li><a href="performance.html">Performance</a></li>
+          <li><a href="blog.html">Journal</a></li>
+          <li><a href="private-raise.html">Private raise</a></li>
+          <li><a href="account.html">Account</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
       </div>
 
-      <div class="footer-bottom">
-        <span>© 2025 G12 Labs. All rights reserved.</span>
-        <span>
-          <a href="legal.html">Legal</a> ·
-          <a href="privacy.html">Privacy</a>
-        </span>
+      <div class="footer-column">
+        <h3 class="footer-heading">Docs</h3>
+        <ul class="footer-links-list">
+          <li>
+            <a href="https://github.com/G12-Labs" target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h3 class="footer-heading">Contact</h3>
+        <ul class="footer-links-list">
+          <li><a href="mailto:info@g12labs.com">info@g12labs.com</a></li>
+        </ul>
       </div>
     </div>
-  </footer>
+
+    <!-- Grande phrase + logo ghost -->
+    <div class="footer-main">
+      <h2 class="footer-tagline-main">
+        Become Inevitable.
+      </h2>
+
+      <img
+        src="fulllogo_transparent_nobuffer.png"
+        alt=""
+        class="footer-main-logo-img"
+        aria-hidden="true"
+      />
+    </div>
+
+    <!-- Bas de footer -->
+    <div class="footer-bottom">
+      <a href="#home" class="footer-back-top">
+        <span class="footer-back-top-arrow">↑</span>
+        <span>Back to top</span>
+      </a>
+
+      <div class="footer-bottom-right">
+        <span>© 2025 G12 Labs</span>
+        <span class="footer-separator">·</span>
+        <a href="legal.html">Terms &amp; Conditions</a>
+        <span class="footer-separator">·</span>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
 
  <script>
   // NAVBAR SCROLL + MOBILE MENU
