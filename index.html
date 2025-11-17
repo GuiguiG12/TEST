@@ -2035,23 +2035,22 @@ body.menu-open {
 }
 
 @media (max-width: 640px) {
-  /* On donne plus de place pour que le logo puisse apparaître */
   .footer-main {
     padding-bottom: var(--space-8);
   }
 
-  /* Logo sous le texte, bien dans le bloc, plus visible */
   .footer-main-logo-img {
-    top: auto;             /* On enlève le centrage vertical */
-    bottom: 0;             /* Collé en bas de la section */
-    right: -2rem;          /* Légèrement décalé à droite */
-    transform: none;       /* Plus de translateY(-50%) */
-    width: min(26rem, 95vw);
-    opacity: 0.10;          /* PLUS visible qu’avant */
+    top: auto;
+    bottom: var(--space-2);      /* un peu au-dessus du bord bas */
+    right: 0;                    /* plus de valeur négative */
+    transform: none;
+    width: min(18rem, 80vw);     /* plus petit, bien contenu */
+    opacity: 0.25;               /* beaucoup plus visible */
     filter: grayscale(1) brightness(1.15) contrast(1.1);
+    /* DEBUG TEMPORAIRE : à enlever après test si tu veux */
+    /* border: 1px solid rgba(255, 255, 255, 0.5); */
   }
 
-  /* Centrage du bas du footer */
   .footer-bottom {
     flex-direction: column;
     align-items: center;
@@ -2062,6 +2061,7 @@ body.menu-open {
     justify-content: center;
   }
 }
+
 
 
 
