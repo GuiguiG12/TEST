@@ -525,7 +525,7 @@
     }
 
     .nav-brand-logo {
-      height: 1.7rem;
+      height: 1.4rem;
       width: auto;
     }
 
@@ -697,8 +697,11 @@
   backdrop-filter: blur(0px);
 
   transition:
-    opacity 0.25s var(--ease-standard),
-    backdrop-filter 0.25s var(--ease-standard);
+    opacity 0.33s var(--ease-standard),
+    backdrop-filter 0.33s var(--ease-standard);
+
+    overflow: hidden;     /* 👈 empêche tout scroll interne */
+  touch-action: none; 
 }
 
 
@@ -726,8 +729,9 @@
   justify-content: flex-start;
   align-items: stretch;
   gap: 0;
-  overflow-y: auto;
+    overflow: hidden;
 }
+
 
 /* état ouvert */
 .nav-menu.open {
