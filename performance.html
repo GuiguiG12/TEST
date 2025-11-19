@@ -1,30 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="carbon">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>G12 Labs — Performance</title>
 
   <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+/>
+
 
   <style>
+    /* =========================================================
+       DESIGN SYSTEM — ROOT TOKENS
+       ========================================================= */
+
     :root {
       /* --- Layout --- */
       --container-max: 1200px;
       --page-padding-x: 1.25rem;
-      --section-padding-y-mobile: 2.75rem;
-      --section-padding-y-desktop: 3rem;
+      --section-padding-y-mobile: 4rem;
+      --section-padding-y-desktop: 6.5rem;
+
 
       /* --- Base font --- */
-      --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
-        "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+        'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 
       /* font sizes (mobile-first) */
       --fs-caption: 0.8rem;
@@ -121,14 +125,14 @@
         var(--accent-mint)
       );
 
-       --grad-hero-halo: radial-gradient(
+      --grad-hero-halo: radial-gradient(
           circle at 0% 0%,
           rgba(174, 248, 231, 0.547),
           transparent 55%
         ),
         radial-gradient(
           circle at 100% 100%,
-          rgba(0, 0, 0, 0.318),
+          rgba(31, 32, 32, 0.507),
           transparent 60%
         );
 
@@ -157,8 +161,8 @@
 
       /* Nav */
       --nav-height: 5rem;
-      --nav-bg: rgba(5, 7, 11, 0.2);
-      --nav-bg-scrolled: rgba(5, 7, 11, 0.86);
+      --nav-bg: rgba(5, 7, 11, 0.044);
+      --nav-bg-scrolled: rgba(63, 63, 63, 0.748);
 
       /* Cards */
       --card-bg: rgba(20, 26, 33, 0.95);
@@ -169,6 +173,35 @@
       --input-border: rgba(255, 255, 255, 0.12);
       --input-border-focus: var(--accent);
       --input-shadow-focus: 0 0 0 3px rgba(78, 229, 193, 0.22);
+    }
+
+    /* =========================================================
+       THEME OVERRIDE (Quartz) — for later
+       ========================================================= */
+
+    [data-theme='quartz'] {
+      --surface-bg: var(--color-quartz-050);
+      --surface-elevated: var(--color-quartz-100);
+      --surface-subtle: var(--color-quartz-200);
+
+      --text-primary: var(--color-quartz-text-main);
+      --text-secondary: var(--color-quartz-text-muted);
+      --text-soft: #8c94a2;
+      --text-inverse: #f8fafc;
+
+      --border-subtle: rgba(24, 32, 45, 0.06);
+      --border-strong: rgba(24, 32, 45, 0.18);
+
+      --nav-bg: rgba(242, 244, 247, 0.9);
+      --nav-bg-scrolled: rgba(242, 244, 247, 0.98);
+
+      --card-bg: var(--color-quartz-100);
+      --card-hover-bg: #cfd5e0;
+
+      --input-bg: #f8fafc;
+      --input-border: rgba(24, 32, 45, 0.16);
+      --input-border-focus: var(--accent);
+      --input-shadow-focus: 0 0 0 3px rgba(78, 229, 193, 0.2);
     }
 
     /* =========================================================
@@ -192,28 +225,28 @@
       }
     }
 
-   body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: var(--font-sans);
-  background: var(--surface-bg);
-  color: var(--text-primary);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      background: var(--surface-bg);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    var(--grad-hero-halo),
-    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.03), transparent 60%);
-  opacity: 0.55;
-  pointer-events: none;
-  z-index: -1;
-}
-
+    body::before {
+      /* subtle background halo for Carbon */
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        var(--grad-hero-halo),
+        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.03), transparent 60%);
+      opacity: 0.55;
+      pointer-events: none;
+      z-index: -1;
+    }
 
     img {
       max-width: 100%;
@@ -233,13 +266,6 @@ body::before {
       max-width: var(--container-max);
       margin: 0 auto;
       padding-inline: var(--page-padding-x);
-    }
-
-    /* 🔧 plus de marge sur petits écrans pour éviter l’effet collé aux bords */
-    @media (max-width: 40rem) {
-      .container {
-        padding-inline: 1.5rem;
-      }
     }
 
     section {
@@ -336,231 +362,456 @@ body::before {
       border-color: var(--border-strong);
     }
 
-    .btn {
+    /* ==============================
+   GLOBAL BUTTONS — G12 STYLE
+   ============================== */
+.btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.45rem;
-      padding: 0.6rem 1.15rem;
+      gap: 0.4rem;
       border-radius: var(--radius-pill);
-      border: 1px solid transparent;
-      font-size: var(--fs-caption);
-      font-weight: 500;
+      border: none;
       cursor: pointer;
-      background: transparent;
-      color: var(--text-primary);
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 0.7rem 1.5rem;
       transition:
-        background var(--dur-fast) var(--ease-standard),
-        border-color var(--dur-fast) var(--ease-standard),
         transform var(--dur-fast) var(--ease-standard),
-        box-shadow var(--dur-fast) var(--ease-standard);
+        box-shadow var(--dur-fast) var(--ease-standard),
+        background var(--dur-fast) var(--ease-standard),
+        color var(--dur-fast) var(--ease-standard);
+      white-space: nowrap;
     }
 
-    .btn-primary {
+    .btn-colour {
       background: var(--grad-accent);
-      color: var(--text-inverse);
-      box-shadow: 0 0 0 1px rgba(78, 229, 193, 0.5),
-        0 14px 30px rgba(0, 0, 0, 0.6);
+      color: #05070b;
+      box-shadow: 0 10px 28px rgba(78, 229, 193, 0.4);
     }
 
-    .btn-primary:hover {
+    .btn-colour:hover {
       transform: translateY(-1px);
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75);
+      box-shadow: 0 16px 40px rgba(78, 229, 193, 0.5);
     }
 
-    .btn-ghost {
-      border-color: rgba(255, 255, 255, 0.18);
-      background: rgba(5, 7, 11, 0.6);
+
+.btn-colour-flat {
+  background: var(--grad-accent);
+  color: #05070b;
+  /* pas de glow, pas d’ombre */
+  box-shadow: none;
+  padding: 0.45rem 0.95rem; 
+  font-size: 0.82rem; 
+  border-radius: var(--radius-pill);
+}
+
+.btn-colour-flat:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+  box-shadow: none; /* reste clean */
+}
+
+    .btn-line {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
     }
 
-    .btn-ghost:hover {
-      border-color: rgba(255, 255, 255, 0.3);
-      background: rgba(10, 14, 20, 0.96);
+    .btn-line:hover {
+      border-color: var(--accent);
+      background: rgba(0, 0, 0, 0.4);
       transform: translateY(-1px);
     }
+
+   .btn-grey {
+  align-self: flex-start;
+  margin-top: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  padding: 0.65rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+
+  background: transparent;
+  color: var(--text-primary);
+
+  transition:
+    background 0.2s var(--ease-standard),
+    transform 0.2s cubic-bezier(0.2,0.8,0.3,1),
+    box-shadow 0.2s var(--ease-standard),
+    border-color 0.2s var(--ease-standard);
+}
+
+.btn-grey:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.6);
+}
+
 
     /* =========================================================
-       NAVBAR (même DA que la landing)
+       NAVBAR
        ========================================================= */
 
     .site-header {
       position: fixed;
       inset-inline: 0;
       top: 0;
-      z-index: 40;
-      pointer-events: none;
+      height: var(--nav-height);
+      z-index: 100;
     }
 
     .nav-shell {
-      padding-block: 0.75rem;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       pointer-events: none;
     }
 
     .nav-inner {
-      width: 100%;
-      max-width: var(--container-max);
-      margin: 0 auto;
-      padding-inline: var(--page-padding-x);
-      padding-block: 0.9rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-radius: 999px;
-      background: var(--nav-bg);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-      transition:
-        background var(--dur-normal) var(--ease-standard),
-        border-color var(--dur-normal) var(--ease-standard),
-        transform var(--dur-normal) var(--ease-standard);
-      pointer-events: auto;
-    }
+  width: 100%;
+  max-width: var(--container-max);
+  padding-inline: var(--page-padding-x);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 999px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-block: 3rem;
+  padding-block: 0.6rem;
+  transition:
+    background var(--dur-normal) var(--ease-standard),
+    border-color var(--dur-normal) var(--ease-standard),
+    transform var(--dur-normal) var(--ease-standard);
+  pointer-events: auto;
+  box-shadow: 0 5px 15px rgba(10, 10, 10, 0.536);
+  position: relative;
+  z-index: 200;
+}
 
-    .site-header.is-scrolled .nav-inner {
+/* Mobile: navbar un peu plus petite et décollée des bords */
+@media (max-width: 63.99rem) {
+  .nav-inner {
+    padding-inline: 1.2rem;
+    margin-inline: 0.9rem;
+  }
+}
+
+
+    .site-header.scrolled .nav-inner {
       background: var(--nav-bg-scrolled);
-      border-color: rgba(255, 255, 255, 0.14);
-      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.088);
+      transform: translateY(-0.35rem);
     }
 
     .nav-brand {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      font-size: 0.9rem;
     }
 
-    .nav-brand img {
-      height: 1.5rem;
-      display: block;
-    }
-
-    .nav-main {
-      display: flex;
-      align-items: center;
-      gap: var(--space-4);
+    .nav-brand-logo {
+      height: 1.4rem;
+      width: auto;
     }
 
     .nav-links {
-      list-style: none;
       display: none;
-      padding: 0;
-      margin: 0;
       align-items: center;
-      gap: var(--space-4);
+      gap: 2.5rem;
+      font-size: 0.9rem;
     }
 
-    .nav-link {
-      font-size: var(--fs-caption);
-      color: var(--text-secondary);
+    .nav-links a {
       position: relative;
-      padding-block: 0.15rem;
+      padding-block: 0.25rem;
+      color: var(--color-quartz-100);
+      transition: color var(--dur-fast) var(--ease-standard);
     }
 
-    .nav-link::after {
-      content: "";
+    .nav-links a::after {
+      content: '';
       position: absolute;
-      inset-inline: 0;
-      bottom: -0.35rem;
+      left: 0;
+      bottom: -0.2rem;
+      width: 0;
       height: 2px;
-      border-radius: 999px;
-      background: var(--grad-accent);
-      transform-origin: center;
-      transform: scaleX(0);
-      opacity: 0;
-      transition:
-        transform var(--dur-fast) var(--ease-standard),
-        opacity var(--dur-fast) var(--ease-standard);
+      background: var(--accent);
+      transition: width var(--dur-fast) var(--ease-standard);
     }
 
-    .nav-link:hover::after,
-    .nav-link.is-active::after {
-      transform: scaleX(1);
-      opacity: 1;
-    }
-
-    .nav-link.is-active {
+    .nav-links a:hover {
       color: var(--text-primary);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
     }
 
     .nav-cta {
       display: none;
+      align-items: center;
+      gap: 0.75rem;
+      margin-left: 1.5rem;
     }
 
-    .nav-toggle {
-      border: none;
-      background: transparent;
-      display: inline-flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 4px;
-      padding: 0.2rem;
-      cursor: pointer;
-    }
 
-    .nav-toggle span {
-      width: 1.25rem;
-      height: 2px;
-      border-radius: 999px;
-      background: #ffffff;
-      transition:
-        transform var(--dur-fast) var(--ease-standard),
-        opacity var(--dur-fast) var(--ease-standard);
-    }
 
-    .nav-toggle.is-open span:nth-child(1) {
-      transform: translateY(4px) rotate(45deg);
-    }
-    .nav-toggle.is-open span:nth-child(2) {
-      opacity: 0;
-    }
-    .nav-toggle.is-open span:nth-child(3) {
-      transform: translateY(-4px) rotate(-45deg);
-    }
+        .lang-switch {
+  font-size: 0.8rem;
+  color: var(--color-quartz-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
 
-    .nav-menu {
-      position: absolute;
-      inset-inline: var(--page-padding-x);
-      top: calc(100% + 0.75rem);
-      border-radius: var(--radius-lg);
-      background: rgba(5, 7, 11, 0.98);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: var(--shadow-soft);
-      padding: var(--space-4);
-      display: none;
-      flex-direction: column;
-      gap: var(--space-3);
-    }
+/* transitions */
+.lang-switch span {
+  transition:
+    color 0.2s var(--ease-standard),
+    opacity 0.2s var(--ease-standard);
+}
 
-    .nav-menu.is-open {
-      display: flex;
-    }
+/* État normal */
+.lang-switch span.active {
+  color: var(--color-quartz-100); /* blanc comme les onglets */
+  opacity: 1;
+  font-weight: 500;
+}
 
-    .nav-menu a {
-      font-size: var(--fs-body);
-      color: var(--text-secondary);
-    }
+.lang-switch span:not(.active) {
+  color: var(--color-quartz-text-muted);
+  opacity: 1;
+}
 
-    .nav-menu a.is-active {
+/* État hover : inversion légère */
+@media (hover: hover) {
+  .lang-switch:hover span.active {
+    color: var(--color-quartz-text-muted); /* devient plus sombre */
+    opacity: 1;
+  }
+
+  .lang-switch:hover span:not(.active) {
+    color: var(--color-quartz-100); /* devient blanc */
+    opacity: 1;
+  }
+}
+
+
+
+
+    .nav-account-btn {
+      border-radius: var(--radius-pill);
+      padding: 0.4rem 1.1rem;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(5, 7, 11, 0.9);
       color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition:
+        background var(--dur-fast) var(--ease-standard),
+        border-color var(--dur-fast) var(--ease-standard),
+        transform var(--dur-fast) var(--ease-standard);
     }
 
-    @media (min-width: 64rem) {
-      .nav-toggle {
-        display: none;
-      }
-
-      .nav-links {
-        display: flex;
-      }
-
-      .nav-cta {
-        display: block;
-      }
-
-      .nav-menu {
-        display: none !important;
-      }
+    .nav-account-btn:hover {
+      background: rgba(5, 7, 11, 1);
+      border-color: var(--accent);
+      transform: translateY(-1px);
     }
+
+    /* Burger */
+    /* Burger – version stable (sans reflow) */
+.nav-toggle {
+  border: none;
+  background: none;
+  padding: 0.35rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+
+  position: relative;
+  width: 1.6rem;   /* largeur de l’icône */
+  height: 1.1rem;  /* hauteur de l’icône */
+  display: inline-block;
+}
+
+.nav-toggle span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--text-primary);
+
+  transform-origin: center;
+  transition:
+    transform var(--dur-fast) var(--ease-standard),
+    opacity var(--dur-fast) var(--ease-standard),
+    top var(--dur-fast) var(--ease-standard),
+    bottom var(--dur-fast) var(--ease-standard);
+}
+
+/* positions au repos */
+.nav-toggle span:nth-child(1) {
+  top: 0;
+}
+
+.nav-toggle span:nth-child(2) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.nav-toggle span:nth-child(3) {
+  bottom: 0;
+}
+
+/* état ouvert → croix */
+.nav-toggle[aria-expanded='true'] span:nth-child(1) {
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.nav-toggle[aria-expanded='true'] span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle[aria-expanded='true'] span:nth-child(3) {
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+    /* Desktop navbar — réactiver les liens */
+@media (min-width: 64rem) {
+  .nav-links {
+    display: flex;
+  }
+
+  .nav-cta {
+    display: flex;
+  }
+
+  .nav-toggle {
+    display: none; /* cache le burger en desktop */
+  }
+}
+    
+/* Menu mobile plein écran façon Modal */
+.nav-menu {
+  position: fixed;
+  top: 0;   /* commence en haut de l'écran */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+
+  /* support pour le blur */
+  background: rgba(3, 7, 12, 0.35);
+  backdrop-filter: blur(0px);
+
+  transition:
+    opacity 0.33s var(--ease-standard),
+    backdrop-filter 0.33s var(--ease-standard);
+
+    overflow: hidden;     /* 👈 empêche tout scroll interne */
+  touch-action: none; 
+}
+
+
+/* Fond sombre qui couvre TOUT l'écran */
+.nav-menu::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(68, 83, 80, 0.522), transparent 60%),
+    rgba(21, 23, 26, 0.69);
+}
+  
+
+/* Contenu du menu (liens) SOUS la navbar */
+.nav-menu-content {
+  position: absolute;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.5rem var(--page-padding-x) 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 0;
+    overflow: hidden;
+}
+
+
+/* état ouvert */
+.nav-menu.open {
+  opacity: 1;
+  pointer-events: auto;
+  backdrop-filter: blur(22px);
+}
+
+
+
+/* liens principaux sous forme de cases */
+.nav-menu-content > a {
+  display: block;
+  width: 100%;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--color-quartz-100);
+  padding: 1.2rem 0;                /* zone cliquable bien haute */
+  border-bottom: 2px solid rgba(255, 255, 255, 0.259);
+}
+
+.nav-menu-content > a:first-of-type {
+  border-top: 2px solid rgba(255, 255, 255, 0.259);
+}
+
+
+.nav-menu-content .nav-menu-secondary {
+  margin-top: 1.8rem; /* juste sous Performance */
+  padding-top: 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+
+/* blocage du scroll quand le menu est ouvert */
+body.menu-open {
+  overflow: hidden;
+}
+
+/* Desktop : cacher le menu plein écran */
+@media (min-width: 64rem) {
+  .nav-menu {
+    display: none !important;
+  }
+}
 
     /* =========================================================
        HERO PERFORMANCE
@@ -873,54 +1124,175 @@ body::before {
        ========================================================= */
 
     footer {
-      padding-block: var(--space-8);
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      margin-top: var(--space-8);
-      background-color: var(--color-carbon-900);
-    }
+  padding-block: var(--space-8);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-carbon-900);
+  position: relative;
+  overflow: hidden;
+}
 
-    .footer-layout {
-      display: grid;
-      gap: var(--space-6);
-    }
 
-    @media (min-width: 56rem) {
-      .footer-layout {
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-      }
-    }
+    .site-footer {
+  position: relative;
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-subtle);
+}
 
-    .footer-meta {
-      font-size: var(--fs-caption);
-      color: var(--text-secondary);
-      max-width: 22rem;
-    }
+/* 3 colonnes en haut */
+.footer-columns {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
 
-    .footer-nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-6);
-      font-size: var(--fs-caption);
-    }
+@media (min-width: 40rem) {
+  .footer-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 
-    .footer-nav-group h3 {
-      font-size: 0.9rem;
-      margin: 0 0 var(--space-2);
-    }
+.footer-column {
+  min-width: 0;
+}
 
-    .footer-links {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 0.25rem;
-    }
+.footer-heading {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-soft);
+  margin-bottom: var(--space-3);
+}
 
-    .footer-bottom {
-      margin-top: var(--space-6);
-      font-size: 0.75rem;
-      color: var(--text-soft);
-    }
+.footer-links-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.footer-links-list a {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.footer-links-list a:hover {
+  color: var(--text-primary);
+}
+
+/* Grande phrase + logo ghost */
+.footer-main {
+  position: relative;
+  padding: var(--space-5) 0 var(--space-6);
+  overflow: hidden;
+}
+
+.footer-tagline-main {
+  position: relative;
+  z-index: 1;
+  max-width: 18ch;
+  font-size: clamp(2.2rem, 5vw, 3.3rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
+}
+
+/* logo énorme, très pâle, qui commence derrière le texte */
+.footer-main-logo-img {
+  position: absolute;
+  right: 10rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(32rem, 80vw);
+  opacity: 0.14;
+  filter: grayscale(1) contrast(1.05);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Bas du footer */
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0 var(--space-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.footer-back-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: var(--text-soft);
+}
+
+.footer-back-top:hover {
+  color: var(--text-primary);
+}
+
+.footer-back-top-arrow {
+  font-size: 0.9rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.footer-bottom-right {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.footer-bottom-right a {
+  text-decoration: none;
+  color: var(--text-soft);
+}
+
+.footer-bottom-right a:hover {
+  color: var(--text-primary);
+}
+
+.footer-separator {
+  opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+  .footer-main {
+    padding-bottom: var(--space-8);
+  }
+
+  .footer-main-logo-img {
+    top: auto;
+    bottom: var(--space-2);      /* un peu au-dessus du bord bas */
+    right: 0;                    /* plus de valeur négative */
+    transform: none;
+    width: min(18rem, 80vw);     /* plus petit, bien contenu */
+    opacity: 0.40;               /* beaucoup plus visible */
+    filter: grayscale(1) brightness(1.15) contrast(1.1);
+    /* DEBUG TEMPORAIRE : à enlever après test si tu veux */
+    /* border: 1px solid rgba(255, 255, 255, 0.5); */
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-bottom-right {
+    justify-content: center;
+  }
+}
+
 
     /* Page fade-in / fade-out */
 body {
@@ -936,48 +1308,65 @@ body.is-loaded {
 </head>
 <body>
 
-  <!-- HEADER / NAV -->
-  <header class="site-header">
+  <!-- NAVBAR -->
+  <header class="site-header" id="siteHeader">
     <div class="nav-shell">
       <div class="nav-inner">
-        <a href="index.html" class="nav-brand">
-          <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs logo" />
+        <a href="#home" class="nav-brand">
+          <!-- Replace src by your logo -->
+          <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="nav-brand-logo" />
         </a>
 
-        <nav class="nav-main" aria-label="Primary">
-          <ul class="nav-links">
-            <li><a href="index.html#top" class="nav-link">Overview</a></li>
-            <li><a href="performance.html" class="nav-link is-active">Performance</a></li>
-            <li><a href="blog.html" class="nav-link">Journal</a></li>
-            <li><a href="documentation.html" class="nav-link">Docs</a></li>
-          </ul>
-          <div class="nav-cta">
-            <a href="index.html#access" class="btn btn-ghost">Account</a>
+        <nav class="nav-links" aria-label="Main navigation">
+  <a href="index.html">Home</a>
+  <a href="performance.html">Performance</a>
+  <a href="blog.html">Blog</a>
+  <a href="private-raise.html">Raise</a>
+  <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
+</nav>
+
+
+        <div class="nav-cta">
+          <div class="lang-switch">
+            <span class="active">EN</span>
+            <span> / FR</span>
           </div>
-        </nav>
+          <a href="account.html" class="btn btn-colour-flat">
+            <span>Account</span>
+          </a>
+        </div>
 
         <button
           class="nav-toggle"
-          type="button"
-          aria-label="Toggle navigation"
+          id="navToggle"
+          aria-label="Open navigation"
           aria-expanded="false"
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span></span><span></span><span></span>
         </button>
       </div>
+    </div>
 
-      <!-- Mobile menu -->
-      <div class="nav-menu" id="navMenu">
-        <a href="index.html#top" class="is-active">Overview</a>
-        <a href="performance.html" class="is-active">Performance</a>
-        <a href="blog.html">Journal</a>
-        <a href="documentation.html">Docs</a>
-        <a href="index.html#access">Account</a>
+        <!-- Mobile menu -->
+    <div class="nav-menu" id="navMenu">
+      <div class="nav-menu-content">
+        <a href="index.html">Home</a>
+        <a href="performance.html">Performance</a>
+        <a href="blog.html">Blog</a>
+        <a href="private-raise.html">Raise</a>
+        <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
+
+        <div class="nav-menu-secondary">
+          <div class="lang-switch">
+            <span class="active">EN</span>
+            <span> / FR</span>
+          </div>
+          <a href="account.html" class="btn btn-colour-flat">Account</a>
+        </div>
       </div>
     </div>
   </header>
+
 
   <!-- MAIN -->
   <main>
@@ -1146,74 +1535,130 @@ body.is-loaded {
   </main>
 
   <!-- FOOTER -->
-  <footer>
-    <div class="container">
-      <div class="footer-layout">
-        <div>
-          <a href="index.html" class="nav-brand">
-            <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs logo" />
-          </a>
-          <p class="footer-meta">
-            G12 Labs is an experimental crypto lab exploring data-driven
-            strategies with a focus on risk-aware execution and transparent
-            reporting.
-          </p>
-        </div>
-        <div class="footer-nav">
-          <div class="footer-nav-group">
-            <h3>Navigation</h3>
-            <ul class="footer-links">
-              <li><a href="index.html#top">Overview</a></li>
-              <li><a href="performance.html">Performance</a></li>
-              <li><a href="blog.html">Journal</a></li>
-              <li><a href="documentation.html">Docs</a></li>
-            </ul>
-          </div>
-          <div class="footer-nav-group">
-            <h3>Contact</h3>
-            <ul class="footer-links">
-              <li><a href="mailto:support@g12.finance">support@g12.finance</a></li>
-            </ul>
-          </div>
-        </div>
+  <footer class="site-footer">
+  <div class="container">
+    <!-- 3 colonnes en haut -->
+    <div class="footer-columns">
+      <div class="footer-column">
+        <h3 class="footer-heading">Quick links</h3>
+        <ul class="footer-links-list">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#what-we-do">What we do</a></li>
+          <li><a href="#pilot">Pilot program</a></li>
+          <li><a href="#roadmap">Roadmap</a></li>
+          <li><a href="performance.html">Performance</a></li>
+          <li><a href="blog.html">Journal</a></li>
+          <li><a href="private-raise.html">Private raise</a></li>
+          <li><a href="account.html">Account</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
       </div>
-      <p class="footer-bottom">© 2025 G12 Labs — Pilot phase. All rights reserved.</p>
+
+      <div class="footer-column">
+        <h3 class="footer-heading">Docs</h3>
+        <ul class="footer-links-list">
+          <li>
+            <a href="https://github.com/G12-Labs" target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h3 class="footer-heading">Contact</h3>
+        <ul class="footer-links-list">
+          <li><a href="mailto:info@g12labs.com">info@g12labs.com</a></li>
+        </ul>
+      </div>
     </div>
-  </footer>
+
+    <!-- Grande phrase + logo ghost -->
+    <div class="footer-main">
+      <h2 class="footer-tagline-main">
+        Become Inevitable.
+      </h2>
+
+      <img
+        src="fulllogo_transparent_nobuffer.png"
+        alt=""
+        class="footer-main-logo-img"
+        aria-hidden="true"
+      />
+    </div>
+
+    <!-- Bas de footer -->
+    <div class="footer-bottom">
+      <a href="#home" class="footer-back-top">
+        <span class="footer-back-top-arrow">↑</span>
+        <span>Back to top</span>
+      </a>
+
+      <div class="footer-bottom-right">
+        <span>© 2025 G12 Labs</span>
+        <span class="footer-separator">·</span>
+        <a href="legal.html">Terms &amp; Conditions</a>
+        <span class="footer-separator">·</span>
+        <a href="privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
 
   <!-- SCRIPTS: NAV + ECHARTS + PERFORMANCE LOGIC -->
 
   <script>
-    // Navbar behaviour
-    (function () {
-      const header = document.querySelector(".site-header");
-      const toggle = document.querySelector(".nav-toggle");
-      const menu = document.getElementById("navMenu");
+     // NAVBAR SCROLL + MOBILE MENU
+(function () {
+  const header   = document.getElementById('siteHeader');
+  const navToggle = document.getElementById('navToggle');
+  const navMenu   = document.getElementById('navMenu');
 
-      function onScroll() {
-        if (window.scrollY > 8) {
-          header.classList.add("is-scrolled");
-        } else {
-          header.classList.remove("is-scrolled");
-        }
-      }
-      onScroll();
-      window.addEventListener("scroll", onScroll, { passive: true });
+  function onScroll() {
+    if (window.scrollY > 8) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  }
 
-      toggle.addEventListener("click", () => {
-        const isOpen = toggle.classList.toggle("is-open");
-        menu.classList.toggle("is-open", isOpen);
-        toggle.setAttribute("aria-expanded", String(isOpen));
-      });
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
 
-      menu.querySelectorAll("a").forEach((link) => {
-        link.addEventListener("click", () => {
-          toggle.classList.remove("is-open");
-          menu.classList.remove("is-open");
-          toggle.setAttribute("aria-expanded", "false");
-        });
-      });
-    })();
+  function closeMenu() {
+    navToggle.setAttribute('aria-expanded', 'false');
+    navMenu.classList.remove('open');
+    document.body.classList.remove('menu-open');
+  }
+
+  function openMenu() {
+    navToggle.setAttribute('aria-expanded', 'true');
+    navMenu.classList.add('open');
+    document.body.classList.add('menu-open');
+  }
+
+  navToggle.addEventListener('click', () => {
+    const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+    if (expanded) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
+
+  // fermer le menu quand on clique sur un lien
+  navMenu.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
+
+  // sécurité : en repassant en desktop, on ferme
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) {
+      closeMenu();
+    }
+  });
+})();
+
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
