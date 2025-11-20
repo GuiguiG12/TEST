@@ -2215,13 +2215,24 @@ body.is-loaded {
 
     const href = link.getAttribute('href');
     if (!href) return;
+    
+    // Si le lien s'ouvre dans un nouvel onglet, on ignore
+    if (link.target === '_blank') return;
 
-    // On ne fade que les liens internes (même domaine / simple .html / #)
+    // 1. Si c'est une ancre pure (#...), on ne fait rien (scroll natif)
+    if (href.startsWith('#')) return;
+
+    // 2. Si c'est un lien vers la page ACTUELLE (ex: index.html#home alors qu'on est sur index)
+    // On compare l'URL complète sans le hash (#)
+    if (link.href.split('#')[0] === window.location.href.split('#')[0]) {
+       return; // On laisse le navigateur scroller sans fade-out
+    }
+
+    // Filtre pour ne cibler que les liens internes du site
     const isInternal =
-      href.startsWith('#') ||
       href.endsWith('.html') ||
       href === '/' ||
-      !href.startsWith('http');
+      (!href.startsWith('http') && !href.startsWith('mailto:'));
 
     if (!isInternal) return;
 
