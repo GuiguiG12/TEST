@@ -236,16 +236,23 @@
     }
 
     body::before {
-      /* subtle background halo for Carbon */
       content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        var(--grad-hero-halo),
-        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.03), transparent 60%);
-      opacity: 0.55;
+      position: fixed; /* Reste fixe quand on scroll */
+      inset: 0;        /* Prend tout l'écran */
       pointer-events: none;
       z-index: -1;
+
+      background: 
+        radial-gradient(
+          circle at 50% -20%, 
+          rgba(255, 255, 255, 0.45) 0%,  /* Centre intense maintenu */
+          rgba(255, 255, 255, 0.05) 45%, /* Dispersion augmentée (était 30%) */
+          transparent 80%                /* S'arrête plus bas (était 60%) */
+        ),
+        /* On garde votre bruit actuel */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+      
+      background-color: var(--color-carbon-900);
     }
 
     img {
@@ -914,8 +921,13 @@ body.menu-open {
       border-radius: var(--radius-lg);
       background: transparent;
       border: 3px solid var(--border-subtle);
-      padding: var(--space-5);
+      padding: var(--space-2);
       box-shadow: var(--shadow-subtle);
+    }
+
+    /* Réduire l'espace entre la Hero et le premier graphique */
+    section:nth-of-type(2) { 
+      padding-top: 0 !important; /* Colle la section TVL au Hero */
     }
 
     .panel h2 {
@@ -923,6 +935,23 @@ body.menu-open {
       font-size: var(--fs-h3);
     }
 
+    /* Charts height */
+    #tvlChart,
+    #weeklyChart,
+    #allocDonut,
+    #ddChart {
+      width: 100%;
+      height: 300px; /* Était 380px -> On gagne 80px par ligne */
+    }
+
+    @media (max-width: 48rem) {
+      #tvlChart,
+      #weeklyChart,
+      #allocDonut,
+      #ddChart {
+        height: 250px; /* Plus petit sur mobile aussi */
+      }
+    }
     .chart-header {
       display: flex;
       justify-content: flex-end;
