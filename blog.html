@@ -1671,7 +1671,41 @@ body.is-loaded {
     // FADE-IN LOAD
     window.addEventListener('DOMContentLoaded', () => {
       document.body.classList.add('is-loaded');
-    });
+    // Optional: fade-out on internal link click
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (!link) return;
+
+    const href = link.getAttribute('href');
+    if (!href) return;
+    
+    // Si le lien s'ouvre dans un nouvel onglet, on ignore
+    if (link.target === '_blank') return;
+
+    // 1. Si c'est une ancre pure (#...), on ne fait rien (scroll natif)
+    if (href.startsWith('#')) return;
+
+    // 2. Si c'est un lien vers la page ACTUELLE (ex: index.html#home alors qu'on est sur index)
+    // On compare l'URL complète sans le hash (#)
+    if (link.href.split('#')[0] === window.location.href.split('#')[0]) {
+       return; // On laisse le navigateur scroller sans fade-out
+    }
+
+    // Filtre pour ne cibler que les liens internes du site
+    const isInternal =
+      href.endsWith('.html') ||
+      href === '/' ||
+      (!href.startsWith('http') && !href.startsWith('mailto:'));
+
+    if (!isInternal) return;
+
+    e.preventDefault();
+    document.body.classList.remove('is-loaded');
+
+    setTimeout(() => {
+      window.location.href = href;
+    }, 220);
+  });
   </script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
