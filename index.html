@@ -235,19 +235,25 @@
       text-rendering: optimizeLegibility;
     }
 
-    body::before {
-      /* subtle background halo for Carbon */
+   body::before {
       content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        var(--grad-hero-halo),
-        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.03), transparent 60%);
-      opacity: 0.55;
+      position: fixed; /* Reste fixe quand on scroll */
+      inset: 0;        /* Prend tout l'écran */
       pointer-events: none;
       z-index: -1;
-    }
 
+      background: 
+        radial-gradient(
+          circle at 50% -20%, 
+          rgba(255, 255, 255, 0.45) 0%,  /* Centre intense maintenu */
+          rgba(255, 255, 255, 0.05) 45%, /* Dispersion augmentée (était 30%) */
+          transparent 80%                /* S'arrête plus bas (était 60%) */
+        ),
+        /* On garde votre bruit actuel */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+      
+      background-color: var(--color-carbon-900);
+    }
     img {
       max-width: 100%;
       display: block;
@@ -818,12 +824,16 @@ body.menu-open {
        ========================================================= */
 
     .hero {
-      padding-block: calc(var(--section-padding-y-mobile) + 1.5rem);
+      /* MODIFICATION 1 : On remonte le bloc (petit top, grand bottom) */
+      padding-top: 4rem;
+      padding-bottom: 6rem;
     }
 
     @media (min-width: 64rem) {
       .hero {
-        padding-block: calc(var(--section-padding-y-desktop) + 1.5rem);
+        /* Desktop : On remonte encore plus franchement */
+        padding-top: 3rem;
+        padding-bottom: 12rem; /* Laisse de la place à l'anim en bas */
       }
     }
 
@@ -837,6 +847,11 @@ body.menu-open {
         grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr);
         align-items: center;
       }
+      
+      /* MODIFICATION 3 : On force le texte (colonne de gauche) à remonter un peu */
+      .hero-grid > div:first-child {
+        transform: translateY(-2rem);
+      }
     }
 
     .hero-kicker {
@@ -846,7 +861,8 @@ body.menu-open {
     .hero-title {
       font-size: var(--fs-h1);
       line-height: var(--lh-tight);
-      margin: 0 0 var(--space-4);
+      /* MODIFICATION 2 : Plus d'espace sous le titre */
+      margin: 0 0 2.5rem;
       max-width: 26ch;
     }
 
@@ -854,7 +870,8 @@ body.menu-open {
       font-size: var(--fs-body-lg);
       color: var(--text-secondary);
       max-width: 32rem;
-      margin-bottom: var(--space-6);
+      /* MODIFICATION 2 : Plus d'espace avant les boutons */
+      margin-bottom: 3.5rem;
     }
 
     .hero-cta {
@@ -864,66 +881,133 @@ body.menu-open {
       align-items: center;
     }
 
-
-    .hero-visual {
+    /* =========================================================
+       HERO STRATA : FLOATING LAYERS (LARGE VERSION)
+       ========================================================= */
+    
+    .hero-strata {
       position: relative;
-      min-height: 220px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--border-subtle);
-      background:
-        radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.06), transparent 55%),
-        radial-gradient(circle at 100% 100%, rgba(78, 229, 193, 0.16), transparent 60%),
-        var(--color-carbon-800);
-      box-shadow: var(--shadow-soft);
-      overflow: hidden;
-      padding: var(--space-5);
-    }
-
-    .hero-visual-grid {
-      display: grid;
-      gap: var(--space-4);
-      align-items: start;
-    }
-
-    .hero-metric {
-      padding: var(--space-3);
-      border-radius: var(--radius-md);
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .hero-metric span.label {
-      font-size: var(--fs-caption);
-      color: var(--text-soft);
-      display: block;
-      margin-bottom: 0.2rem;
-    }
-
-    .hero-metric strong {
-      font-size: 1.35rem;
-      display: block;
-    }
-
-    .hero-badge {
-      position: absolute;
-      bottom: 1.3rem;
-      right: 1.3rem;
-      padding: 0.55rem 0.85rem;
-      border-radius: var(--radius-pill);
-      background: rgba(0, 0, 0, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      font-size: 0.75rem;
-      display: inline-flex;
+      width: 100%;
+      height: 550px; /* J'ai augmenté la hauteur du conteneur pour que ça respire */
+      display: flex;
       align-items: center;
-      gap: 0.45rem;
+      justify-content: center;
+      perspective: 1400px; /* Perspective ajustée pour la nouvelle taille */
     }
 
-    .hero-badge-dot {
-      width: 0.5rem;
-      height: 0.5rem;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 0 6px rgba(78, 229, 193, 0.28);
+    .strata-stack {
+      position: relative;
+      width: 280px;  /* Était 200px -> Plus large */
+      height: 280px; /* Était 200px -> Plus haut */
+      transform: rotateX(60deg) rotateZ(-45deg);
+      transform-style: preserve-3d;
+    }
+
+    /* STYLE DES COUCHES (VERRE) */
+    .layer {
+      position: absolute;
+      inset: 0;
+      border-radius: 32px; /* Arrondis proportionnels à la taille */
+      
+      /* Fond vitré */
+      background: linear-gradient(
+        135deg, 
+        rgba(255, 255, 255, 0.15) 0%, 
+        rgba(255, 255, 255, 0.02) 100%
+      );
+      
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-top-color: rgba(255, 255, 255, 0.6);
+      border-left-color: rgba(255, 255, 255, 0.6);
+      
+      box-shadow: 15px 15px 40px rgba(0, 0, 0, 0.5); /* Ombre plus large */
+      backdrop-filter: blur(6px);
+    }
+
+    /* ESPACEMENT ET ANIMATION : Plus d'écart entre les couches */
+    
+    .layer-1 {
+      transform: translateZ(0px);
+      animation: floatLayer 6s ease-in-out infinite;
+      opacity: 0.4;
+    }
+
+    .layer-2 {
+      transform: translateZ(60px); /* Était 40px -> Plus espacé */
+      animation: floatLayer 6s ease-in-out infinite 0.5s;
+      opacity: 0.6;
+    }
+
+    .layer-3 {
+      transform: translateZ(120px); /* Était 80px */
+      animation: floatLayer 6s ease-in-out infinite 1s;
+      opacity: 0.8;
+    }
+
+    .layer-4 {
+      transform: translateZ(180px); /* Était 120px */
+      animation: floatLayer 6s ease-in-out infinite 1.5s;
+      opacity: 1;
+      
+      /* Reflet top layer */
+      background: linear-gradient(
+        135deg, 
+        rgba(255, 255, 255, 0.25) 0%, 
+        rgba(255, 255, 255, 0.05) 100%
+      );
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    /* CŒUR LUMINEUX (Ajusté) */
+    .layer-core {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #fff;
+      /* Centré au milieu de la pile agrandie (90px de hauteur moyenne) */
+      transform: translate(-50%, -50%) translateZ(90px); 
+      box-shadow: 0 0 80px 30px rgba(255, 255, 255, 0.15);
+      animation: pulseCore 4s ease-in-out infinite;
+    }
+
+    /* KEYFRAMES (Ajustés pour l'amplitude) */
+    
+    @keyframes floatLayer {
+      0%, 100% { transform: translateZ(var(--z-base, 0px)); }
+      50% { transform: translateZ(calc(var(--z-base, 0px) + 30px)); } /* Flotte de 30px au lieu de 20 */
+    }
+    
+    /* Redéfinition des bases pour l'animation */
+    .layer-1 { --z-base: 0px; }
+    .layer-2 { --z-base: 60px; }
+    .layer-3 { --z-base: 120px; }
+    .layer-4 { --z-base: 180px; }
+
+    @keyframes pulseCore {
+      0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) translateZ(90px) scale(1); }
+      50% { opacity: 1; transform: translate(-50%, -50%) translateZ(90px) scale(1.5); }
+    }
+
+    /* =========================================================
+       MOBILE TWEAKS FOR STRATA (Ajustements Mobile)
+       ========================================================= */
+
+    @media (max-width: 64rem) {
+      .hero-strata {
+        /* 1. On réduit la hauteur du conteneur pour ne pas avoir un grand vide */
+        height: 350px; 
+        
+        /* 2. On le descend un peu (via padding-top ou margin-top) */
+        align-items: flex-start; /* On arrête de centrer verticalement */
+        padding-top: 10rem;       /* On pousse vers le bas */
+      }
+
+      .strata-stack {
+        /* 3. On réduit la taille globale à 65% */
+        /* Important : on garde les rotations existantes et on ajoute scale() */
+        transform: rotateX(60deg) rotateZ(-45deg) scale(0.65);
+      }
     }
 
     /* =========================================================
@@ -959,7 +1043,7 @@ body.menu-open {
   box-shadow: var(--shadow-subtle);
 
   transition:
-    background 0.45s var(--ease-standard),
+    background 0.6s cubic-bezier(0.25, 1, 0.5, 1),
     transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1),
     box-shadow 0.35s var(--ease-standard),
     border-color 0.35s var(--ease-standard),
@@ -2168,25 +2252,14 @@ body.is-loaded {
         </div>
       </div>
 
-        <div class="hero-visual" aria-hidden="true">
-          <div class="hero-visual-grid">
-            <div class="hero-metric">
-              <span class="label">Live strategies</span>
-              <strong class="text-gradient-accent">12+ months</strong>
-              <span class="muted">of continuous testing in real conditions.</span>
-            </div>
-            <div class="hero-metric">
-              <span class="label">Focus</span>
-              <strong>Risk-aware</strong>
-              <span class="muted"
-                >Capital protection and stability before performance.</span
-              >
-            </div>
-          </div>
-          <div class="hero-badge">
-            <span class="hero-badge-dot"></span>
-            <span>Pilot vault capacity: limited &amp; manual onboarding.</span>
-          </div>
+        <div class="hero-strata">
+           <div class="strata-stack">
+              <div class="layer layer-1"></div>
+              <div class="layer layer-2"></div>
+              <div class="layer layer-3"></div>
+              <div class="layer layer-4"></div>
+              <div class="layer-core"></div>
+           </div>
         </div>
       </div>
     </section>
@@ -2756,27 +2829,26 @@ body.is-loaded {
       }
     });
 
-    // 3) Mobile / touch : la carte la plus visible devient active
+    // 3) Mobile / touch : Utilisation d'une "zone centrale" (Laser)
     if ('IntersectionObserver' in window) {
       const isCoarse = window.matchMedia('(pointer: coarse)').matches;
+      
       if (isCoarse) {
         const observer = new IntersectionObserver(
           (entries) => {
-            let best = null;
-            let bestRatio = 0;
             entries.forEach((entry) => {
-              if (entry.intersectionRatio > bestRatio) {
-                bestRatio = entry.intersectionRatio;
-                best = entry.target;
+              // Si la carte entre dans la zone centrale, on l'active
+              if (entry.isIntersecting) {
+                setActive(entry.target);
               }
             });
-            // On ne change que si une carte est bien visible (~centre)
-            if (best && bestRatio >= 0.5) {
-              setActive(best);
-            }
           },
           {
-            threshold: [0.2, 0.4, 0.6, 0.8]
+            // ASTUCE : On définit une zone de détection très fine au milieu de l'écran (10% de hauteur)
+            // -45% en haut et -45% en bas = il reste 10% au milieu.
+            // L'événement ne se déclenche QUE si une carte traverse cette ligne.
+            rootMargin: '-45% 0px -45% 0px',
+            threshold: 0
           }
         );
 
