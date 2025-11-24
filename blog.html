@@ -836,11 +836,9 @@ body.menu-open {
 
     /* TITRE PRINCIPAL (Copie exacte de index.html) */
     .hero-title {
-      font-size: var(--fs-h1);
-      line-height: var(--lh-tight);
-      margin: 0 0 var(--space-4);
-      font-weight: 700;
-      max-width: 28ch; /* Pour éviter que ça s'étale trop */
+      font-size: var(--fs-body-lg);
+      color: var(--text-secondary);
+      max-width: 32rem;
     }
 
     /* =========================================================
@@ -1349,43 +1347,52 @@ body.is-loaded {
 </head>
 <body>
 
+ <!-- NAVBAR -->
   <header class="site-header" id="siteHeader">
     <div class="nav-shell">
       <div class="nav-inner">
-        <a href="index.html" class="nav-brand">
+        <a href="#home" class="nav-brand">
+          <!-- Replace src by your logo -->
           <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="nav-brand-logo" />
         </a>
 
         <nav class="nav-links" aria-label="Main navigation">
-          <a href="index.html">Home</a>
-          <a href="performance.html">Performance</a>
-          <a href="blog.html">Blog</a>
-          <a href="private-raise.html">Raise</a>
-          <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
-        </nav>
+  <a href="index.html">Home</a>
+  <a href="performance.html">Performance</a>
+  <a href="blog.html">Blog</a>
+  <a href="access.html">Access</a>
+  <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
+</nav>
+
 
         <div class="nav-cta">
           <div class="lang-switch">
             <span class="active">EN</span>
             <span> / FR</span>
           </div>
-          <a href="account.html" class="btn-colour-flat">
+          <a href="account.html" class="btn btn-colour-flat">
             <span>Account</span>
           </a>
         </div>
 
-        <button class="nav-toggle" id="navToggle" aria-label="Open navigation" aria-expanded="false">
+        <button
+          class="nav-toggle"
+          id="navToggle"
+          aria-label="Open navigation"
+          aria-expanded="false"
+        >
           <span></span><span></span><span></span>
         </button>
       </div>
     </div>
 
+        <!-- Mobile menu -->
     <div class="nav-menu" id="navMenu">
       <div class="nav-menu-content">
         <a href="index.html">Home</a>
         <a href="performance.html">Performance</a>
         <a href="blog.html">Blog</a>
-        <a href="private-raise.html">Raise</a>
+        <a href="access.html">Access</a>
         <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
 
         <div class="nav-menu-secondary">
@@ -1393,7 +1400,7 @@ body.is-loaded {
             <span class="active">EN</span>
             <span> / FR</span>
           </div>
-          <a href="account.html" class="btn-colour-flat">Account</a>
+          <a href="account.html" class="btn btn-colour-flat">Account</a>
         </div>
       </div>
     </div>
@@ -1580,7 +1587,7 @@ body.is-loaded {
             <li><a href="index.html#roadmap">Roadmap</a></li>
             <li><a href="performance.html">Performance</a></li>
             <li><a href="blog.html">Journal</a></li>
-            <li><a href="private-raise.html">Private raise</a></li>
+            <li><a href="access.html">Access</a></li>
             <li><a href="account.html">Account</a></li>
             <li><a href="index.html#faq">FAQ</a></li>
           </ul>
@@ -1628,50 +1635,63 @@ body.is-loaded {
   </footer>
 
   <script>
-    // NAVBAR SCROLL + MOBILE MENU
-    (function () {
-      const header = document.getElementById('siteHeader');
-      const navToggle = document.getElementById('navToggle');
-      const navMenu = document.getElementById('navMenu');
+  // NAVBAR SCROLL + MOBILE MENU
+(function () {
+  const header   = document.getElementById('siteHeader');
+  const navToggle = document.getElementById('navToggle');
+  const navMenu   = document.getElementById('navMenu');
 
-      function onScroll() {
-        if (window.scrollY > 8) header.classList.add('scrolled');
-        else header.classList.remove('scrolled');
-      }
-      onScroll();
-      window.addEventListener('scroll', onScroll, { passive: true });
+  function onScroll() {
+    if (window.scrollY > 8) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  }
 
-      function closeMenu() {
-        navToggle.setAttribute('aria-expanded', 'false');
-        navMenu.classList.remove('open');
-        document.body.classList.remove('menu-open');
-      }
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
 
-      function openMenu() {
-        navToggle.setAttribute('aria-expanded', 'true');
-        navMenu.classList.add('open');
-        document.body.classList.add('menu-open');
-      }
+  function closeMenu() {
+    navToggle.setAttribute('aria-expanded', 'false');
+    navMenu.classList.remove('open');
+    document.body.classList.remove('menu-open');
+  }
 
-      navToggle.addEventListener('click', () => {
-        const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-        if (expanded) closeMenu();
-        else openMenu();
-      });
+  function openMenu() {
+    navToggle.setAttribute('aria-expanded', 'true');
+    navMenu.classList.add('open');
+    document.body.classList.add('menu-open');
+  }
 
-      navMenu.querySelectorAll('a').forEach((link) => {
-        link.addEventListener('click', closeMenu);
-      });
+  navToggle.addEventListener('click', () => {
+    const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+    if (expanded) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
 
-      window.addEventListener('resize', () => {
-        if (window.innerWidth >= 1024) closeMenu();
-      });
-    })();
+  // fermer le menu quand on clique sur un lien
+  navMenu.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
 
-    // FADE-IN LOAD
-    window.addEventListener('DOMContentLoaded', () => {
-      document.body.classList.add('is-loaded');
-    // Optional: fade-out on internal link click
+  // sécurité : en repassant en desktop, on ferme
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) {
+      closeMenu();
+    }
+  });
+})();
+
+    // Fade-in on load
+  window.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('is-loaded');
+  });
+
+  // Optional: fade-out on internal link click
   document.addEventListener('click', (e) => {
     const link = e.target.closest('a');
     if (!link) return;
