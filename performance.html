@@ -235,9 +235,23 @@
       text-rendering: optimizeLegibility;
     }
 
-    body::before {
+    /* =========================================================
+       NOUVEAU FOND : LUMIÈRE FIXÉE EN HAUT + MATIÈRE PARTOUT
+       ========================================================= */
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      background: var(--surface-bg);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+   body::before {
       content: '';
-      position: fixed; /* Reste fixe quand on scroll */
+      position: absolute; /* Reste fixe quand on scroll */
       inset: 0;        /* Prend tout l'écran */
       pointer-events: none;
       z-index: -1;
@@ -1350,7 +1364,7 @@ body.is-loaded {
   <a href="index.html">Home</a>
   <a href="performance.html">Performance</a>
   <a href="blog.html">Blog</a>
-  <a href="private-raise.html">Raise</a>
+  <a href="access.html">Access</a>
   <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
 </nav>
 
@@ -1382,7 +1396,7 @@ body.is-loaded {
         <a href="index.html">Home</a>
         <a href="performance.html">Performance</a>
         <a href="blog.html">Blog</a>
-        <a href="private-raise.html">Raise</a>
+        <a href="access.html">Access</a>
         <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
 
         <div class="nav-menu-secondary">
@@ -1577,7 +1591,7 @@ body.is-loaded {
           <li><a href="#roadmap">Roadmap</a></li>
           <li><a href="performance.html">Performance</a></li>
           <li><a href="blog.html">Journal</a></li>
-          <li><a href="private-raise.html">Private raise</a></li>
+          <li><a href="access.html">Access</a></li>
           <li><a href="account.html">Account</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>
