@@ -65,7 +65,6 @@
       border: 1px solid var(--input-border); border-radius: 4px;
       display: flex; align-items: center; gap: 4px; transition: 0.2s; opacity: 0.7;
     }
-    .req-tag i { font-size: 0.8rem; }
     /* Style actif */
     .req-tag.valid { 
       border-color: rgba(34, 197, 94, 0.3); 
@@ -208,23 +207,32 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-  // 1. CALLBACK CAPTCHA
+  // --- 1. CALLBACK CAPTCHA GLOBAL ---
   let isCaptchaValid = false;
+  
   window.onCaptchaSuccess = function(token) {
     console.log("Captcha Success!");
     isCaptchaValid = true;
-    checkAll();
+    if (window.checkAll) window.checkAll(); 
   };
 
   document.addEventListener('DOMContentLoaded', () => {
     
-    // 2. CONFIG SUPABASE
+    // --- 2. CONFIG SUPABASE ---
     const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // !!! CORRECTION ICI : on change le nom de la variable pour éviter le conflit
+    let supabaseClient;
+    if (window.supabase) {
+        supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+    } else {
+        console.error("Supabase Library not loaded");
+    }
 
-    // 3. DOM
+    // --- 3. DOM ---
     const passEl = document.getElementById('passwordInput');
     const confEl = document.getElementById('confirmPassword');
     const legalEl = document.getElementById('legalCheck');
@@ -239,54 +247,66 @@
       spec: { regex: /[^A-Za-z0-9]/, el: document.getElementById('req-spec') }
     };
 
-    // 4. VALIDATION MDP
+    // --- 4. LOGIQUE PASSWORD ---
     let passwordScore = 0;
-    passEl.addEventListener('input', () => {
-      const val = passEl.value;
-      passwordScore = 0;
-      for (let key in reqs) {
-        if (reqs[key].regex.test(val)) {
-          reqs[key].el.classList.add('valid');
-          passwordScore++;
-        } else {
-          reqs[key].el.classList.remove('valid');
-        }
-      }
-      const pct = (passwordScore / 4) * 100;
-      strengthFill.style.width = `${pct}%`;
-      
-      if(passwordScore <= 2) strengthFill.style.background = "var(--error)";
-      else if(passwordScore === 3) strengthFill.style.background = "var(--warning)";
-      else strengthFill.style.background = "var(--success)";
 
-      checkMatch();
-      checkAll();
-    });
+    if(passEl) {
+        passEl.addEventListener('input', () => {
+          const val = passEl.value;
+          passwordScore = 0;
+
+          for (let key in reqs) {
+            if (reqs[key].regex.test(val)) {
+              reqs[key].el.classList.add('valid');
+              passwordScore++;
+            } else {
+              reqs[key].el.classList.remove('valid');
+            }
+          }
+
+          const pct = (passwordScore / 4) * 100;
+          if(strengthFill) {
+              strengthFill.style.width = `${pct}%`;
+              if(passwordScore <= 2) strengthFill.style.background = "var(--error)";
+              else if(passwordScore === 3) strengthFill.style.background = "var(--warning)";
+              else strengthFill.style.background = "var(--success)";
+          }
+
+          checkMatch();
+          checkAll();
+        });
+    }
 
     function checkMatch() {
       const p1 = passEl.value;
       const p2 = confEl.value;
+      
       if(p2.length > 0 && p1 !== p2) {
-          matchError.style.display = 'block';
+          if(matchError) matchError.style.display = 'block';
           confEl.style.borderColor = 'var(--error)';
           return false;
       } else if (p1 === p2 && p1.length > 0) {
-          matchError.style.display = 'none';
+          if(matchError) matchError.style.display = 'none';
           confEl.style.borderColor = 'var(--success)';
           return true;
       } else {
-          matchError.style.display = 'none';
+          if(matchError) matchError.style.display = 'none';
           confEl.style.borderColor = '#262626';
           return false;
       }
     }
-    confEl.addEventListener('input', () => { checkMatch(); checkAll(); });
 
-    // 5. VALIDATION GLOBALE
+    if(confEl) {
+        confEl.addEventListener('input', () => { checkMatch(); checkAll(); });
+    }
+
+    // --- 5. VALIDATION GLOBALE ---
     ['firstName', 'lastName', 'email', 'legalCheck'].forEach(id => {
       const el = document.getElementById(id);
-      if(el) el.addEventListener('input', checkAll);
-      if(el && el.type === 'checkbox') el.addEventListener('change', checkAll);
+      if(el) {
+          if(el.type === 'checkbox') el.addEventListener('change', checkAll);
+          else el.addEventListener('input', checkAll);
+      }
     });
 
     function checkAll() {
@@ -305,55 +325,64 @@
       }
     }
     
-    // 6. INSCRIPTION (AVEC REDIRECTION UNIVERSELLE)
-    document.getElementById('signupForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      submitBtn.innerText = "Creating Profile...";
-      submitBtn.disabled = true;
-      
-      const email = document.getElementById('email').value;
-      const password = passEl.value;
-      const firstName = document.getElementById('firstName').value;
-      const lastName = document.getElementById('lastName').value;
-      
-      const metaData = {
-          full_name: `${firstName} ${lastName}`,
-          allocation: document.getElementById('allocation').value,
-          experience: document.getElementById('experience').value,
-          fund: document.getElementById('fundChoice').value
-      };
+    // Expose pour le callback global
+    window.checkAll = checkAll;
 
-      // --- LIGNE MAGIQUE DE REDIRECTION ---
-      // Détecte où on est (localhost, /TEST/ ou .com) et pointe vers dashboard.html au même niveau
-      const redirectUrl = new URL('dashboard.html', window.location.href).href;
+    // --- 6. SUBMIT ---
+    const signupForm = document.getElementById('signupForm');
+    if(signupForm) {
+        signupForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          if(!supabaseClient) return alert("Supabase not loaded");
 
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-        options: {
-          data: metaData,
-          emailRedirectTo: redirectUrl // <-- C'est ici que ça se joue
-        }
-      });
+          submitBtn.innerText = "Creating Profile...";
+          submitBtn.disabled = true;
+          
+          const email = document.getElementById('email').value;
+          const password = passEl.value;
+          const firstName = document.getElementById('firstName').value;
+          const lastName = document.getElementById('lastName').value;
+          
+          const metaData = {
+              full_name: `${firstName} ${lastName}`,
+              allocation: document.getElementById('allocation').value,
+              experience: document.getElementById('experience').value,
+              fund: document.getElementById('fundChoice').value
+          };
 
-      if (error) {
-        alert("Registration Error: " + error.message);
-        submitBtn.innerText = "Create Account";
-        submitBtn.disabled = false;
-      } else {
-        // Redirection vers la page de vérification
-        window.location.href = 'verify-email.html';
-      }
-    });
+          const redirectUrl = new URL('dashboard.html', window.location.href).href;
 
-    // Gestion Badge
+          const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: metaData,
+              emailRedirectTo: redirectUrl
+            }
+          });
+
+          if (error) {
+            alert("Registration Error: " + error.message);
+            submitBtn.innerText = "Create Account";
+            submitBtn.disabled = false;
+          } else {
+            window.location.href = 'verify-email.html';
+          }
+        });
+    }
+
+    // Badge
+    const fundChoice = document.getElementById('fundChoice');
+    const badge = document.getElementById('selectedFundDisplay');
     const params = new URLSearchParams(window.location.search);
     const fund = params.get('fund') || 'flex';
-    document.getElementById('fundChoice').value = fund;
-    const badge = document.getElementById('selectedFundDisplay');
-    if(fund === 'secure') {
+    
+    if(fundChoice) fundChoice.value = fund;
+    if(fund === 'secure' && badge) {
       badge.textContent = "Selected: G12 Secure (Capital Protected)";
       badge.style.color = "#a8ffc8";
+      badge.style.borderColor = "#a8ffc8"; 
     }
   });
 </script>
