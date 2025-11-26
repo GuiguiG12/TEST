@@ -54,37 +54,44 @@
     .input-wrapper {
       position: relative;
       width: 100%;
+      display: flex;
+      align-items: center;
     }
 
     .form-input {
       width: 100%; padding: 0.75rem 1rem; 
-      padding-right: 40px; /* Espace pour l'icône */
+      padding-right: 45px; /* Espace pour l'icône */
       border-radius: 0.5rem; 
       background: var(--input-bg); border: 1px solid var(--input-border);
       color: var(--text-main); font-size: 0.95rem; font-family: inherit;
       transition: border-color 0.2s, box-shadow 0.2s;
+      z-index: 1;
     }
     .form-input:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 0 2px rgba(78, 229, 193, 0.1); }
     
-    /* Password Toggle Eye - Centrage Parfait */
+    /* Cache l'oeil natif moche de certains navigateurs (Edge/IE) */
+    .form-input::-ms-reveal, .form-input::-ms-clear { display: none; }
+
+    /* Password Toggle Eye - Positionné en ABSOLU pour être par-dessus */
     .password-toggle {
       position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%); /* Centre verticalement */
+      right: 0;
+      top: 0;
+      height: 100%; /* Prend toute la hauteur */
+      width: 45px;  /* Zone de clic large */
       background: transparent;
       border: none;
       color: var(--text-soft);
       cursor: pointer;
-      font-size: 1.2rem;
-      padding: 4px;
-      z-index: 10;
+      font-size: 1.3rem;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: color 0.2s;
+      z-index: 10; /* Passe AU-DESSUS de l'input */
     }
     .password-toggle:hover { color: var(--text-main); }
+    .password-toggle:active { color: var(--accent-teal); }
 
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -174,77 +181,101 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // VOS CLÉS
+  // ========================================================
+  // 1. LOGIQUE INTERFACE (OEIL) - Placée EN PREMIER pour marcher tout le temps
+  // ========================================================
+  const toggleBtn = document.getElementById('togglePassword');
+  const passInput = document.getElementById('password');
+
+  if (toggleBtn && passInput) {
+    toggleBtn.addEventListener('click', (e) => {
+      // Empêche le clic de soumettre le formulaire ou autre
+      e.preventDefault();
+      e.stopPropagation();
+
+      const currentType = passInput.getAttribute('type');
+      const icon = toggleBtn.querySelector('i');
+
+      if (currentType === 'password') {
+        // ACTION : MONTRER LE MDP
+        passInput.setAttribute('type', 'text');
+        // L'icône devient "Oeil Barré" (pour dire : clique pour cacher)
+        icon.classList.remove('ph-eye');
+        icon.classList.add('ph-eye-slash');
+      } else {
+        // ACTION : CACHER LE MDP
+        passInput.setAttribute('type', 'password');
+        // L'icône redevient "Oeil Ouvert" (pour dire : clique pour voir)
+        icon.classList.remove('ph-eye-slash');
+        icon.classList.add('ph-eye');
+      }
+    });
+  }
+
+  // ========================================================
+  // 2. LOGIQUE BACKEND (SUPABASE)
+  // ========================================================
   const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  
+  // On vérifie que la librairie est chargée pour éviter le crash
+  let supabaseClient;
+  if (window.supabase) {
+    supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+  } else {
+    console.error("Erreur : La librairie Supabase n'a pas chargé.");
+  }
 
   // Éléments DOM
   const form = document.getElementById('loginForm');
   const errorBox = document.getElementById('errorBox');
-  const togglePasswordBtn = document.getElementById('togglePassword');
-  const passwordInput = document.getElementById('password');
 
-  // 1. LOGIQUE DE BASCULE DE MOT DE PASSE (OEIL)
-  togglePasswordBtn.addEventListener('click', () => {
-    // Vérifie l'état actuel
-    const isPassword = passwordInput.getAttribute('type') === 'password';
-    const icon = togglePasswordBtn.querySelector('i');
+  // Connexion Email
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!supabaseClient) return alert("Erreur système : Supabase non chargé");
 
-    if (isPassword) {
-      // Si c'est caché, on montre
-      passwordInput.setAttribute('type', 'text');
-      // On met l'icône "Oeil Barré" (pour dire : clique ici pour fermer)
-      icon.classList.remove('ph-eye');
-      icon.classList.add('ph-eye-slash');
-    } else {
-      // Si c'est visible, on cache
-      passwordInput.setAttribute('type', 'password');
-      // On remet l'icône "Oeil Ouvert" (pour dire : clique ici pour voir)
-      icon.classList.remove('ph-eye-slash');
-      icon.classList.add('ph-eye');
-    }
-  });
+      errorBox.style.display = 'none';
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn.textContent;
 
-  // 2. Connexion Email
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    errorBox.style.display = 'none';
-    
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const btn = form.querySelector('button[type="submit"]');
-    const originalText = btn.textContent;
+      btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Signing in...';
+      btn.disabled = true;
 
-    btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Signing in...';
-    btn.disabled = true;
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
-
-    if (error) {
-      errorBox.textContent = "Login failed: " + error.message;
-      errorBox.style.display = 'block';
-      btn.textContent = originalText;
-      btn.disabled = false;
-    } else {
-      window.location.href = 'dashboard.html';
-    }
-  });
-
-  // 3. Connexion Google
-  const googleBtn = document.getElementById('googleBtn');
-  googleBtn.addEventListener('click', async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/dashboard.html'
+      if (error) {
+        errorBox.textContent = "Login failed: " + error.message;
+        errorBox.style.display = 'block';
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      } else {
+        window.location.href = 'dashboard.html';
       }
     });
-    if (error) alert(error.message);
-  });
+  }
+
+  // Connexion Google
+  const googleBtn = document.getElementById('googleBtn');
+  if (googleBtn) {
+    googleBtn.addEventListener('click', async () => {
+      if (!supabaseClient) return;
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/dashboard.html'
+        }
+      });
+      if (error) alert(error.message);
+    });
+  }
 </script>
 
 </body>
