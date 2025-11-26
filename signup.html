@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="carbon">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G12 Labs — Secure Registration</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <style>
+    /* DESIGN SYSTEM */
+    :root {
+      --font-sans: 'Inter', sans-serif;
+      --bg-app: #050505;       
+      --card-bg: #0f0f0f; 
+      --card-border: #1f1f1f;
+      --text-main: #ededed; --text-muted: #a1a1a1; --text-soft: #525252;
+      --input-bg: #0a0a0a; --input-border: #262626; --input-focus: #4ee5c1;
+      --accent-teal: #4ee5c1; --accent-mint: #a8ffc8;
+      --accent-grad: linear-gradient(90deg, var(--accent-teal), var(--accent-mint));
+      --success: #22c55e; --error: #ef4444; --warning: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; font-family: var(--font-sans); background-color: var(--bg-app); color: var(--text-main);
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem 1rem;
+    }
+    
+    .signup-card {
+      background: var(--card-bg); width: 100%; max-width: 500px; padding: 2.5rem; 
+      border-radius: 1rem; border: 1px solid var(--card-border);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+    
+    .logo-area { text-align: center; margin-bottom: 1.5rem; }
+    .logo-img { width: 120px; height: auto; display: inline-block; }
+
+    h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.5rem; text-align: center; color: var(--text-main); }
+    .subtitle { font-size: 0.9rem; color: var(--text-muted); text-align: center; margin-bottom: 2rem; line-height: 1.5; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem; }
+    .form-group { margin-bottom: 1.2rem; position: relative; }
+    .form-label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-muted); }
+    
+    .form-input, select.form-input {
+      width: 100%; padding: 0.75rem 1rem; border-radius: 0.5rem; 
+      background: var(--input-bg); border: 1px solid var(--input-border);
+      color: var(--text-main); font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: var(--input-focus); }
+    .form-input.error { border-color: var(--error); }
+    
+    /* PASSWORD METER */
+    .password-strength { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .strength-bar-bg { width: 100%; height: 4px; background: #262626; border-radius: 2px; overflow: hidden; }
+    .strength-fill { height: 100%; width: 0%; background: var(--error); transition: width 0.3s ease, background 0.3s ease; }
+    
+    .req-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.2rem; }
+    .req-tag {
+      font-size: 0.7rem; color: var(--text-soft); padding: 2px 8px; 
+      border: 1px solid var(--input-border); border-radius: 4px;
+      display: flex; align-items: center; gap: 4px; transition: 0.2s; opacity: 0.7;
+    }
+    .req-tag i { font-size: 0.8rem; }
+    /* Style actif */
+    .req-tag.valid { 
+      border-color: rgba(34, 197, 94, 0.3); 
+      background: rgba(34, 197, 94, 0.1); 
+      color: var(--success); 
+      opacity: 1; 
+    }
+
+    /* CAPTCHA CONTAINER */
+    .captcha-wrapper {
+      margin-bottom: 1.5rem;
+      min-height: 65px; 
+      display: flex; justify-content: center;
+    }
+
+    .legal-check {
+      display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 1.5rem;
+      font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; cursor: pointer;
+    }
+    .legal-check input { margin-top: 0.15rem; accent-color: var(--accent-teal); }
+    .legal-check a { color: var(--text-main); text-decoration: underline; }
+
+    .btn-submit {
+      width: 100%; padding: 1rem; border-radius: 999px; border: none;
+      background: #262626; color: #737373; font-weight: 600; font-size: 1rem;
+      cursor: not-allowed; transition: all 0.3s ease;
+    }
+    .btn-submit.active {
+      background: var(--accent-grad); color: #050505; cursor: pointer;
+      box-shadow: 0 0 15px rgba(78, 229, 193, 0.3);
+    }
+    .btn-submit.active:hover { transform: translateY(-1px); box-shadow: 0 0 25px rgba(78, 229, 193, 0.5); }
+
+    .fund-badge { text-align: center; margin-bottom: 2rem; }
+    .badge-pill {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--input-border);
+      padding: 0.3rem 0.8rem; border-radius: 99px; font-size: 0.8rem; color: var(--accent-teal);
+    }
+    .footer-link { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
+    .footer-link a { color: var(--accent-teal); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <div class="signup-card">
+    <div class="logo-area">
+      <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="logo-img" />
+    </div>
+    
+    <div class="fund-badge">
+      <span id="selectedFundDisplay" class="badge-pill">Selected: G12 Flex</span>
+    </div>
+
+    <h1>Application & Access</h1>
+    <p class="subtitle">Complete your profile to request access.</p>
+
+    <form id="signupForm">
+      
+      <div class="form-grid">
+        <div>
+          <label class="form-label">First Name</label>
+          <input type="text" id="firstName" class="form-input" placeholder="Alex" required>
+        </div>
+        <div>
+          <label class="form-label">Last Name</label>
+          <input type="text" id="lastName" class="form-input" placeholder="Smith" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" id="email" class="form-input" placeholder="alex@company.com" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Create Password</label>
+        <input type="password" id="passwordInput" class="form-input" placeholder="Min. 8 characters" required>
+        
+        <div class="password-strength">
+          <div class="strength-bar-bg"><div id="strengthFill" class="strength-fill"></div></div>
+          <div class="req-list">
+            <span id="req-len" class="req-tag"><i class="ph ph-check"></i> 8+ Chars</span>
+            <span id="req-up" class="req-tag"><i class="ph ph-check"></i> Uppercase</span>
+            <span id="req-num" class="req-tag"><i class="ph ph-check"></i> Number</span>
+            <span id="req-spec" class="req-tag"><i class="ph ph-check"></i> Special</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" id="confirmPassword" class="form-input" placeholder="Repeat password" required>
+        <div id="matchError" style="color:var(--error); font-size:0.75rem; margin-top:0.4rem; display:none;">
+          Passwords do not match.
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div>
+          <label class="form-label">Est. Allocation</label>
+          <select id="allocation" class="form-input">
+            <option value="1k-10k">$1k - $10k</option>
+            <option value="10k-50k">$10k - $50k</option>
+            <option value="50k-100k">$50k - $100k</option>
+            <option value="100k+">$100k +</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Experience</label>
+          <select id="experience" class="form-input">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate" selected>Intermediate</option>
+            <option value="expert">Pro / Insti</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="captcha-wrapper">
+        <div class="cf-turnstile" 
+             data-sitekey="0x4AAAAAACDFSWeVU3uy7P1e" 
+             data-callback="onCaptchaSuccess" 
+             data-theme="dark"></div>
+      </div>
+
+      <label class="legal-check">
+        <input type="checkbox" id="legalCheck">
+        <span>
+          I confirm I am not a US citizen and I accept the <a href="#">Terms of Use</a> & <a href="#">Risk Disclosure</a>.
+        </span>
+      </label>
+
+      <input type="hidden" id="fundChoice" value="flex">
+
+      <button type="submit" id="submitBtn" class="btn-submit" disabled>Create Account</button>
+    </form>
+
+    <div class="footer-link">
+      Already a partner? <a href="login.html">Log in</a>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // 1. CALLBACK CAPTCHA
+  let isCaptchaValid = false;
+  window.onCaptchaSuccess = function(token) {
+    console.log("Captcha Success!");
+    isCaptchaValid = true;
+    checkAll();
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    
+    // 2. CONFIG SUPABASE
+    const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // 3. DOM
+    const passEl = document.getElementById('passwordInput');
+    const confEl = document.getElementById('confirmPassword');
+    const legalEl = document.getElementById('legalCheck');
+    const submitBtn = document.getElementById('submitBtn');
+    const matchError = document.getElementById('matchError');
+    const strengthFill = document.getElementById('strengthFill');
+
+    const reqs = {
+      len: { regex: /.{8,}/, el: document.getElementById('req-len') },
+      up: { regex: /[A-Z]/, el: document.getElementById('req-up') },
+      num: { regex: /[0-9]/, el: document.getElementById('req-num') },
+      spec: { regex: /[^A-Za-z0-9]/, el: document.getElementById('req-spec') }
+    };
+
+    // 4. VALIDATION MDP
+    let passwordScore = 0;
+    passEl.addEventListener('input', () => {
+      const val = passEl.value;
+      passwordScore = 0;
+      for (let key in reqs) {
+        if (reqs[key].regex.test(val)) {
+          reqs[key].el.classList.add('valid');
+          passwordScore++;
+        } else {
+          reqs[key].el.classList.remove('valid');
+        }
+      }
+      const pct = (passwordScore / 4) * 100;
+      strengthFill.style.width = `${pct}%`;
+      
+      if(passwordScore <= 2) strengthFill.style.background = "var(--error)";
+      else if(passwordScore === 3) strengthFill.style.background = "var(--warning)";
+      else strengthFill.style.background = "var(--success)";
+
+      checkMatch();
+      checkAll();
+    });
+
+    function checkMatch() {
+      const p1 = passEl.value;
+      const p2 = confEl.value;
+      if(p2.length > 0 && p1 !== p2) {
+          matchError.style.display = 'block';
+          confEl.style.borderColor = 'var(--error)';
+          return false;
+      } else if (p1 === p2 && p1.length > 0) {
+          matchError.style.display = 'none';
+          confEl.style.borderColor = 'var(--success)';
+          return true;
+      } else {
+          matchError.style.display = 'none';
+          confEl.style.borderColor = '#262626';
+          return false;
+      }
+    }
+    confEl.addEventListener('input', () => { checkMatch(); checkAll(); });
+
+    // 5. VALIDATION GLOBALE
+    ['firstName', 'lastName', 'email', 'legalCheck'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('input', checkAll);
+      if(el && el.type === 'checkbox') el.addEventListener('change', checkAll);
+    });
+
+    function checkAll() {
+      const isPassOk = (passwordScore === 4);
+      const isMatchOk = (passEl.value === confEl.value && passEl.value.length > 0);
+      const isLegalOk = legalEl.checked;
+      const isNamesOk = document.getElementById('firstName').value.trim() !== "" && document.getElementById('lastName').value.trim() !== "";
+      const isEmailOk = document.getElementById('email').value.includes('@');
+
+      if (isPassOk && isMatchOk && isLegalOk && isNamesOk && isEmailOk && isCaptchaValid) {
+        submitBtn.disabled = false;
+        submitBtn.classList.add('active');
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('active');
+      }
+    }
+    
+    // 6. INSCRIPTION (AVEC REDIRECTION UNIVERSELLE)
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.innerText = "Creating Profile...";
+      submitBtn.disabled = true;
+      
+      const email = document.getElementById('email').value;
+      const password = passEl.value;
+      const firstName = document.getElementById('firstName').value;
+      const lastName = document.getElementById('lastName').value;
+      
+      const metaData = {
+          full_name: `${firstName} ${lastName}`,
+          allocation: document.getElementById('allocation').value,
+          experience: document.getElementById('experience').value,
+          fund: document.getElementById('fundChoice').value
+      };
+
+      // --- LIGNE MAGIQUE DE REDIRECTION ---
+      // Détecte où on est (localhost, /TEST/ ou .com) et pointe vers dashboard.html au même niveau
+      const redirectUrl = new URL('dashboard.html', window.location.href).href;
+
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: metaData,
+          emailRedirectTo: redirectUrl // <-- C'est ici que ça se joue
+        }
+      });
+
+      if (error) {
+        alert("Registration Error: " + error.message);
+        submitBtn.innerText = "Create Account";
+        submitBtn.disabled = false;
+      } else {
+        // Redirection vers la page de vérification
+        window.location.href = 'verify-email.html';
+      }
+    });
+
+    // Gestion Badge
+    const params = new URLSearchParams(window.location.search);
+    const fund = params.get('fund') || 'flex';
+    document.getElementById('fundChoice').value = fund;
+    const badge = document.getElementById('selectedFundDisplay');
+    if(fund === 'secure') {
+      badge.textContent = "Selected: G12 Secure (Capital Protected)";
+      badge.style.color = "#a8ffc8";
+    }
+  });
+</script>
+
+</body>
+</html>
