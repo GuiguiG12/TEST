@@ -9,27 +9,21 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
+    /* DESIGN SYSTEM */
     :root {
       --font-sans: 'Inter', sans-serif;
       --bg-app: #050505;       
       --card-bg: #0f0f0f; 
       --card-border: #1f1f1f;
       --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-      --text-main: #ededed; 
-      --text-muted: #a1a1a1;
-      --text-soft: #525252;
-      --input-bg: #0a0a0a;
-      --input-border: #262626;
-      --input-focus: #4ee5c1;
-      --accent-teal: #4ee5c1;
-      --accent-mint: #a8ffc8;
+      --text-main: #ededed; --text-muted: #a1a1a1; --text-soft: #525252;
+      --input-bg: #0a0a0a; --input-border: #262626; --input-focus: #4ee5c1;
+      --accent-teal: #4ee5c1; --accent-mint: #a8ffc8;
       --accent-grad: linear-gradient(90deg, var(--accent-teal), var(--accent-mint));
-      --btn-surface: #171717;
-      --btn-surface-hover: #262626;
+      --btn-surface: #171717; --btn-surface-hover: #262626;
     }
 
     * { box-sizing: border-box; }
-    
     body { 
       margin: 0; font-family: var(--font-sans); background-color: var(--bg-app); color: var(--text-main);
       display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem;
@@ -50,17 +44,15 @@
     .form-group { margin-bottom: 1.2rem; text-align: left; }
     .form-label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-muted); }
     
-    /* Wrapper pour positionner l'icône oeil */
+    /* Wrapper pour l'icone oeil */
     .input-wrapper {
       position: relative;
       width: 100%;
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center;
     }
 
     .form-input {
-      width: 100%; padding: 0.75rem 1rem; 
-      padding-right: 45px; /* Espace pour l'icône */
+      width: 100%; padding: 0.75rem 1rem; padding-right: 45px; /* Espace icone */
       border-radius: 0.5rem; 
       background: var(--input-bg); border: 1px solid var(--input-border);
       color: var(--text-main); font-size: 0.95rem; font-family: inherit;
@@ -69,26 +61,16 @@
     }
     .form-input:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 0 2px rgba(78, 229, 193, 0.1); }
     
-    /* Cache l'oeil natif moche de certains navigateurs (Edge/IE) */
+    /* Cache l'oeil natif Edge/IE */
     .form-input::-ms-reveal, .form-input::-ms-clear { display: none; }
 
-    /* Password Toggle Eye - Positionné en ABSOLU pour être par-dessus */
+    /* Password Toggle Eye */
     .password-toggle {
-      position: absolute;
-      right: 0;
-      top: 0;
-      height: 100%; /* Prend toute la hauteur */
-      width: 45px;  /* Zone de clic large */
-      background: transparent;
-      border: none;
-      color: var(--text-soft);
-      cursor: pointer;
-      font-size: 1.3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: color 0.2s;
-      z-index: 10; /* Passe AU-DESSUS de l'input */
+      position: absolute; right: 0; top: 0; height: 100%; width: 45px;
+      background: transparent; border: none; color: var(--text-soft);
+      cursor: pointer; font-size: 1.3rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.2s; z-index: 10;
     }
     .password-toggle:hover { color: var(--text-main); }
     .password-toggle:active { color: var(--accent-teal); }
@@ -180,57 +162,51 @@
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
   // ========================================================
-  // 1. LOGIQUE INTERFACE (OEIL) - Placée EN PREMIER pour marcher tout le temps
+  // 1. LOGIQUE UI (Oeil MDP) - Prioritaire
   // ========================================================
   const toggleBtn = document.getElementById('togglePassword');
   const passInput = document.getElementById('password');
 
   if (toggleBtn && passInput) {
     toggleBtn.addEventListener('click', (e) => {
-      // Empêche le clic de soumettre le formulaire ou autre
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault(); e.stopPropagation();
 
       const currentType = passInput.getAttribute('type');
       const icon = toggleBtn.querySelector('i');
 
       if (currentType === 'password') {
-        // ACTION : MONTRER LE MDP
         passInput.setAttribute('type', 'text');
-        // L'icône devient "Oeil Barré" (pour dire : clique pour cacher)
-        icon.classList.remove('ph-eye');
-        icon.classList.add('ph-eye-slash');
+        icon.classList.replace('ph-eye', 'ph-eye-slash');
       } else {
-        // ACTION : CACHER LE MDP
         passInput.setAttribute('type', 'password');
-        // L'icône redevient "Oeil Ouvert" (pour dire : clique pour voir)
-        icon.classList.remove('ph-eye-slash');
-        icon.classList.add('ph-eye');
+        icon.classList.replace('ph-eye-slash', 'ph-eye');
       }
     });
   }
 
   // ========================================================
-  // 2. LOGIQUE BACKEND (SUPABASE)
+  // 2. CONFIG SUPABASE
   // ========================================================
   const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
   
-  // On vérifie que la librairie est chargée pour éviter le crash
   let supabaseClient;
   if (window.supabase) {
     supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
   } else {
-    console.error("Erreur : La librairie Supabase n'a pas chargé.");
+    console.error("Erreur : Supabase non chargé.");
   }
 
-  // Éléments DOM
+  // ========================================================
+  // 3. LOGIQUE CONNEXION
+  // ========================================================
   const form = document.getElementById('loginForm');
   const errorBox = document.getElementById('errorBox');
 
-  // Connexion Email
+  // -- EMAIL LOGIN --
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -262,15 +238,19 @@
     });
   }
 
-  // Connexion Google
+  // -- GOOGLE LOGIN --
   const googleBtn = document.getElementById('googleBtn');
   if (googleBtn) {
     googleBtn.addEventListener('click', async () => {
       if (!supabaseClient) return;
+      
+      // URL DE REDIRECTION UNIVERSELLE (CORRECTIF)
+      const redirectUrl = new URL('dashboard.html', window.location.href).href;
+
       const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/dashboard.html'
+          redirectTo: redirectUrl
         }
       });
       if (error) alert(error.message);
