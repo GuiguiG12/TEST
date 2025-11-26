@@ -9,33 +9,21 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
-    /* =========================================================
-       DESIGN SYSTEM (MIDNIGHT ELEGANCE - Same as Dashboard)
-       ========================================================= */
     :root {
       --font-sans: 'Inter', sans-serif;
-      
-      /* Palette Midnight */
       --bg-app: #050505;       
       --card-bg: #0f0f0f; 
       --card-border: #1f1f1f;
       --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-      
-      /* Text */
       --text-main: #ededed; 
       --text-muted: #a1a1a1;
       --text-soft: #525252;
-
-      /* Inputs & UI */
       --input-bg: #0a0a0a;
       --input-border: #262626;
       --input-focus: #4ee5c1;
-      
-      /* Buttons */
       --accent-teal: #4ee5c1;
       --accent-mint: #a8ffc8;
       --accent-grad: linear-gradient(90deg, var(--accent-teal), var(--accent-mint));
-      
       --btn-surface: #171717;
       --btn-surface-hover: #262626;
     }
@@ -43,99 +31,95 @@
     * { box-sizing: border-box; }
     
     body { 
-      margin: 0; 
-      font-family: var(--font-sans); 
-      background-color: var(--bg-app); 
-      color: var(--text-main);
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      min-height: 100vh;
-      padding: 1rem;
+      margin: 0; font-family: var(--font-sans); background-color: var(--bg-app); color: var(--text-main);
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem;
     }
     
-    /* Centered Card */
     .login-card {
-      background: var(--card-bg); 
-      width: 100%; 
-      max-width: 420px;
-      padding: 2.5rem; 
-      border-radius: 1rem;
-      border: 1px solid var(--card-border);
-      box-shadow: var(--card-shadow);
-      text-align: center;
+      background: var(--card-bg); width: 100%; max-width: 420px; padding: 2.5rem; 
+      border-radius: 1rem; border: 1px solid var(--card-border);
+      box-shadow: var(--card-shadow); text-align: center;
     }
     
-    /* Logo */
     .logo-area { margin-bottom: 2rem; display: flex; justify-content: center; }
     .logo-img { width: 160px; height: auto; display: block; }
 
     .login-title { font-size: 1.4rem; font-weight: 700; margin: 0 0 0.5rem 0; color: var(--text-main); }
     .login-subtitle { font-size: 0.9rem; color: var(--text-muted); margin: 0 0 2rem 0; line-height: 1.5; }
 
-    /* Forms */
     .form-group { margin-bottom: 1.2rem; text-align: left; }
     .form-label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-muted); }
     
+    /* Wrapper pour positionner l'icône oeil */
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
     .form-input {
-      width: 100%; 
-      padding: 0.75rem 1rem; 
+      width: 100%; padding: 0.75rem 1rem; 
+      padding-right: 40px; /* Espace pour l'icône */
       border-radius: 0.5rem; 
-      background: var(--input-bg); 
-      border: 1px solid var(--input-border);
-      color: var(--text-main); 
-      font-size: 0.95rem;
-      font-family: inherit;
+      background: var(--input-bg); border: 1px solid var(--input-border);
+      color: var(--text-main); font-size: 0.95rem; font-family: inherit;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
+    .form-input:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 0 2px rgba(78, 229, 193, 0.1); }
     
-    .form-input:focus { 
-      outline: none; 
-      border-color: var(--input-focus); 
-      box-shadow: 0 0 0 2px rgba(78, 229, 193, 0.1);
+    /* Password Toggle Eye - Centrage Parfait */
+    .password-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%); /* Centre verticalement */
+      background: transparent;
+      border: none;
+      color: var(--text-soft);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
     }
-    
-    /* Buttons */
+    .password-toggle:hover { color: var(--text-main); }
+
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
       width: 100%; padding: 0.85rem; border-radius: 999px;
       font-weight: 600; font-size: 0.95rem; cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.2s; text-decoration: none;
+      border: 1px solid transparent; transition: all 0.2s; text-decoration: none;
     }
 
     .btn-primary {
-      background: var(--accent-grad); 
-      color: #050505; 
-      box-shadow: 0 4px 12px rgba(78, 229, 193, 0.2);
-      margin-top: 0.5rem;
+      background: var(--accent-grad); color: #050505; margin-top: 0.5rem;
     }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(78, 229, 193, 0.3); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(78, 229, 193, 0.2); }
+    .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
 
-    /* Divider */
+    .error-msg {
+      color: #ef4444; font-size: 0.85rem; margin-bottom: 1rem; display: none;
+      background: rgba(239, 68, 68, 0.1); padding: 0.5rem; border-radius: 0.3rem; border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
     .divider { 
-      display: flex; align-items: center; gap: 1rem; 
-      margin: 1.8rem 0; color: var(--text-soft); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;
+      display: flex; align-items: center; gap: 1rem; margin: 1.8rem 0; 
+      color: var(--text-soft); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
     }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--input-border); }
 
-    /* Social & Wallet Buttons */
     .social-grid { display: grid; gap: 0.8rem; }
-
     .btn-secondary {
-      background: var(--btn-surface); 
-      color: var(--text-main); 
-      border: 1px solid var(--card-border);
-      font-weight: 500;
+      background: var(--btn-surface); color: var(--text-main); border: 1px solid var(--card-border); font-weight: 500;
     }
     .btn-secondary:hover { background: var(--btn-surface-hover); border-color: var(--text-muted); }
     .btn-secondary i { font-size: 1.2rem; }
 
-    /* Footer */
     .footer-link { margin-top: 2rem; display: block; font-size: 0.85rem; color: var(--text-muted); }
     .footer-link a { color: var(--accent-teal); text-decoration: none; font-weight: 500; }
     .footer-link a:hover { text-decoration: underline; }
-
   </style>
 </head>
 <body>
@@ -148,32 +132,38 @@
     <h1 class="login-title">Welcome back</h1>
     <p class="login-subtitle">Enter your credentials to access your dashboard.</p>
 
-    <form action="dashboard.html">
+    <div id="errorBox" class="error-msg"></div>
+
+    <form id="loginForm">
       <div class="form-group">
         <label class="form-label">Email Address</label>
-        <input type="email" class="form-input" placeholder="you@example.com" required>
+        <input type="email" id="email" class="form-input" placeholder="partner@example.com" required>
       </div>
+      
       <div class="form-group">
         <label class="form-label" style="display:flex; justify-content:space-between;">
           Password 
-          <a href="#" style="color:var(--text-soft); font-size:0.8rem; text-decoration:none;">Forgot?</a>
         </label>
-        <input type="password" class="form-input" placeholder="••••••••" required>
+        
+        <div class="input-wrapper">
+          <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+          <button type="button" id="togglePassword" class="password-toggle" title="Show password">
+            <i class="ph ph-eye"></i>
+          </button>
+        </div>
       </div>
+      
       <button type="submit" class="btn btn-primary">Sign In</button>
     </form>
 
     <div class="divider">Or continue with</div>
 
     <div class="social-grid">
-      <button class="btn btn-secondary">
+      <button type="button" id="googleBtn" class="btn btn-secondary">
         <i class="ph ph-google-logo"></i> Google
       </button>
-      <button class="btn btn-secondary">
+      <button type="button" class="btn btn-secondary" style="opacity:0.5; cursor:not-allowed;">
         <i class="ph ph-apple-logo"></i> Apple
-      </button>
-      <button class="btn btn-secondary">
-        <i class="ph ph-wallet"></i> Connect Wallet
       </button>
     </div>
 
@@ -181,35 +171,81 @@
       Don't have an invite yet? <a href="access.html">Apply for access</a>
     </div>
   </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // REMPLACEZ ICI
+  // VOS CLÉS
   const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+  // Éléments DOM
   const form = document.getElementById('loginForm');
-  const errorBox = document.getElementById('errorBox'); // Assurez-vous d'avoir une div id="errorBox"
+  const errorBox = document.getElementById('errorBox');
+  const togglePasswordBtn = document.getElementById('togglePassword');
+  const passwordInput = document.getElementById('password');
 
+  // 1. LOGIQUE DE BASCULE DE MOT DE PASSE (OEIL)
+  togglePasswordBtn.addEventListener('click', () => {
+    // Vérifie l'état actuel
+    const isPassword = passwordInput.getAttribute('type') === 'password';
+    const icon = togglePasswordBtn.querySelector('i');
+
+    if (isPassword) {
+      // Si c'est caché, on montre
+      passwordInput.setAttribute('type', 'text');
+      // On met l'icône "Oeil Barré" (pour dire : clique ici pour fermer)
+      icon.classList.remove('ph-eye');
+      icon.classList.add('ph-eye-slash');
+    } else {
+      // Si c'est visible, on cache
+      passwordInput.setAttribute('type', 'password');
+      // On remet l'icône "Oeil Ouvert" (pour dire : clique ici pour voir)
+      icon.classList.remove('ph-eye-slash');
+      icon.classList.add('ph-eye');
+    }
+  });
+
+  // 2. Connexion Email
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    errorBox.style.display = 'none';
     
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    
-    // Connexion
+    const btn = form.querySelector('button[type="submit"]');
+    const originalText = btn.textContent;
+
+    btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Signing in...';
+    btn.disabled = true;
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
 
     if (error) {
-      alert("Erreur de connexion : " + error.message);
+      errorBox.textContent = "Login failed: " + error.message;
+      errorBox.style.display = 'block';
+      btn.textContent = originalText;
+      btn.disabled = false;
     } else {
-      // Succès -> On va au dashboard
       window.location.href = 'dashboard.html';
     }
   });
+
+  // 3. Connexion Google
+  const googleBtn = document.getElementById('googleBtn');
+  googleBtn.addEventListener('click', async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/dashboard.html'
+      }
+    });
+    if (error) alert(error.message);
+  });
 </script>
+
 </body>
 </html>
