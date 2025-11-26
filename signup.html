@@ -11,7 +11,7 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onloadTurnstileCallback" async defer></script>
 
   <style>
-    /* DESIGN SYSTEM (Inchangé) */
+    /* DESIGN SYSTEM IDENTIQUE */
     :root {
       --font-sans: 'Inter', sans-serif;
       --bg-app: #050505; --card-bg: #0f0f0f; --card-border: #1f1f1f;
@@ -28,15 +28,27 @@
       display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem 1rem;
     }
     
-    .signup-card { background: var(--card-bg); width: 100%; max-width: 500px; padding: 2.5rem; border-radius: 1rem; border: 1px solid var(--card-border); box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+    .signup-card {
+      background: var(--card-bg); width: 100%; max-width: 500px; padding: 2.5rem; 
+      border-radius: 1rem; border: 1px solid var(--card-border);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+    
     .logo-area { text-align: center; margin-bottom: 1.5rem; }
     .logo-img { width: 120px; height: auto; display: inline-block; }
+
     h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.5rem; text-align: center; color: var(--text-main); }
     .subtitle { font-size: 0.9rem; color: var(--text-muted); text-align: center; margin-bottom: 2rem; line-height: 1.5; }
+
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem; }
     .form-group { margin-bottom: 1.2rem; position: relative; }
     .form-label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-muted); }
-    .form-input, select.form-input { width: 100%; padding: 0.75rem 1rem; border-radius: 0.5rem; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    
+    .form-input, select.form-input {
+      width: 100%; padding: 0.75rem 1rem; border-radius: 0.5rem; 
+      background: var(--input-bg); border: 1px solid var(--input-border);
+      color: var(--text-main); font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+    }
     .form-input:focus { border-color: var(--input-focus); }
     .form-input.error { border-color: var(--error); }
     
@@ -44,21 +56,50 @@
     .password-strength { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
     .strength-bar-bg { width: 100%; height: 4px; background: #262626; border-radius: 2px; overflow: hidden; }
     .strength-fill { height: 100%; width: 0%; background: var(--error); transition: width 0.3s ease, background 0.3s ease; }
+    
     .req-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.2rem; }
-    .req-tag { font-size: 0.7rem; color: var(--text-soft); padding: 2px 8px; border: 1px solid var(--input-border); border-radius: 4px; display: flex; align-items: center; gap: 4px; transition: 0.2s; opacity: 0.7; }
-    .req-tag.valid { border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.1); color: var(--success); opacity: 1; }
+    .req-tag {
+      font-size: 0.7rem; color: var(--text-soft); padding: 2px 8px; 
+      border: 1px solid var(--input-border); border-radius: 4px;
+      display: flex; align-items: center; gap: 4px; transition: 0.2s; opacity: 0.7;
+    }
+    .req-tag.valid { 
+      border-color: rgba(34, 197, 94, 0.3); 
+      background: rgba(34, 197, 94, 0.1); 
+      color: var(--success); 
+      opacity: 1; 
+    }
 
     /* CAPTCHA CONTAINER */
-    #turnstile-container { margin-bottom: 1.5rem; min-height: 65px; display: flex; justify-content: center; }
+    .captcha-wrapper {
+      margin-bottom: 1.5rem;
+      min-height: 65px; 
+      display: flex; justify-content: center;
+    }
 
-    .legal-check { display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 1.5rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; cursor: pointer; }
+    .legal-check {
+      display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 1.5rem;
+      font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; cursor: pointer;
+    }
     .legal-check input { margin-top: 0.15rem; accent-color: var(--accent-teal); }
     .legal-check a { color: var(--text-main); text-decoration: underline; }
-    .btn-submit { width: 100%; padding: 1rem; border-radius: 999px; border: none; background: #262626; color: #737373; font-weight: 600; font-size: 1rem; cursor: not-allowed; transition: all 0.3s ease; }
-    .btn-submit.active { background: var(--accent-grad); color: #050505; cursor: pointer; box-shadow: 0 0 15px rgba(78, 229, 193, 0.3); }
+
+    .btn-submit {
+      width: 100%; padding: 1rem; border-radius: 999px; border: none;
+      background: #262626; color: #737373; font-weight: 600; font-size: 1rem;
+      cursor: not-allowed; transition: all 0.3s ease;
+    }
+    .btn-submit.active {
+      background: var(--accent-grad); color: #050505; cursor: pointer;
+      box-shadow: 0 0 15px rgba(78, 229, 193, 0.3);
+    }
     .btn-submit.active:hover { transform: translateY(-1px); box-shadow: 0 0 25px rgba(78, 229, 193, 0.5); }
+
     .fund-badge { text-align: center; margin-bottom: 2rem; }
-    .badge-pill { background: rgba(255,255,255,0.05); border: 1px solid var(--input-border); padding: 0.3rem 0.8rem; border-radius: 99px; font-size: 0.8rem; color: var(--accent-teal); }
+    .badge-pill {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--input-border);
+      padding: 0.3rem 0.8rem; border-radius: 99px; font-size: 0.8rem; color: var(--accent-teal);
+    }
     .footer-link { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
     .footer-link a { color: var(--accent-teal); text-decoration: none; }
   </style>
@@ -78,6 +119,7 @@
     <p class="subtitle">Complete your profile to request access.</p>
 
     <form id="signupForm">
+      
       <div class="form-grid">
         <div>
           <label class="form-label">First Name</label>
@@ -97,6 +139,7 @@
       <div class="form-group">
         <label class="form-label">Create Password</label>
         <input type="password" id="passwordInput" class="form-input" placeholder="Min. 8 characters" required>
+        
         <div class="password-strength">
           <div class="strength-bar-bg"><div id="strengthFill" class="strength-fill"></div></div>
           <div class="req-list">
@@ -111,7 +154,9 @@
       <div class="form-group">
         <label class="form-label">Confirm Password</label>
         <input type="password" id="confirmPassword" class="form-input" placeholder="Repeat password" required>
-        <div id="matchError" style="color:var(--error); font-size:0.75rem; margin-top:0.4rem; display:none;">Passwords do not match.</div>
+        <div id="matchError" style="color:var(--error); font-size:0.75rem; margin-top:0.4rem; display:none;">
+          Passwords do not match.
+        </div>
       </div>
 
       <div class="form-grid">
@@ -140,49 +185,49 @@
 
       <label class="legal-check">
         <input type="checkbox" id="legalCheck">
-        <span>I confirm I am not a US citizen and I accept the <a href="#">Terms of Use</a> & <a href="#">Risk Disclosure</a>.</span>
+        <span>
+          I confirm I am not a US citizen and I accept the <a href="#">Terms of Use</a> & <a href="#">Risk Disclosure</a>.
+        </span>
       </label>
 
       <input type="hidden" id="fundChoice" value="flex">
+
       <button type="submit" id="submitBtn" class="btn-submit" disabled>Create Account</button>
     </form>
 
-    <div class="footer-link">Already a partner? <a href="login.html">Log in</a></div>
+    <div class="footer-link">
+      Already a partner? <a href="login.html">Log in</a>
+    </div>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  // 1. CALLBACK GLOBAL TURNSTILE
+  // 1. CALLBACK CAPTCHA GLOBAL
   let isCaptchaValid = false;
   
-  // Fonction appelée par Cloudflare une fois le script chargé
-  window.onloadTurnstileCallback = function () {
-      turnstile.render('#turnstile-container', {
-          sitekey: '0x4AAAAAACDFSWeVU3uy7P1e',
-          theme: 'dark',
-          callback: function(token) {
-              console.log('Captcha Success:', token);
-              isCaptchaValid = true;
-              if (window.checkAll) window.checkAll();
-          },
-          'error-callback': function(err) {
-              console.error('Captcha Error:', err);
-          }
-      });
+  window.onCaptchaSuccess = function(token) {
+    console.log("Captcha Success!");
+    isCaptchaValid = true;
+    if (window.checkAll) window.checkAll(); 
   };
 
   document.addEventListener('DOMContentLoaded', () => {
     
-    // 2. SUPABASE
+    // 2. CONFIG SUPABASE
     const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
     
     let supabaseClient;
-    try { if(window.supabase) supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey); } 
-    catch(e) { console.error("Supabase Init Error", e); }
+    try {
+      if (window.supabase) {
+          supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+      }
+    } catch(e) {
+      console.error("Supabase Init Error", e);
+    }
 
-    // 3. DOM & LOGIQUE
+    // 3. DOM
     const passEl = document.getElementById('passwordInput');
     const confEl = document.getElementById('confirmPassword');
     const legalEl = document.getElementById('legalCheck');
@@ -197,18 +242,23 @@
       spec: { regex: /[^A-Za-z0-9]/, el: document.getElementById('req-spec') }
     };
 
-    // Logique Mot de passe
+    // 4. LOGIQUE MOT DE PASSE
     let passwordScore = 0;
+
     if(passEl) {
         passEl.addEventListener('input', () => {
           const val = passEl.value;
           passwordScore = 0;
+
           for (let key in reqs) {
             if (reqs[key].regex.test(val)) {
               reqs[key].el.classList.add('valid');
               passwordScore++;
-            } else { reqs[key].el.classList.remove('valid'); }
+            } else {
+              reqs[key].el.classList.remove('valid');
+            }
           }
+
           const pct = (passwordScore / 4) * 100;
           if(strengthFill) {
               strengthFill.style.width = `${pct}%`;
@@ -216,6 +266,7 @@
               else if(passwordScore === 3) strengthFill.style.background = "var(--warning)";
               else strengthFill.style.background = "var(--success)";
           }
+
           checkMatch();
           checkAll();
         });
@@ -238,9 +289,12 @@
           return false;
       }
     }
-    if(confEl) confEl.addEventListener('input', () => { checkMatch(); checkAll(); });
 
-    // Validation Globale
+    if(confEl) {
+        confEl.addEventListener('input', () => { checkMatch(); checkAll(); });
+    }
+
+    // 5. VALIDATION GLOBALE
     ['firstName', 'lastName', 'email', 'legalCheck'].forEach(id => {
       const el = document.getElementById(id);
       if(el) {
@@ -264,9 +318,10 @@
         submitBtn.classList.remove('active');
       }
     }
+    
     window.checkAll = checkAll;
 
-    // Submit
+    // 6. SUBMIT -> VERS PAGE DE VALIDATION
     const signupForm = document.getElementById('signupForm');
     if(signupForm) {
         signupForm.addEventListener('submit', async (e) => {
@@ -288,6 +343,7 @@
               fund: document.getElementById('fundChoice').value
           };
 
+          // URL de redirection "Magique" (vers Dashboard une fois cliqué dans le mail)
           const redirectUrl = new URL('dashboard.html', window.location.href).href;
 
           const { data, error } = await supabaseClient.auth.signUp({
@@ -301,6 +357,7 @@
             submitBtn.innerText = "Create Account";
             submitBtn.disabled = false;
           } else {
+            // SUCCES : ON VA VERS LA PAGE D'ATTENTE (PURGATOIRE)
             window.location.href = 'verify-email.html';
           }
         });
