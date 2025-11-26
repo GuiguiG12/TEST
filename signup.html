@@ -8,10 +8,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 
   <style>
-    /* DESIGN SYSTEM IDENTIQUE A AVANT */
+    /* DESIGN SYSTEM IDENTIQUE */
     :root {
       --font-sans: 'Inter', sans-serif;
       --bg-app: #050505;       
@@ -71,7 +71,7 @@
       opacity: 1; 
     }
 
-    /* CAPTCHA : Important, une hauteur fixe pour éviter le saut */
+    /* CAPTCHA CONTAINER - Important pour éviter le saut */
     .captcha-wrapper {
       margin-bottom: 1.5rem;
       min-height: 65px; 
@@ -181,10 +181,7 @@
       </div>
 
       <div class="captcha-wrapper">
-        <div class="cf-turnstile" 
-             data-sitekey="0x4AAAAAACDFSWeVU3uy7P1e" 
-             data-callback="onCaptchaSuccess" 
-             data-theme="dark"></div>
+        <div id="turnstile-widget"></div>
       </div>
 
       <label class="legal-check">
@@ -207,22 +204,30 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  // --- 1. CALLBACK CAPTCHA GLOBAL (Déclaration avant tout) ---
+  // 1. CONFIGURATION GLOBALE
   let isCaptchaValid = false;
+  const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
   
-  // Cette fonction est appelée AUTOMATIQUEMENT par Cloudflare quand c'est validé
-  window.onCaptchaSuccess = function(token) {
-    console.log("Captcha Success!");
-    isCaptchaValid = true;
-    if (window.checkAll) window.checkAll(); 
+  // 2. RENDU EXPLICITE DU CAPTCHA (Le changement clé)
+  window.onloadTurnstileCallback = function () {
+      turnstile.render('#turnstile-widget', {
+          sitekey: '0x4AAAAAACDFSWeVU3uy7P1e', // Ta vraie clé
+          theme: 'dark',
+          callback: function(token) {
+              console.log('Captcha Validé !');
+              isCaptchaValid = true;
+              if (window.checkAll) window.checkAll();
+          },
+          'error-callback': function(err) {
+              console.error('Captcha Error:', err);
+          }
+      });
   };
 
   document.addEventListener('DOMContentLoaded', () => {
     
-    // 2. SUPABASE INIT
-    const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
-    
+    // Initialisation Supabase
     let supabaseClient;
     try {
       if (window.supabase) {
@@ -232,7 +237,7 @@
       console.error("Supabase Init Error", e);
     }
 
-    // 3. ELEMENTS DOM
+    // DOM Elements
     const passEl = document.getElementById('passwordInput');
     const confEl = document.getElementById('confirmPassword');
     const legalEl = document.getElementById('legalCheck');
@@ -240,7 +245,6 @@
     const matchError = document.getElementById('matchError');
     const strengthFill = document.getElementById('strengthFill');
 
-    // Regex règles
     const reqs = {
       len: { regex: /.{8,}/, el: document.getElementById('req-len') },
       up: { regex: /[A-Z]/, el: document.getElementById('req-up') },
@@ -248,7 +252,7 @@
       spec: { regex: /[^A-Za-z0-9]/, el: document.getElementById('req-spec') }
     };
 
-    // 4. LOGIQUE MOT DE PASSE
+    // --- LOGIQUE PASSWORD ---
     let passwordScore = 0;
 
     if(passEl) {
@@ -300,7 +304,7 @@
         confEl.addEventListener('input', () => { checkMatch(); checkAll(); });
     }
 
-    // 5. VALIDATION GLOBALE
+    // --- VALIDATION GLOBALE ---
     ['firstName', 'lastName', 'email', 'legalCheck'].forEach(id => {
       const el = document.getElementById(id);
       if(el) {
@@ -316,7 +320,6 @@
       const isNamesOk = document.getElementById('firstName').value.trim() !== "" && document.getElementById('lastName').value.trim() !== "";
       const isEmailOk = document.getElementById('email').value.includes('@');
 
-      // LA CONDITION SUPRÊME
       if (isPassOk && isMatchOk && isLegalOk && isNamesOk && isEmailOk && isCaptchaValid) {
         submitBtn.disabled = false;
         submitBtn.classList.add('active');
@@ -328,13 +331,13 @@
     
     window.checkAll = checkAll;
 
-    // 6. INSCRIPTION & REDIRECTION UNIVERSELLE
+    // --- SUBMIT ---
     const signupForm = document.getElementById('signupForm');
     if(signupForm) {
         signupForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           
-          if(!supabaseClient) return alert("Erreur technique : Supabase indisponible");
+          if(!supabaseClient) return alert("Supabase indisponible");
 
           submitBtn.innerText = "Creating Profile...";
           submitBtn.disabled = true;
@@ -351,8 +354,6 @@
               fund: document.getElementById('fundChoice').value
           };
 
-          // --- REDIRECTION INTELLIGENTE ---
-          // Cela garantit que le lien dans l'email renverra vers le BON dossier (/TEST/ ou racine)
           const redirectUrl = new URL('dashboard.html', window.location.href).href;
 
           const { data, error } = await supabaseClient.auth.signUp({
@@ -365,17 +366,16 @@
           });
 
           if (error) {
-            alert("Registration Error: " + error.message);
+            alert("Erreur : " + error.message);
             submitBtn.innerText = "Create Account";
             submitBtn.disabled = false;
           } else {
-            // Succès -> On va sur la page d'attente
             window.location.href = 'verify-email.html';
           }
         });
     }
 
-    // Gestion Badge URL
+    // Gestion Badge
     const fundChoice = document.getElementById('fundChoice');
     const badge = document.getElementById('selectedFundDisplay');
     const params = new URLSearchParams(window.location.search);
