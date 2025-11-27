@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="carbon">
 <head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>G12 Labs — Dashboard</title>
@@ -707,6 +710,13 @@
   if (window.supabase) {
     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
   }
+
+  // Force le rechargement si l'utilisateur vient du bouton "Retour"
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+      window.location.reload();
+    }
+  });
 
   // 2. CHECK SESSION & USER DATA
   async function initSession() {
