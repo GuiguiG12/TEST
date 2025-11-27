@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     /* =========================================================
@@ -27,69 +28,51 @@
       --accent-mint: #a8ffc8;
       --accent-grad: linear-gradient(90deg, var(--accent-teal), var(--accent-mint));
       
-      --color-success: #16c47f;
-      --color-danger: #f46666;
-      --color-warning: #ffb020;
+      --color-success: #22c55e;
+      --color-danger: #ef4444;
+      --color-warning: #f59e0b;
     }
 
     /* === THEME: CARBON (DARK) === */
     [data-theme="carbon"] {
-      --bg-app: #000000;
-      
-      /* Sidebar */
-      --bg-sidebar: rgba(5, 7, 11, 0.85);
-      --sidebar-border: rgba(255, 255, 255, 0.08);
-
-      /* Cards */
-      --card-bg: rgba(20, 26, 33, 0.4); 
-      --card-border-color: rgba(255, 255, 255, 0.08);
-      --card-inner-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
-      --card-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
-      
-      /* Text */
-      --text-main: #e6e6e6;
-      --text-muted: #9aa4b2;
-      --text-soft: #656e7b;
-
-      /* Inputs & UI */
-      --input-bg: #0b0f14;
-      --input-border: #2a2f35;
-      --btn-glass-bg: rgba(255, 255, 255, 0.05);
-      --btn-glass-hover: rgba(255, 255, 255, 0.1);
-      
-      /* Chart */
-      --chart-grid: rgba(255, 255, 255, 0.06);
-      --chart-tooltip-bg: rgba(10, 10, 10, 0.95);
-
-      /* Logo Filter (Keep white) */
-      --logo-filter: none;
+      --bg-app: #050505;
+      --bg-sidebar: #0a0a0a;
+      --sidebar-border: #1f1f1f;
+      --card-bg: #0f0f0f; 
+      --card-border-color: #1f1f1f;
+      --card-inner-shadow: none;
+      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+      --text-main: #ededed; 
+      --text-muted: #a1a1a1;
+      --text-soft: #525252;
+      --input-bg: #0a0a0a;
+      --input-border: #262626;
+      --btn-glass-bg: #171717;
+      --btn-glass-hover: #262626;
+      --chart-grid: #1f1f1f;
+      --chart-tooltip-bg: #171717;
+      --logo-filter: brightness(0) invert(1);
     }
 
     /* === THEME: QUARTZ (LIGHT) === */
     [data-theme="quartz"] {
-      --bg-app: #F3F4F6;
-      --bg-sidebar: rgba(255, 255, 255, 0.95);
-      --sidebar-border: rgba(0, 0, 0, 0.06);
-
-      --card-bg: rgba(255, 255, 255, 0.75);
-      --card-border-color: rgba(0, 0, 0, 0.06);
-      --card-inner-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
-      --card-shadow: 0 15px 30px -5px rgba(0,0,0,0.05);
-
-      --text-main: #111827;
-      --text-muted: #4B5563;
-      --text-soft: #9CA3AF;
-
-      --input-bg: #fff;
+      --bg-app: #ffffff;
+      --bg-sidebar: #f9fafb;
+      --sidebar-border: #e5e7eb;
+      --card-bg: #ffffff;
+      --card-border-color: #e5e7eb;
+      --card-inner-shadow: none;
+      --card-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      --text-main: #0a0a0a;
+      --text-muted: #525252;
+      --text-soft: #a3a3a3;
+      --input-bg: #ffffff;
       --input-border: #e5e7eb;
-      --btn-glass-bg: rgba(0, 0, 0, 0.04);
-      --btn-glass-hover: rgba(0, 0, 0, 0.08);
-      
-      --chart-grid: rgba(0, 0, 0, 0.06);
-      --chart-tooltip-bg: rgba(255, 255, 255, 0.98);
-
-      /* Logo Filter (Invert to black) */
-      --logo-filter: invert(1) brightness(0);
+      --btn-glass-bg: #f3f4f6;
+      --btn-glass-hover: #e5e7eb;
+      --chart-grid: #f3f4f6;
+      --chart-tooltip-bg: #ffffff;
+      --logo-filter: invert(1) brightness(0); 
     }
 
     /* =========================================================
@@ -101,14 +84,16 @@
       margin: 0; font-family: var(--font-sans);
       background-color: var(--bg-app); color: var(--text-main);
       overflow-x: hidden;
+      /* Masqué par défaut le temps de vérifier la session pour éviter le "flash" */
+      visibility: hidden; 
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
-
-    body::before {
-      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: -1;
-      background: 
-        radial-gradient(circle at 15% 15%, rgba(78, 229, 193, 0.05), transparent 45%),
-        radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.02), transparent 45%),
-        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+    
+    /* Une fois chargé, on affiche */
+    body.loaded {
+      visibility: visible;
+      opacity: 1;
     }
 
     /* =========================================================
@@ -176,6 +161,7 @@
       text-decoration: none; font-size: 0.9rem; font-weight: 500;
       border-top: 1px solid var(--sidebar-border);
       transition: color 0.2s;
+      cursor: pointer; /* Force le curseur main */
     }
     .logout-btn:hover { color: var(--color-danger); }
 
@@ -279,7 +265,7 @@
     .chart-half { grid-column: span 6; min-height: 380px; }
     .chart-body { flex: 1; width: 100%; min-height: 0; }
 
-    /* Combined Strategy Card (New) */
+    /* Combined Strategy Card */
     .allocations-card { grid-column: span 6; }
     .alloc-list { display: flex; flex-direction: column; gap: 1rem; }
     .alloc-row {
@@ -325,6 +311,8 @@
       color: var(--text-main); font-family: inherit; font-size: 0.9rem;
     }
     .form-input:focus { outline: none; border-color: var(--accent-teal); }
+    /* Pre-filled styles (optional visual cue) */
+    .form-input[readonly], .form-input:disabled { opacity: 0.7; cursor: default; }
 
     /* Select Input Customization */
     select.form-input { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23888" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 8px center; }
@@ -359,7 +347,7 @@
     .full-table { width: 100%; border-collapse: collapse; min-width: 600px; }
     .full-table th { text-align: left; padding: 1rem; color: var(--text-muted); font-size: 0.85rem; border-bottom: 1px solid var(--sidebar-border); }
     .full-table td { padding: 1rem; border-bottom: 1px solid var(--sidebar-border); font-size: 0.9rem; color: var(--text-main); }
-    .status-badge { padding: 0.2rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
+    .status-badge { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
     .sb-success { background: rgba(22, 196, 127, 0.15); color: var(--color-success); }
     .sb-pending { background: rgba(255, 176, 32, 0.15); color: var(--color-warning); }
 
@@ -399,9 +387,9 @@
   </a>
 
   <div class="user-card">
-    <div class="avatar">GB</div>
+    <div class="avatar" id="sidebarAvatar">..</div>
     <div class="user-info">
-      <div>Guillaume B.</div>
+      <div id="sidebarName">Partner</div>
       <span>ID #042</span>
     </div>
   </div>
@@ -422,7 +410,7 @@
     <i class="ph ph-gear"></i> Settings
   </div>
 
-  <a href="index.html" class="logout-btn">
+  <a href="#" class="logout-btn" id="logoutBtn">
     <i class="ph ph-sign-out"></i> Disconnect
   </a>
 </aside>
@@ -434,7 +422,7 @@
       <div style="display:flex; align-items:center;">
         <button class="mobile-toggle" onclick="openSidebar()"><i class="ph ph-list"></i></button>
         <div class="welcome-text">
-          <h1>Welcome back, Guillaume!</h1>
+          <h1 id="headerWelcome">Welcome back!</h1>
           <p>Portfolio metrics updated 12 mins ago.</p>
         </div>
       </div>
@@ -666,11 +654,11 @@
       <div class="card">
         <div class="form-group">
           <label class="form-label">Full Name</label>
-          <input type="text" class="form-input" value="Guillaume B.">
+          <input type="text" id="settingName" class="form-input" value="Partner">
         </div>
         <div class="form-group">
           <label class="form-label">Email Address</label>
-          <input type="email" class="form-input" value="guillaume.baudour@gmail.com" disabled style="opacity:0.7;">
+          <input type="email" id="settingEmail" class="form-input" value="" disabled style="opacity:0.7;">
         </div>
         
         <div class="form-group">
@@ -711,7 +699,86 @@
 </div>
 
 <script>
-  // 1. NAVIGATION
+  // 1. CONFIGURATION SUPABASE
+  const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
+  
+  let supabase;
+  if (window.supabase) {
+    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  }
+
+  // 2. CHECK SESSION & USER DATA
+  async function initSession() {
+    if (!supabase) return;
+
+    // Vérifie la session actuelle
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      // Pas de session -> Redirection Login
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Session active -> On récupère les infos
+    const user = session.user;
+    const meta = user.user_metadata || {};
+    
+    // Prénom/Nom par défaut ou depuis les métadonnées
+    const fullName = meta.full_name || "Partner";
+    const email = user.email || "";
+
+    // A. Mise à jour de la Sidebar
+    const sbName = document.getElementById('sidebarName');
+    const sbAvatar = document.getElementById('sidebarAvatar');
+    if (sbName) sbName.innerText = fullName;
+    if (sbAvatar) {
+        // Initiales
+        const initials = fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
+        sbAvatar.innerText = initials;
+    }
+
+    // B. Mise à jour du Header Welcome
+    const welcomeHeader = document.getElementById('headerWelcome');
+    if (welcomeHeader) welcomeHeader.innerText = `Welcome back, ${fullName}!`;
+
+    // C. Mise à jour des Settings
+    const settingName = document.getElementById('settingName');
+    const settingEmail = document.getElementById('settingEmail');
+    if (settingName) settingName.value = fullName;
+    if (settingEmail) settingEmail.value = email;
+
+    // Affiche la page (fin du chargement)
+    document.body.classList.add('loaded');
+  }
+
+  // 3. LOGOUT LOGIC
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault(); // Empêche le lien #
+      if (!supabase) return;
+      
+      const { error } = await supabase.auth.signOut();
+      if (!error) {
+        window.location.href = 'login.html';
+      }
+    });
+  }
+
+  // Lancement au chargement
+  window.addEventListener('DOMContentLoaded', () => {
+    initSession();
+    // Default theme logic
+    updateThemeIcon('carbon'); 
+  });
+
+
+  // ========================================================
+  // UI LOGIC (Navigation, Theme, Charts...)
+  // ========================================================
+
   function switchView(viewName, navItem) {
     if(navItem) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -730,7 +797,6 @@
     }
   }
 
-  // 2. THEME & TOGGLE ICON
   function toggleTheme() {
     const html = document.documentElement;
     const current = html.getAttribute('data-theme');
@@ -751,8 +817,6 @@
   function updateThemeIcon(theme) {
     const btn = document.getElementById('themeToggleBtn');
     const icon = btn.querySelector('i');
-    // Dark mode (Carbon) -> Show Sun (to switch to light)
-    // Light mode (Quartz) -> Show Moon (to switch to dark)
     if(theme === 'carbon') {
       icon.className = 'ph ph-sun';
     } else {
@@ -769,7 +833,7 @@
     document.getElementById('mobileOverlay').classList.remove('active');
   }
 
-  // 3. CHARTS
+  // CHARTS INIT
   let chartPortfolio, chartWeekly;
 
   function initCharts() {
@@ -826,11 +890,9 @@
     btn.classList.add('active');
   }
 
-  // Init
+  // Load Charts on Init
   window.addEventListener('load', () => {
     initCharts();
-    // Set initial icon based on default theme (Carbon)
-    updateThemeIcon('carbon');
   });
   window.addEventListener('resize', () => {
     if(chartPortfolio) chartPortfolio.resize();
