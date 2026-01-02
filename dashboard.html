@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="carbon">
 <head>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8" />
@@ -13,269 +13,95 @@
   
   <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
   <style>
     /* =========================================================
-       DESIGN SYSTEM 
+       DESIGN SYSTEM (IDENTIQUE À TON FICHIER ORIGINAL)
        ========================================================= */
     :root {
       --font-sans: 'Inter', sans-serif;
       --sidebar-width: 280px;
-      --radius-lg: 1rem;
-      --radius-md: 0.75rem;
-      --radius-sm: 0.5rem;
-      --radius-pill: 999px;
-
-      /* Colors */
-      --accent-teal: #4ee5c1;
-      --accent-mint: #a8ffc8;
+      --radius-lg: 1rem; --radius-md: 0.75rem; --radius-sm: 0.5rem; --radius-pill: 999px;
+      --accent-teal: #4ee5c1; --accent-mint: #a8ffc8;
       --accent-grad: linear-gradient(90deg, var(--accent-teal), var(--accent-mint));
-      
-      --color-success: #22c55e;
-      --color-danger: #ef4444;
-      --color-warning: #f59e0b;
+      --color-success: #22c55e; --color-danger: #ef4444; --color-warning: #f59e0b;
     }
 
-    /* === THEME: CARBON (DARK) === */
     [data-theme="carbon"] {
-      --bg-app: #050505;
-      --bg-sidebar: #0a0a0a;
-      --sidebar-border: #1f1f1f;
-      --card-bg: #0f0f0f; 
-      --card-border-color: #1f1f1f;
-      --card-inner-shadow: none;
-      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-      --text-main: #ededed; 
-      --text-muted: #a1a1a1;
-      --text-soft: #525252;
-      --input-bg: #0a0a0a;
-      --input-border: #262626;
-      --btn-glass-bg: #171717;
-      --btn-glass-hover: #262626;
-      --chart-grid: #1f1f1f;
-      --chart-tooltip-bg: #171717;
-      --logo-filter: brightness(0) invert(1);
+      --bg-app: #050505; --bg-sidebar: #0a0a0a; --sidebar-border: #1f1f1f;
+      --card-bg: #0f0f0f; --card-border-color: #1f1f1f; --card-inner-shadow: none; --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+      --text-main: #ededed; --text-muted: #a1a1a1; --text-soft: #525252;
+      --input-bg: #0a0a0a; --input-border: #262626; --btn-glass-bg: #171717; --btn-glass-hover: #262626;
+      --chart-grid: #1f1f1f; --chart-tooltip-bg: #171717; --logo-filter: brightness(0) invert(1);
     }
 
-    /* === THEME: QUARTZ (LIGHT) === */
     [data-theme="quartz"] {
-      --bg-app: #ffffff;
-      --bg-sidebar: #f9fafb;
-      --sidebar-border: #e5e7eb;
-      --card-bg: #ffffff;
-      --card-border-color: #e5e7eb;
-      --card-inner-shadow: none;
-      --card-shadow: 0 2px 4px rgba(0,0,0,0.02);
-      --text-main: #0a0a0a;
-      --text-muted: #525252;
-      --text-soft: #a3a3a3;
-      --input-bg: #ffffff;
-      --input-border: #e5e7eb;
-      --btn-glass-bg: #f3f4f6;
-      --btn-glass-hover: #e5e7eb;
-      --chart-grid: #f3f4f6;
-      --chart-tooltip-bg: #ffffff;
-      --logo-filter: invert(1) brightness(0); 
+      --bg-app: #ffffff; --bg-sidebar: #f9fafb; --sidebar-border: #e5e7eb;
+      --card-bg: #ffffff; --card-border-color: #e5e7eb; --card-inner-shadow: none; --card-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      --text-main: #0a0a0a; --text-muted: #525252; --text-soft: #a3a3a3;
+      --input-bg: #ffffff; --input-border: #e5e7eb; --btn-glass-bg: #f3f4f6; --btn-glass-hover: #e5e7eb;
+      --chart-grid: #f3f4f6; --chart-tooltip-bg: #ffffff; --logo-filter: invert(1) brightness(0); 
     }
 
-    /* =========================================================
-       BASE & LAYOUT
-       ========================================================= */
     * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font-sans); background-color: var(--bg-app); color: var(--text-main); overflow-x: hidden; visibility: visible; opacity: 1; }
+    body.loaded { visibility: visible; opacity: 1; }
+
+    /* LAYOUT & COMPONENTS */
+    .sidebar { width: var(--sidebar-width); position: fixed; top: 0; bottom: 0; left: 0; background: var(--bg-sidebar); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid var(--sidebar-border); padding: 1.5rem; display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .logo-area { margin-bottom: 1.5rem; display: block; }
+    .logo-img { display: block; width: 140px; height: auto; filter: var(--logo-filter); transition: filter 0.3s ease; }
     
-    body {
-      margin: 0; font-family: var(--font-sans);
-      background-color: var(--bg-app); color: var(--text-main);
-      overflow-x: hidden;
-      /* Masqué par défaut le temps de vérifier la session pour éviter le "flash" */
-      visibility: visible; 
-      opacity: 1;
-      transition: opacity 0.3s ease;
-    }
-    
-    /* Une fois chargé, on affiche */
-    body.loaded {
-      visibility: visible;
-      opacity: 1;
-    }
-
-    /* =========================================================
-       SIDEBAR
-       ========================================================= */
-    .sidebar {
-      width: var(--sidebar-width);
-      position: fixed; top: 0; bottom: 0; left: 0;
-      background: var(--bg-sidebar);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-right: 1px solid var(--sidebar-border);
-      padding: 1.5rem;
-      display: flex; flex-direction: column;
-      z-index: 100;
-      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    .logo-area {
-      margin-bottom: 1.5rem; display: block;
-    }
-    .logo-img {
-      display: block; width: 140px; height: auto;
-      filter: var(--logo-filter);
-      transition: filter 0.3s ease;
-    }
-
-    /* USER CARD */
-    .user-card {
-      display: flex; align-items: center; gap: 0.8rem;
-      padding: 0.8rem; background: var(--btn-glass-bg);
-      border-radius: var(--radius-md); border: 1px solid var(--sidebar-border);
-      margin-bottom: 2rem;
-    }
-    .avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(135deg, #222, #000);
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-size: 0.85rem; font-weight: 700;
-      border: 1px solid var(--sidebar-border);
-    }
+    .user-card { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; background: var(--btn-glass-bg); border-radius: var(--radius-md); border: 1px solid var(--sidebar-border); margin-bottom: 2rem; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #222, #000); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--sidebar-border); }
     .user-info div { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
     .user-info span { font-size: 0.75rem; color: var(--text-soft); }
 
-    .nav-label {
-      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em;
-      color: var(--text-soft); margin: 0 0 0.5rem 0.5rem;
-    }
-
-    .nav-item {
-      display: flex; align-items: center; gap: 0.8rem;
-      padding: 0.75rem 1rem; margin-bottom: 0.25rem;
-      border-radius: var(--radius-sm);
-      color: var(--text-muted); text-decoration: none;
-      font-size: 0.95rem; font-weight: 500; cursor: pointer;
-      transition: all 0.2s;
-    }
+    .nav-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-soft); margin: 0 0 0.5rem 0.5rem; }
+    .nav-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.75rem 1rem; margin-bottom: 0.25rem; border-radius: var(--radius-sm); color: var(--text-muted); text-decoration: none; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
     .nav-item:hover { background: var(--btn-glass-bg); color: var(--text-main); }
     .nav-item.active { background: rgba(78, 229, 193, 0.1); color: var(--accent-teal); }
     .nav-item i { font-size: 1.2rem; }
-
-    .logout-btn {
-      margin-top: auto; 
-      display: flex; align-items: center; gap: 0.8rem;
-      padding: 1rem; color: var(--text-soft);
-      text-decoration: none; font-size: 0.9rem; font-weight: 500;
-      border-top: 1px solid var(--sidebar-border);
-      transition: color 0.2s;
-      cursor: pointer; /* Force le curseur main */
-    }
+    
+    .logout-btn { margin-top: auto; display: flex; align-items: center; gap: 0.8rem; padding: 1rem; color: var(--text-soft); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-top: 1px solid var(--sidebar-border); transition: color 0.2s; cursor: pointer; }
     .logout-btn:hover { color: var(--color-danger); }
 
-    /* =========================================================
-       MAIN CONTENT
-       ========================================================= */
-    .main-wrapper {
-      margin-left: var(--sidebar-width);
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-    }
+    .main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; display: flex; flex-direction: column; }
+    .container-center { width: 100%; max-width: 1400px; margin: 0 auto; padding: 2.5rem 3rem; }
 
-    .container-center {
-      width: 100%; max-width: 1400px;
-      margin: 0 auto;
-      padding: 2.5rem 3rem;
-    }
-
-    /* Header */
-    .header-row {
-      display: flex; justify-content: space-between; align-items: flex-end;
-      margin-bottom: 2.5rem;
-    }
-    .welcome-text h1 {
-      font-size: 2.2rem; font-weight: 800; margin: 0;
-      color: var(--text-main); letter-spacing: -0.03em;
-    }
+    .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; }
+    .welcome-text h1 { font-size: 2.2rem; font-weight: 800; margin: 0; color: var(--text-main); letter-spacing: -0.03em; }
     .welcome-text p { color: var(--text-muted); margin: 0.4rem 0 0; font-size: 1rem; }
-    
     .header-actions { display: flex; gap: 0.8rem; }
     
-    .btn {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.6rem 1.2rem; border-radius: var(--radius-pill);
-      font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none;
-      transition: transform 0.2s; text-decoration: none;
-    }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; transition: transform 0.2s; text-decoration: none; }
     .btn:hover { transform: translateY(-2px); }
     .btn-primary { background: var(--accent-grad); color: #000; box-shadow: 0 4px 15px rgba(78, 229, 193, 0.3); }
     .btn-secondary { background: var(--btn-glass-bg); color: var(--text-main); border: 1px solid var(--sidebar-border); }
-
-    /* Theme Toggle */
-    .theme-toggle {
-      width: 40px; height: 40px; border-radius: 50%;
-      background: var(--btn-glass-bg); border: 1px solid var(--sidebar-border);
-      color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem; transition: color 0.2s;
-    }
+    .theme-toggle { width: 40px; height: 40px; border-radius: 50%; background: var(--btn-glass-bg); border: 1px solid var(--sidebar-border); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: color 0.2s; }
     .theme-toggle:hover { color: var(--accent-teal); }
 
-    /* Mobile Toggle */
     .mobile-toggle { display: none; background: none; border: none; font-size: 1.8rem; color: var(--text-main); cursor: pointer; margin-right: 1rem; }
-    .mobile-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90;
-      opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(4px);
-    }
+    .mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(4px); }
     .mobile-overlay.active { opacity: 1; pointer-events: auto; }
 
-    /* =========================================================
-       CARDS & GRID
-       ========================================================= */
+    /* CARDS */
     .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border-color);
-      box-shadow: var(--card-inner-shadow), var(--card-shadow);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      position: relative; display: flex; flex-direction: column;
-    }
-    .card::after {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    }
-
+    .card { background: var(--card-bg); border: 1px solid var(--card-border-color); box-shadow: var(--card-inner-shadow), var(--card-shadow); border-radius: var(--radius-lg); padding: 1.5rem; backdrop-filter: blur(14px); position: relative; display: flex; flex-direction: column; }
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
     .card-title { font-size: 1rem; font-weight: 600; color: var(--text-muted); }
 
-    /* Timeframe Toggles */
-    .time-toggles {
-      display: flex; background: rgba(0,0,0,0.2); border-radius: var(--radius-pill); padding: 2px;
-      border: 1px solid var(--sidebar-border);
-    }
-    .time-btn {
-      background: transparent; border: none; color: var(--text-soft);
-      font-size: 0.75rem; font-weight: 600; padding: 4px 10px;
-      border-radius: var(--radius-pill); cursor: pointer; transition: 0.2s;
-    }
-    .time-btn:hover { color: var(--text-main); }
-    .time-btn.active { background: rgba(255,255,255,0.1); color: var(--text-main); }
-    [data-theme="quartz"] .time-btn.active { background: #fff; color: #000; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-
-    /* KPIs */
     .kpi-card { grid-column: span 3; padding: 1.8rem; }
     .kpi-value { font-size: 2.2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; margin: 0.5rem 0; }
     .kpi-trend { font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; }
 
-    /* Charts Side-by-Side */
     .chart-half { grid-column: span 6; min-height: 380px; }
     .chart-body { flex: 1; width: 100%; min-height: 0; }
-
-    /* Combined Strategy Card */
+    
     .allocations-card { grid-column: span 6; }
     .alloc-list { display: flex; flex-direction: column; gap: 1rem; }
-    .alloc-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1rem; background: rgba(255,255,255,0.03); border-radius: var(--radius-md);
-      border: 1px solid var(--sidebar-border); transition: background 0.2s;
-    }
+    .alloc-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: var(--radius-md); border: 1px solid var(--sidebar-border); transition: background 0.2s; }
     .alloc-row:hover { background: rgba(255,255,255,0.06); }
     .alloc-info h4 { margin: 0; font-size: 1rem; color: var(--text-main); }
     .alloc-info p { margin: 2px 0 0; font-size: 0.8rem; color: var(--text-soft); }
@@ -283,49 +109,21 @@
     .alloc-val { display: block; font-weight: 600; color: var(--text-main); }
     .alloc-apy { font-size: 0.8rem; color: var(--accent-teal); }
 
-    /* Recent Transactions (Small) */
     .tx-container { grid-column: span 6; }
-    .tx-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.9rem 0; border-bottom: 1px solid var(--sidebar-border);
-    }
-    .tx-row:last-child { border-bottom: none; }
+    .tx-row { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 0; border-bottom: 1px solid var(--sidebar-border); }
     .tx-left { display: flex; align-items: center; gap: 0.8rem; }
-    .tx-icon {
-      width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.05);
-      display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--text-muted);
-    }
+    .tx-icon { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--text-muted); }
     .tx-info div { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
     .tx-info span { font-size: 0.75rem; color: var(--text-soft); }
     .tx-amount { font-weight: 600; font-size: 0.95rem; color: var(--text-main); }
 
-    /* =========================================================
-       SETTINGS & FORMS
-       ========================================================= */
-    .settings-header { margin-bottom: 1.5rem; }
-    .settings-header h2 { font-size: 1.2rem; font-weight: 600; margin: 0 0 0.5rem 0; }
-    .settings-header p { color: var(--text-muted); margin: 0; font-size: 0.9rem; }
-
+    /* FORM & SETTINGS */
     .form-group { margin-bottom: 1.5rem; }
     .form-label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-main); }
-    .form-input {
-      width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm);
-      background: var(--input-bg); border: 1px solid var(--input-border);
-      color: var(--text-main); font-family: inherit; font-size: 0.9rem;
-    }
-    .form-input:focus { outline: none; border-color: var(--accent-teal); }
-    /* Pre-filled styles (optional visual cue) */
-    .form-input[readonly], .form-input:disabled { opacity: 0.7; cursor: default; }
-
-    /* Select Input Customization */
-    select.form-input { appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23888" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 8px center; }
-
-    /* Theme Cards */
+    .form-input { width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); font-family: inherit; font-size: 0.9rem; }
+    
     .theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
-    .theme-card {
-      border: 1px solid var(--sidebar-border); border-radius: var(--radius-md);
-      padding: 1rem; cursor: pointer; position: relative;
-    }
+    .theme-card { border: 1px solid var(--sidebar-border); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; position: relative; }
     .theme-card.active { border-color: var(--accent-teal); background: rgba(78, 229, 193, 0.05); }
     .theme-preview { height: 60px; background: #222; border-radius: 4px; margin-bottom: 0.8rem; display: flex; gap: 4px; padding: 4px; }
     .theme-preview.light { background: #eee; }
@@ -333,51 +131,19 @@
     .tp-main { width: 80%; background: #111; height: 100%; border-radius: 2px; }
     .theme-preview.light .tp-sidebar { background: #fff; }
     .theme-preview.light .tp-main { background: #f9f9f9; }
-    
-    .danger-zone {
-      border: 1px solid rgba(244, 102, 102, 0.3); background: rgba(244, 102, 102, 0.05);
-      border-radius: var(--radius-lg); padding: 1.5rem; margin-top: 2rem;
-    }
-    .danger-title { color: var(--text-main); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-    .danger-p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
-    .btn-danger { background: rgba(244, 102, 102, 0.15); color: #f46666; border: 1px solid transparent; }
-    .btn-danger:hover { background: rgba(244, 102, 102, 0.25); border-color: #f46666; }
 
-    /* =========================================================
-       TRANSACTIONS (Full Table)
-       ========================================================= */
+    /* Table */
     .table-container { overflow-x: auto; }
     .full-table { width: 100%; border-collapse: collapse; min-width: 600px; }
     .full-table th { text-align: left; padding: 1rem; color: var(--text-muted); font-size: 0.85rem; border-bottom: 1px solid var(--sidebar-border); }
     .full-table td { padding: 1rem; border-bottom: 1px solid var(--sidebar-border); font-size: 0.9rem; color: var(--text-main); }
-    .status-badge { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-    .sb-success { background: rgba(22, 196, 127, 0.15); color: var(--color-success); }
-    .sb-pending { background: rgba(255, 176, 32, 0.15); color: var(--color-warning); }
-
-    /* =========================================================
-       RESPONSIVE
-       ========================================================= */
+    
     .view-section { display: none; }
     .view-section.active { display: block; animation: fadeIn 0.3s; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    @media (max-width: 1200px) {
-      .kpi-card { grid-column: span 6; }
-      .chart-half { grid-column: span 12; }
-      .allocations-card { grid-column: span 12; }
-      .tx-container { grid-column: span 12; }
-    }
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); }
-      .main-wrapper { margin-left: 0; }
-      .container-center { padding: 1.5rem; }
-      .mobile-toggle { display: block; }
-      .header-row { flex-direction: column; align-items: flex-start; gap: 1rem; }
-      .header-actions { width: 100%; justify-content: space-between; }
-      .grid { display: flex; flex-direction: column; }
-    }
-
+    @media (max-width: 1200px) { .kpi-card { grid-column: span 6; } .chart-half { grid-column: span 12; } .allocations-card { grid-column: span 12; } .tx-container { grid-column: span 12; } }
+    @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-wrapper { margin-left: 0; } .container-center { padding: 1.5rem; } .mobile-toggle { display: block; } .header-row { flex-direction: column; align-items: flex-start; gap: 1rem; } .header-actions { width: 100%; justify-content: space-between; } .grid { display: flex; flex-direction: column; } }
   </style>
 </head>
 <body>
@@ -401,7 +167,7 @@
   <div class="nav-item active" onclick="switchView('dashboard', this)">
     <i class="ph ph-squares-four"></i> Overview
   </div>
-  <a href="performance.html" class="nav-item">
+  <a href="#" onclick="alert('Coming Soon')" class="nav-item">
     <i class="ph ph-chart-line-up"></i> Global Performance
   </a>
   
@@ -426,16 +192,14 @@
         <button class="mobile-toggle" onclick="openSidebar()"><i class="ph ph-list"></i></button>
         <div class="welcome-text">
           <h1 id="headerWelcome">Welcome back!</h1>
-          <p>Portfolio metrics updated 12 mins ago.</p>
+          <p>Scanning blockchain data...</p>
         </div>
       </div>
 
       <div class="header-actions">
-        <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme">
-          <i class="ph ph-sun"></i>
-        </button>
-        <button class="btn btn-secondary"><i class="ph ph-arrow-down"></i> Withdraw</button>
-        <button class="btn btn-primary"><i class="ph ph-plus"></i> Deposit</button>
+        <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme"><i class="ph ph-sun"></i></button>
+        <button class="btn btn-secondary" onclick="alert('Withdrawals disabled')"><i class="ph ph-arrow-down"></i> Withdraw</button>
+        <button class="btn btn-primary" onclick="alert('Use your wallet to deposit')"><i class="ph ph-plus"></i> Deposit</button>
       </div>
     </div>
 
@@ -444,24 +208,23 @@
 
         <div class="card kpi-card">
           <div class="card-header" style="margin-bottom:0.5rem">
-            <span class="card-title">Total Balance</span>
+            <span class="card-title">Total Shares</span>
             <i class="ph ph-wallet" style="color:var(--accent-teal)"></i>
           </div>
-          <div class="kpi-value">$124,592.40</div>
+          <div class="kpi-value" id="kpiTotalShares">0.00</div>
           <div class="kpi-trend">
-            <span style="color:var(--color-success); background:rgba(22, 196, 127, 0.1); padding:2px 6px; border-radius:4px; font-weight:600;">+1.8%</span>
-            <span style="color:var(--text-muted)"> vs last week</span>
+            <span style="color:var(--text-muted)">Units held in Vault</span>
           </div>
         </div>
 
         <div class="card kpi-card">
           <div class="card-header" style="margin-bottom:0.5rem">
-            <span class="card-title">Net PnL</span>
+            <span class="card-title">Est. Value (USDC)</span>
             <i class="ph ph-trend-up" style="color:var(--accent-teal)"></i>
           </div>
-          <div class="kpi-value" style="color:var(--accent-teal)">+$12,400</div>
+          <div class="kpi-value" id="kpiEstValue" style="color:var(--accent-teal)">--</div>
           <div class="kpi-trend">
-            <span style="color:var(--text-muted)">All time profit</span>
+            <span style="color:var(--text-muted)">Live value (1:1 Peg)</span>
           </div>
         </div>
 
@@ -470,9 +233,9 @@
             <span class="card-title">Avg. Monthly Return</span>
             <i class="ph ph-chart-bar" style="color:var(--text-muted)"></i>
           </div>
-          <div class="kpi-value">+1.2%</div>
+          <div class="kpi-value">--</div>
           <div class="kpi-trend">
-            <span style="color:var(--text-muted)">Consistent Growth</span>
+            <span style="color:var(--text-muted)">Calculated monthly</span>
           </div>
         </div>
 
@@ -480,9 +243,9 @@
           <div class="card-header" style="margin-bottom:0.5rem">
             <span class="card-title">Est. Yield</span>
           </div>
-          <div class="kpi-value">$420.00</div>
+          <div class="kpi-value">--</div>
           <div class="kpi-trend">
-            <span style="color:var(--text-muted)">Next payout: Oct 01</span>
+            <span style="color:var(--text-muted)">Pending payout</span>
           </div>
         </div>
 
@@ -490,10 +253,7 @@
           <div class="card-header">
             <span class="card-title">Portfolio Value</span>
             <div class="time-toggles">
-              <button class="time-btn" onclick="setTimeframe(this)">1W</button>
-              <button class="time-btn" onclick="setTimeframe(this)">1M</button>
-              <button class="time-btn active" onclick="setTimeframe(this)">3M</button>
-              <button class="time-btn" onclick="setTimeframe(this)">YTD</button>
+               <button class="time-btn active">3M</button>
             </div>
           </div>
           <div id="chartPortfolio" class="chart-body"></div>
@@ -503,8 +263,7 @@
           <div class="card-header">
             <span class="card-title">Weekly Returns</span>
             <div class="time-toggles">
-              <button class="time-btn active" onclick="setTimeframe(this)">3M</button>
-              <button class="time-btn" onclick="setTimeframe(this)">6M</button>
+              <button class="time-btn active">3M</button>
             </div>
           </div>
           <div id="chartWeekly" class="chart-body"></div>
@@ -515,35 +274,8 @@
             <span class="card-title">Active Allocations</span>
             <i class="ph ph-strategy" style="color:var(--text-muted)"></i>
           </div>
-          
-          <div class="alloc-list">
-            <div class="alloc-row">
-              <div style="display:flex; gap:1rem; align-items:center;">
-                <div style="width:40px; height:40px; background:rgba(255,255,255,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700;">F</div>
-                <div class="alloc-info">
-                  <h4>G12 Flex</h4>
-                  <p>Liquid Strategy</p>
-                </div>
-              </div>
-              <div class="alloc-stats">
-                <span class="alloc-val">$42,100.00</span>
-                <span class="alloc-apy">10.5% APY</span>
-              </div>
-            </div>
-
-            <div class="alloc-row" style="border-color:rgba(78,229,193,0.3);">
-              <div style="display:flex; gap:1rem; align-items:center;">
-                <div style="width:40px; height:40px; background:rgba(78,229,193,0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--accent-teal);">S</div>
-                <div class="alloc-info">
-                  <h4>G12 Secure</h4>
-                  <p>Capital Protected • 12M</p>
-                </div>
-              </div>
-              <div class="alloc-stats">
-                <span class="alloc-val">$82,492.40</span>
-                <span class="alloc-apy">14.2% APY</span>
-              </div>
-            </div>
+          <div class="alloc-list" id="allocList">
+             <div style="padding:2rem; text-align:center; color:var(--text-soft)">Scanning Vaults...</div>
           </div>
         </div>
 
@@ -552,48 +284,19 @@
             <span class="card-title">Recent Activity</span>
             <button class="time-btn" onclick="switchView('transactions')">View All</button>
           </div>
-          <div class="tx-list">
-            <div class="tx-row">
-              <div class="tx-left">
-                <div class="tx-icon"><i class="ph ph-arrow-down-left"></i></div>
-                <div class="tx-info"><div>Yield Payout</div><span>Oct 24 • USDC</span></div>
-              </div>
-              <div class="tx-amount" style="color:var(--color-success)">+$412.50</div>
-            </div>
-            <div class="tx-row">
-              <div class="tx-left">
-                <div class="tx-icon"><i class="ph ph-bank"></i></div>
-                <div class="tx-info"><div>Deposit</div><span>Oct 20 • G12 Flex</span></div>
-              </div>
-              <div class="tx-amount" style="color:var(--color-success)">+$10,000</div>
-            </div>
-            <div class="tx-row">
-              <div class="tx-left">
-                <div class="tx-icon"><i class="ph ph-arrow-up-right"></i></div>
-                <div class="tx-info"><div>Withdrawal</div><span>Oct 05 • USDT</span></div>
-              </div>
-              <div class="tx-amount">-$2,500</div>
-            </div>
+          <div class="tx-list" id="dashboardTxList">
+            <div style="padding:1rem; color:var(--text-soft)">Loading history...</div>
           </div>
         </div>
 
       </div>
-    </div> <div id="view-transactions" class="view-section">
+    </div> 
+
+    <div id="view-transactions" class="view-section">
       <div class="card">
         <div class="card-header">
           <span class="card-title">Transaction History</span>
           <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <select class="form-input" style="width:auto;">
-              <option value="all">All Assets</option>
-              <option value="usdc">USDC</option>
-              <option value="usdt">USDT</option>
-            </select>
-            <select class="form-input" style="width:auto;">
-              <option value="all">All Types</option>
-              <option value="deposit">Deposit</option>
-              <option value="withdrawal">Withdrawal</option>
-              <option value="yield">Yield</option>
-            </select>
             <button class="btn btn-secondary" style="padding:0.4rem 1rem;">Export CSV</button>
           </div>
         </div>
@@ -602,47 +305,14 @@
             <thead>
               <tr>
                 <th>Date</th>
+                <th>Chain</th>
                 <th>Type</th>
-                <th>Asset</th>
                 <th>Amount</th>
-                <th>Status</th>
-                <th>Tx Hash</th>
+                <th>Hash</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>Oct 24, 2025</td>
-                <td>Yield Payout</td>
-                <td>USDC</td>
-                <td style="color:var(--color-success)">+$412.50</td>
-                <td><span class="status-badge sb-success">Completed</span></td>
-                <td style="font-family:monospace; color:var(--text-soft)">0x82...91a</td>
-              </tr>
-              <tr>
-                <td>Oct 20, 2025</td>
-                <td>Deposit</td>
-                <td>USDC</td>
-                <td style="color:var(--color-success)">+$10,000.00</td>
-                <td><span class="status-badge sb-success">Completed</span></td>
-                <td style="font-family:monospace; color:var(--text-soft)">0x3f...b29</td>
-              </tr>
-              <tr>
-                <td>Oct 05, 2025</td>
-                <td>Withdrawal</td>
-                <td>USDT</td>
-                <td>-$2,500.00</td>
-                <td><span class="status-badge sb-pending">Processing</span></td>
-                <td style="font-family:monospace; color:var(--text-soft)">-</td>
-              </tr>
-               <tr>
-                <td>Sep 28, 2025</td>
-                <td>Rebalance</td>
-                <td>Flex -> Secure</td>
-                <td>$5,000.00</td>
-                <td><span class="status-badge sb-success">Completed</span></td>
-                <td style="font-family:monospace; color:var(--text-soft)">Internal</td>
-              </tr>
-            </tbody>
+            <tbody id="fullTxTableBody">
+              </tbody>
           </table>
         </div>
       </div>
@@ -651,19 +321,17 @@
     <div id="view-settings" class="view-section">
       <div class="settings-header">
         <h2>General Settings</h2>
-        <p>Update your profile information and manage your account.</p>
+        <p>Manage your account.</p>
       </div>
-
       <div class="card">
         <div class="form-group">
-          <label class="form-label">Full Name</label>
-          <input type="text" id="settingName" class="form-input" value="Partner">
+          <label class="form-label">Investor ID</label>
+          <input type="text" id="settingID" class="form-input" disabled style="opacity:0.7;">
         </div>
         <div class="form-group">
-          <label class="form-label">Email Address</label>
-          <input type="email" id="settingEmail" class="form-input" value="" disabled style="opacity:0.7;">
+          <label class="form-label">Linked Wallet</label>
+          <input type="text" id="settingWallet" class="form-input" disabled style="opacity:0.7; font-family:monospace;">
         </div>
-        
         <div class="form-group">
           <label class="form-label">Theme Mode</label>
           <div class="theme-grid">
@@ -677,24 +345,6 @@
             </div>
           </div>
         </div>
-
-        <div class="form-group" style="border-top:1px solid var(--sidebar-border); padding-top:1.5rem; margin-top:1.5rem;">
-          <h3 style="font-size:1rem; margin:0 0 1rem 0; color:var(--text-main);">Security</h3>
-          <label class="form-label">New Password</label>
-          <input type="password" class="form-input" placeholder="Enter new password" style="margin-bottom:1rem;">
-          <label class="form-label">Confirm Password</label>
-          <input type="password" class="form-input" placeholder="Confirm new password">
-        </div>
-
-        <div style="text-align:right; margin-top:1.5rem;">
-          <button class="btn btn-primary">Save Changes</button>
-        </div>
-      </div>
-
-      <div class="danger-zone">
-        <div class="danger-title"><i class="ph ph-warning"></i> Danger Zone</div>
-        <p class="danger-p">Request for account deletion. Your data will be deleted within 30 days.</p>
-        <button class="btn btn-danger">Request to delete account</button>
       </div>
     </div>
 
@@ -705,89 +355,200 @@
   // 1. CONFIGURATION SUPABASE
   const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
-  
+
+  // 2. CONFIGURATION BLOCKCHAIN (ETHERSCAN V2)
+  const CONFIG = {
+    // Ta Clé Etherscan qui lit tout
+    apiKey: "E12EJ9IVTKNG1I6RP2189942FN8E3R3V9P",
+    
+    // Configuration des chaînes supportées
+    chains: [
+      {
+        id: "arbitrum",
+        chainId: 42161, // ID Arbitrum One pour l'API
+        name: "Arbitrum One",
+        vaultAddress: "0x591e7194fee6f5615ea89000318e630eab92fbe1", // Ton Vault
+        rpcUrl: "https://arb1.arbitrum.io/rpc",
+        explorer: "https://arbiscan.io/tx/"
+      },
+      {
+        id: "base",
+        chainId: 8453, // ID Base Mainnet
+        name: "Base Mainnet",
+        vaultAddress: "", // <-- AJOUTE L'ADRESSE DU VAULT BASE ICI QUAND TU L'AURAS
+        rpcUrl: "https://mainnet.base.org",
+        explorer: "https://basescan.org/tx/"
+      }
+    ]
+  };
+
   let supabase;
   if (window.supabase) {
     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
   }
 
-  // Force le rechargement si l'utilisateur vient du bouton "Retour"
-  window.addEventListener('pageshow', function (event) {
-    if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
-      window.location.reload();
-    }
-  });
-
-  // 2. CHECK SESSION & USER DATA
+  // 3. INITIALISATION SESSION
   async function initSession() {
     if (!supabase) return;
-
-    // Vérifie la session actuelle
     const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
 
-    if (!session) {
-      // Pas de session -> Redirection Login
-      window.location.href = 'login.html';
-      return;
-    }
-
-    // Session active -> On récupère les infos
     const user = session.user;
-    const meta = user.user_metadata || {};
-    
-    // Prénom/Nom par défaut ou depuis les métadonnées
-    const fullName = meta.full_name || "Partner";
-    const email = user.email || "";
+    const userId = user.id;
 
-    // A. Mise à jour de la Sidebar
-    const sbName = document.getElementById('sidebarName');
-    const sbAvatar = document.getElementById('sidebarAvatar');
-    if (sbName) sbName.innerText = fullName;
-    if (sbAvatar) {
-        // Initiales
-        const initials = fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
-        sbAvatar.innerText = initials;
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    const { data: walletData } = await supabase.from('user_wallets').select('address').eq('user_id', userId).maybeSingle();
+
+    const displayId = profile?.investor_id || "UNK";
+    
+    // Mise à jour UI identité
+    document.getElementById('sidebarName').innerText = "Investor";
+    document.getElementById('sidebarAvatar').innerText = displayId.substring(0,2).toUpperCase();
+    document.getElementById('headerWelcome').innerText = `Welcome back, ${displayId}`;
+    if(document.getElementById('settingID')) document.getElementById('settingID').value = displayId;
+
+    if (walletData && walletData.address) {
+       const userWallet = walletData.address;
+       if(document.getElementById('settingWallet')) document.getElementById('settingWallet').value = userWallet;
+       
+       // Lancer le scan Blockchain
+       scanBlockchainData(userWallet);
+    } else {
+       document.getElementById('allocList').innerHTML = '<div style="padding:2rem;text-align:center">No wallet linked. Please link one in settings.</div>';
     }
 
-    // B. Mise à jour du Header Welcome
-    const welcomeHeader = document.getElementById('headerWelcome');
-    if (welcomeHeader) welcomeHeader.innerText = `Welcome back, ${fullName}!`;
-
-    // C. Mise à jour des Settings
-    const settingName = document.getElementById('settingName');
-    const settingEmail = document.getElementById('settingEmail');
-    if (settingName) settingName.value = fullName;
-    if (settingEmail) settingEmail.value = email;
-
-    // Affiche la page (fin du chargement)
     document.body.classList.add('loaded');
   }
 
-  // 3. LOGOUT LOGIC
+  // 4. LOGIQUE SCAN BLOCKCHAIN (Mode Etherscan V2)
+  async function scanBlockchainData(userWallet) {
+    const allocList = document.getElementById('allocList');
+    const dashboardTxList = document.getElementById('dashboardTxList');
+    const fullTxBody = document.getElementById('fullTxTableBody');
+    
+    let totalShares = 0;
+    let transactions = [];
+    
+    // On vide la liste avant de commencer
+    allocList.innerHTML = '';
+
+    // Boucle sur les chaînes (Arbitrum, Base...)
+    for (const chain of CONFIG.chains) {
+        if (!chain.vaultAddress) continue; // Si pas d'adresse configurée, on passe
+
+        try {
+            // A. LIRE LE SOLDE (Via RPC rapide)
+            const provider = new ethers.providers.JsonRpcProvider(chain.rpcUrl);
+            const vaultContract = new ethers.Contract(chain.vaultAddress, ["function balanceOf(address) view returns (uint256)"], provider);
+            const balanceBN = await vaultContract.balanceOf(userWallet);
+            const balance = parseFloat(ethers.utils.formatUnits(balanceBN, 18)); 
+
+            if (balance > 0) {
+                totalShares += balance;
+                // Ajouter à la liste des Allocations
+                allocList.innerHTML += `
+                <div class="alloc-row">
+                  <div style="display:flex; gap:1rem; align-items:center;">
+                    <div style="width:40px; height:40px; background:rgba(78,229,193,0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--accent-teal);">V</div>
+                    <div class="alloc-info">
+                      <h4>G12 Vault</h4>
+                      <p>${chain.name} • Liquid</p>
+                    </div>
+                  </div>
+                  <div class="alloc-stats">
+                    <span class="alloc-val">${balance.toFixed(4)} Shares</span>
+                    <span class="alloc-apy" style="color:var(--text-muted)">Active</span>
+                  </div>
+                </div>`;
+            }
+
+            // B. LIRE L'HISTORIQUE (Via Etherscan V2 API)
+            // On utilise le endpoint V2 qui prend chainid en paramètre
+            const url = `https://api.etherscan.io/v2/api?chainid=${chain.chainId}&module=account&action=txlist&address=${userWallet}&startblock=0&endblock=99999999&sort=desc&apikey=${CONFIG.apiKey}`;
+            
+            const res = await fetch(url).then(r => r.json());
+
+            if (res.status === "1" && res.result.length > 0) {
+                // Filtrer les transactions qui touchent le Vault
+                const myTxs = res.result.filter(tx => tx.to.toLowerCase() === chain.vaultAddress.toLowerCase());
+                
+                myTxs.forEach(tx => {
+                    transactions.push({
+                        date: new Date(tx.timeStamp * 1000),
+                        chain: chain.name,
+                        type: 'Vault Interact',
+                        amount: '---', // Placeholder car difficile à décoder sans ABI complet
+                        hash: tx.hash,
+                        explorer: chain.explorer
+                    });
+                });
+            }
+
+        } catch (err) {
+            console.error(`Erreur scan ${chain.name}:`, err);
+        }
+    }
+
+    // Si aucune allocation trouvée
+    if (allocList.innerHTML === '') {
+        allocList.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-soft)">No active investments found.</div>';
+    }
+
+    // Mise à jour des KPIs Totaux
+    document.getElementById('kpiTotalShares').innerText = totalShares.toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('kpiEstValue').innerText = totalShares > 0 ? "~ $" + totalShares.toLocaleString() : "--";
+
+    // Affichage Transactions
+    transactions.sort((a, b) => b.date - a.date); // Trier par date
+    dashboardTxList.innerHTML = '';
+    fullTxBody.innerHTML = '';
+
+    if (transactions.length > 0) {
+        transactions.forEach((tx, idx) => {
+            const dateStr = tx.date.toLocaleDateString();
+            
+            // Tableau complet
+            fullTxBody.innerHTML += `
+              <tr>
+                <td>${dateStr}</td>
+                <td><span style="font-size:0.75em; background:#222; padding:2px 5px; border-radius:4px;">${tx.chain}</span></td>
+                <td>${tx.type}</td>
+                <td>${tx.amount}</td>
+                <td><a href="${tx.explorer}${tx.hash}" target="_blank" style="color:var(--accent-teal)">View</a></td>
+              </tr>
+            `;
+
+            // Widget Dashboard (Max 3)
+            if (idx < 3) {
+                dashboardTxList.innerHTML += `
+                <div class="tx-row">
+                  <div class="tx-left">
+                    <div class="tx-icon"><i class="ph ph-arrows-left-right"></i></div>
+                    <div class="tx-info"><div>${tx.type}</div><span>${dateStr} • ${tx.chain}</span></div>
+                  </div>
+                </div>`;
+            }
+        });
+    } else {
+        dashboardTxList.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-soft)">No history found</div>';
+    }
+  }
+
+  // 5. UI & EVENTS
+  window.addEventListener('DOMContentLoaded', () => {
+    initSession();
+    updateThemeIcon('carbon'); 
+    initCharts();
+  });
+  
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async (e) => {
-      e.preventDefault(); // Empêche le lien #
-      if (!supabase) return;
-      
-      const { error } = await supabase.auth.signOut();
-      if (!error) {
-        window.location.href = 'login.html';
-      }
+      e.preventDefault();
+      if (supabase) await supabase.auth.signOut();
+      window.location.href = 'login.html';
     });
   }
-
-  // Lancement au chargement
-  window.addEventListener('DOMContentLoaded', () => {
-    initSession();
-    // Default theme logic
-    updateThemeIcon('carbon'); 
-  });
-
-
-  // ========================================================
-  // UI LOGIC (Navigation, Theme, Charts...)
-  // ========================================================
 
   function switchView(viewName, navItem) {
     if(navItem) {
@@ -797,25 +558,16 @@
     document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
     document.getElementById('view-' + viewName).classList.add('active');
     closeSidebar();
-
-    // Resize charts if dashboard visible
-    if(viewName === 'dashboard') {
-      setTimeout(() => {
-        chartPortfolio && chartPortfolio.resize();
-        chartWeekly && chartWeekly.resize();
-      }, 50);
-    }
+    if(viewName === 'dashboard') setTimeout(() => { chartPortfolio && chartPortfolio.resize(); chartWeekly && chartWeekly.resize(); }, 50);
   }
 
   function toggleTheme() {
     const html = document.documentElement;
-    const current = html.getAttribute('data-theme');
-    const next = current === 'carbon' ? 'quartz' : 'carbon';
+    const next = html.getAttribute('data-theme') === 'carbon' ? 'quartz' : 'carbon';
     html.setAttribute('data-theme', next);
     updateThemeIcon(next);
     initCharts(); 
   }
-
   function setTheme(theme, el) {
     document.documentElement.setAttribute('data-theme', theme);
     document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
@@ -823,93 +575,51 @@
     updateThemeIcon(theme);
     initCharts();
   }
-
   function updateThemeIcon(theme) {
     const btn = document.getElementById('themeToggleBtn');
+    if(!btn) return;
     const icon = btn.querySelector('i');
-    if(theme === 'carbon') {
-      icon.className = 'ph ph-sun';
-    } else {
-      icon.className = 'ph ph-moon';
-    }
+    icon.className = theme === 'carbon' ? 'ph ph-sun' : 'ph ph-moon';
   }
+  function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('mobileOverlay').classList.add('active'); }
+  function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('mobileOverlay').classList.remove('active'); }
 
-  function openSidebar() {
-    document.getElementById('sidebar').classList.add('open');
-    document.getElementById('mobileOverlay').classList.add('active');
-  }
-  function closeSidebar() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('mobileOverlay').classList.remove('active');
-  }
-
-  // CHARTS INIT
+  // CHARTS (Placeholder Data)
   let chartPortfolio, chartWeekly;
-
   function initCharts() {
     if(chartPortfolio) chartPortfolio.dispose();
     if(chartWeekly) chartWeekly.dispose();
-
     const isDark = document.documentElement.getAttribute('data-theme') === 'carbon';
     const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
     const textColor = isDark ? '#9aa4b2' : '#6B7280';
-    const tooltipBg = isDark ? 'rgba(10,10,10,0.95)' : 'rgba(255,255,255,0.98)';
-    const tooltipText = isDark ? '#fff' : '#111';
-
-    // PORTFOLIO (Line)
+    
+    // Portfolio Chart
     const domP = document.getElementById('chartPortfolio');
     if(domP) {
       chartPortfolio = echarts.init(domP);
       chartPortfolio.setOption({
         backgroundColor: 'transparent',
         grid: { left: 40, right: 20, top: 20, bottom: 30, containLabel: true },
-        tooltip: { trigger: 'axis', backgroundColor: tooltipBg, borderColor: isDark ? '#333' : '#eee', textStyle: { color: tooltipText }, axisPointer: { type: 'line', lineStyle: { color: '#4ee5c1', type: 'dashed' } } },
-        xAxis: { type: 'category', data: ['Sep 01','Sep 08','Sep 15','Sep 22','Sep 29','Oct 06','Oct 13','Oct 20'], axisLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
-        yAxis: { type: 'value', splitLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor, formatter: '${value}' } },
-        series: [{
-          data: [98000, 102000, 101500, 108000, 112000, 110500, 118000, 124592],
-          type: 'line', smooth: true, showSymbol: false,
-          lineStyle: { width: 3, color: '#4ee5c1' },
-          areaStyle: { opacity: 0.2, color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(78, 229, 193, 0.5)' }, { offset: 1, color: 'rgba(78, 229, 193, 0)' }]) }
-        }]
+        tooltip: { trigger: 'axis', backgroundColor: isDark ? 'rgba(10,10,10,0.95)' : 'rgba(255,255,255,0.98)' },
+        xAxis: { type: 'category', data: ['W1','W2','W3','W4'], axisLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
+        yAxis: { type: 'value', splitLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
+        series: [{ data: [1000, 1200, 1150, 1300], type: 'line', smooth: true, lineStyle: { color: '#4ee5c1' } }]
       });
     }
-
-    // WEEKLY (Bar)
+    // Weekly Chart
     const domW = document.getElementById('chartWeekly');
     if(domW) {
       chartWeekly = echarts.init(domW);
-      const weeklyData = [0.8, 1.2, -0.5, 1.5, 2.1, 0.4, -0.2, 1.8, 1.1, 0.9, -0.3, 1.4];
       chartWeekly.setOption({
         backgroundColor: 'transparent',
-        grid: { left: 20, right: 20, top: 20, bottom: 20, containLabel: true },
-        tooltip: { trigger: 'axis', backgroundColor: tooltipBg, borderColor: isDark ? '#333' : '#eee', textStyle: { color: tooltipText }, formatter: '{b}: {c}%' },
-        xAxis: { type: 'category', data: ['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'], axisLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
-        yAxis: { type: 'value', splitLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor, formatter: '{value}%' } },
-        series: [{
-          type: 'bar', data: weeklyData.map(v => ({ value: v, itemStyle: { color: v >= 0 ? '#4ee5c1' : '#f46666', borderRadius: [4, 4, 0, 0] } })),
-          barWidth: '40%'
-        }]
+        grid: { left: 40, right: 20, top: 20, bottom: 30, containLabel: true },
+        xAxis: { type: 'category', data: ['M','T','W','T','F'], axisLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
+        yAxis: { type: 'value', splitLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
+        series: [{ type: 'bar', data: [1, 2, -1, 3, 2], itemStyle: { color: '#4ee5c1' } }]
       });
     }
   }
-
-  function setTimeframe(btn) {
-    const parent = btn.parentNode;
-    parent.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-
-  // Load Charts on Init
-  window.addEventListener('load', () => {
-    initCharts();
-  });
-  window.addEventListener('resize', () => {
-    if(chartPortfolio) chartPortfolio.resize();
-    if(chartWeekly) chartWeekly.resize();
-  });
+  window.addEventListener('resize', () => { chartPortfolio && chartPortfolio.resize(); chartWeekly && chartWeekly.resize(); });
 </script>
-
 </body>
 </html>
-
