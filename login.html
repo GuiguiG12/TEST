@@ -7,6 +7,7 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     /* DESIGN SYSTEM */
@@ -44,15 +45,10 @@
     .form-group { margin-bottom: 1.2rem; text-align: left; }
     .form-label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-muted); }
     
-    /* Wrapper pour l'icone oeil */
-    .input-wrapper {
-      position: relative;
-      width: 100%;
-      display: flex; align-items: center;
-    }
+    .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
 
     .form-input {
-      width: 100%; padding: 0.75rem 1rem; padding-right: 45px; /* Espace icone */
+      width: 100%; padding: 0.75rem 1rem; padding-right: 45px;
       border-radius: 0.5rem; 
       background: var(--input-bg); border: 1px solid var(--input-border);
       color: var(--text-main); font-size: 0.95rem; font-family: inherit;
@@ -60,20 +56,15 @@
       z-index: 1;
     }
     .form-input:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 0 2px rgba(78, 229, 193, 0.1); }
-    
-    /* Cache l'oeil natif Edge/IE */
     .form-input::-ms-reveal, .form-input::-ms-clear { display: none; }
 
-    /* Password Toggle Eye */
     .password-toggle {
       position: absolute; right: 0; top: 0; height: 100%; width: 45px;
       background: transparent; border: none; color: var(--text-soft);
-      cursor: pointer; font-size: 1.3rem;
-      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center;
       transition: color 0.2s; z-index: 10;
     }
     .password-toggle:hover { color: var(--text-main); }
-    .password-toggle:active { color: var(--accent-teal); }
 
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -91,6 +82,10 @@
     .error-msg {
       color: #ef4444; font-size: 0.85rem; margin-bottom: 1rem; display: none;
       background: rgba(239, 68, 68, 0.1); padding: 0.5rem; border-radius: 0.3rem; border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .status-msg {
+      color: var(--accent-teal); font-size: 0.85rem; margin-bottom: 1rem; display: none;
+      background: rgba(78, 229, 193, 0.1); padding: 0.5rem; border-radius: 0.3rem; border: 1px solid rgba(78, 229, 193, 0.2);
     }
 
     .divider { 
@@ -122,6 +117,7 @@
     <p class="login-subtitle">Enter your credentials to access your dashboard.</p>
 
     <div id="errorBox" class="error-msg"></div>
+    <div id="statusBox" class="status-msg"></div>
 
     <form id="loginForm">
       <div class="form-group">
@@ -130,10 +126,7 @@
       </div>
       
       <div class="form-group">
-        <label class="form-label" style="display:flex; justify-content:space-between;">
-          Password 
-        </label>
-        
+        <label class="form-label" style="display:flex; justify-content:space-between;">Password</label>
         <div class="input-wrapper">
           <input type="password" id="password" class="form-input" placeholder="••••••••" required>
           <button type="button" id="togglePassword" class="password-toggle" title="Show password">
@@ -145,87 +138,156 @@
       <button type="submit" class="btn btn-primary">Sign In</button>
     </form>
 
-    <div class="divider">Or continue with</div>
+    <div class="divider">Or connect via Web3</div>
 
     <div class="social-grid">
-      <button type="button" id="googleBtn" class="btn btn-secondary">
-        <i class="ph ph-google-logo"></i> Google
-      </button>
-      <button type="button" class="btn btn-secondary" style="opacity:0.5; cursor:not-allowed;">
-        <i class="ph ph-apple-logo"></i> Apple
+      <button type="button" id="walletLoginBtn" class="btn btn-secondary" style="border-color: var(--accent-teal); color: var(--accent-teal);">
+        <i class="ph ph-wallet"></i> Connect Wallet
       </button>
     </div>
+    
+    <p style="text-align:center; font-size:0.8rem; color:var(--text-soft); margin-top:0.8rem;">
+      No account needed. Just connect.
+    </p>
 
     <div class="footer-link">
       Don't have an invite yet? <a href="signup.html">Apply for access</a>
     </div>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="module">
+  // -----------------------------------------------------------
+  // 1. CONFIGURATION (SUPABASE + WEB3)
+  // -----------------------------------------------------------
+  
+  // Tes NOUVEAUX identifiants Supabase
+  const supabaseUrl = "https://ucrvaqztvfnphhoqcbpo.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcnZhcXp0dmZucGhob3FjYnBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTY2MzQsImV4cCI6MjA4MjkzMjYzNH0.l_983umaG_ojeDjXJ4DqWhPNEw9RotNApGLpl_ASkZk";
+  
+  // Initialisation du client Supabase
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-<script>
-  // ========================================================
-  // 1. LOGIQUE UI (Oeil MDP) - Prioritaire
-  // ========================================================
+  // Import Web3Modal
+  import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers@5.0.0'
+
+  // Configuration Web3Modal
+  const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c'; // Ton Project ID
+  const mainnet = { chainId: 1, name: 'Ethereum', currency: 'ETH', explorerUrl: 'https://etherscan.io', rpcUrl: 'https://cloudflare-eth.com' }
+  const polygon = { chainId: 137, name: 'Polygon', currency: 'MATIC', explorerUrl: 'https://polygonscan.com', rpcUrl: 'https://polygon-rpc.com' }
+  const metadata = { name: 'G12 Labs', description: 'Institutional DeFi', url: 'https://g12labs.io', icons: ['https://avatars.mywebsite.com/'] }
+
+  const modal = createWeb3Modal({
+    ethersConfig: defaultConfig({ metadata }),
+    chains: [polygon, mainnet],
+    projectId,
+    enableAnalytics: true,
+    themeMode: 'dark',
+    themeVariables: { '--w3m-accent': '#4ee5c1', '--w3m-border-radius-master': '1px' }
+  })
+
+  // -----------------------------------------------------------
+  // 2. LOGIQUE : CONNEXION WALLET -> SUPABASE
+  // -----------------------------------------------------------
+  const statusBox = document.getElementById('statusBox');
+  const errorBox = document.getElementById('errorBox');
+  const walletBtn = document.getElementById('walletLoginBtn');
+
+  if (walletBtn) {
+    walletBtn.addEventListener('click', () => modal.open());
+  }
+
+  // C'est ici que la magie opère
+  modal.subscribeProvider(async (newState) => {
+    if (newState.isConnected && newState.address) {
+      const address = newState.address.toLowerCase();
+      console.log("🦊 Wallet connecté :", address);
+      
+      statusBox.textContent = "Wallet connected. Authenticating with G12 database...";
+      statusBox.style.display = 'block';
+      errorBox.style.display = 'none';
+
+      // --- LE PONT VERS SUPABASE ---
+      try {
+        // 1. On crée des identifiants "silencieux" basés sur l'adresse
+        const fakeEmail = `${address}@g12labs.com`;
+        const fakePassword = `secure-pwd-${address}`;
+
+        // 2. On essaie de se connecter
+        let { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: fakeEmail,
+          password: fakePassword
+        });
+
+        // 3. Si erreur (compte inexistant), on le crée
+        if (error) {
+          console.log("Nouveau user détecté. Création...");
+          const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
+            email: fakeEmail,
+            password: fakePassword
+          });
+
+          if (signUpError) throw signUpError;
+          
+          // 4. On l'ajoute dans la table publique 'user_wallets'
+          // Note : Le profil 'profiles' se crée tout seul grâce au trigger SQL qu'on a fait avant
+          if (signUpData.user) {
+            await supabaseClient.from('user_wallets').insert([
+              { user_id: signUpData.user.id, address: address, label: 'Web3 Login' }
+            ]);
+          }
+        }
+
+        // Succès !
+        statusBox.textContent = "Success! Redirecting...";
+        localStorage.setItem('g12_wallet', address);
+        
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
+
+      } catch (err) {
+        console.error(err);
+        statusBox.style.display = 'none';
+        errorBox.textContent = "Auth Error: " + err.message;
+        errorBox.style.display = 'block';
+      }
+    }
+  });
+
+  // -----------------------------------------------------------
+  // 3. LOGIQUE : CONNEXION EMAIL CLASSIQUE
+  // -----------------------------------------------------------
+  const form = document.getElementById('loginForm');
+  
+  // Toggle password visibility
   const toggleBtn = document.getElementById('togglePassword');
   const passInput = document.getElementById('password');
-
   if (toggleBtn && passInput) {
     toggleBtn.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
-
-      const currentType = passInput.getAttribute('type');
+      const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passInput.setAttribute('type', type);
       const icon = toggleBtn.querySelector('i');
-
-      if (currentType === 'password') {
-        passInput.setAttribute('type', 'text');
-        icon.classList.replace('ph-eye', 'ph-eye-slash');
-      } else {
-        passInput.setAttribute('type', 'password');
-        icon.classList.replace('ph-eye-slash', 'ph-eye');
-      }
+      icon.className = type === 'password' ? 'ph ph-eye' : 'ph ph-eye-slash';
     });
   }
 
-  // ========================================================
-  // 2. CONFIG SUPABASE
-  // ========================================================
-  const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
-  
-  let supabaseClient;
-  if (window.supabase) {
-    supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-  } else {
-    console.error("Erreur : Supabase non chargé.");
-  }
-
-  // ========================================================
-  // 3. LOGIQUE CONNEXION
-  // ========================================================
-  const form = document.getElementById('loginForm');
-  const errorBox = document.getElementById('errorBox');
-
-  // -- EMAIL LOGIN --
+  // Submit Login Email
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!supabaseClient) return alert("Erreur système : Supabase non chargé");
-
       errorBox.style.display = 'none';
-      
+      statusBox.style.display = 'none';
+
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       const btn = form.querySelector('button[type="submit"]');
       const originalText = btn.textContent;
-
+      
       btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Signing in...';
       btn.disabled = true;
 
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
         errorBox.textContent = "Login failed: " + error.message;
@@ -235,25 +297,6 @@
       } else {
         window.location.href = 'dashboard.html';
       }
-    });
-  }
-
-  // -- GOOGLE LOGIN --
-  const googleBtn = document.getElementById('googleBtn');
-  if (googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-      if (!supabaseClient) return;
-      
-      // URL DE REDIRECTION UNIVERSELLE (CORRECTIF)
-      const redirectUrl = new URL('dashboard.html', window.location.href).href;
-
-      const { data, error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl
-        }
-      });
-      if (error) alert(error.message);
     });
   }
 </script>
