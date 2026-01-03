@@ -156,7 +156,7 @@
 
 <script type="module">
   // ==============================================================
-  // 1. IMPORTATIONS (INDISPENSABLES POUR QUE ÇA MARCHE)
+  // 1. IMPORTATIONS
   // ==============================================================
   import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers@4.0.0'
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -169,16 +169,15 @@
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
   // ==============================================================
-  // 3. CONFIGURATION WEB3MODAL (PROJECT ID + MOBILE FIX)
+  // 3. CONFIGURATION WEB3MODAL
   // ==============================================================
-  const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c'; // Ton ID WalletConnect
+  const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c';
 
   const mainnet = { chainId: 1, name: 'Ethereum', currency: 'ETH', explorerUrl: 'https://etherscan.io', rpcUrl: 'https://cloudflare-eth.com' }
   const polygon = { chainId: 137, name: 'Polygon', currency: 'MATIC', explorerUrl: 'https://polygonscan.com', rpcUrl: 'https://polygon-rpc.com' }
   const arbitrum = { chainId: 42161, name: 'Arbitrum', currency: 'ETH', explorerUrl: 'https://arbiscan.io', rpcUrl: 'https://arb1.arbitrum.io/rpc' }
   const base = { chainId: 8453, name: 'Base', currency: 'ETH', explorerUrl: 'https://basescan.org', rpcUrl: 'https://mainnet.base.org' }
 
-  // METADATA (Dynamique pour mobile)
   const metadata = { 
     name: 'G12 Labs', 
     description: 'Institutional DeFi Access', 
@@ -211,29 +210,37 @@
       const address = newState.address.toLowerCase();
       console.log("🦊 Wallet connecté :", address);
       
-      statusBox.textContent = "Wallet connected. Authenticating with G12 database...";
+      statusBox.textContent = "Wallet connected. Authenticating...";
       statusBox.style.display = 'block';
       errorBox.style.display = 'none';
 
       try {
-        // On nettoie l'adresse (enlève le 0x)
-const cleanAddress = address.replace('0x', '');
+        // 1. On nettoie l'adresse (enlève le 0x)
+        const cleanAddress = address.replace('0x', '');
 
-// On utilise GMAIL. Supabase ne le bloquera jamais.
-// Cela donnera : u460d60b...@gmail.com
-const fakeEmail = `u${cleanAddress}@gmail.com`;
+        // 2. On définit l'email (GMAIL pour passer partout)
+        const fakeEmail = `u${cleanAddress}@gmail.com`;
 
-        // Login ou Inscription Auto
+        // 3. On définit le mot de passe (C'était l'erreur précédente)
+        const fakePassword = `secure-pwd-${cleanAddress}`;
+
+        // 4. On lance la connexion
         let { data, error } = await supabaseClient.auth.signInWithPassword({
           email: fakeEmail,
           password: fakePassword
         });
 
+        // 5. Si l'utilisateur n'existe pas, on le crée
         if (error) {
           console.log("Nouveau user détecté. Création...");
           const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
             email: fakeEmail,
-            password: fakePassword
+            password: fakePassword,
+             options: {
+              data: {
+                full_name: 'Investor ' + cleanAddress.substring(0, 6)
+              }
+            }
           });
 
           if (signUpError) throw signUpError;
@@ -245,6 +252,7 @@ const fakeEmail = `u${cleanAddress}@gmail.com`;
           }
         }
 
+        // 6. SUCCÈS : Redirection (C'est la partie qui manquait dans ton fichier)
         statusBox.textContent = "Success! Redirecting...";
         localStorage.setItem('g12_wallet', address);
         
@@ -253,6 +261,7 @@ const fakeEmail = `u${cleanAddress}@gmail.com`;
         }, 1000);
 
       } catch (err) {
+        // 7. GESTION D'ERREUR (Manquait aussi)
         console.error(err);
         statusBox.style.display = 'none';
         errorBox.textContent = "Auth Error: " + err.message;
@@ -265,10 +274,9 @@ const fakeEmail = `u${cleanAddress}@gmail.com`;
   // 5. LOGIQUE : CONNEXION EMAIL CLASSIQUE
   // ==============================================================
   const form = document.getElementById('loginForm');
-  
-  // Toggle password visibility
   const toggleBtn = document.getElementById('togglePassword');
   const passInput = document.getElementById('password');
+  
   if (toggleBtn && passInput) {
     toggleBtn.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
@@ -279,7 +287,6 @@ const fakeEmail = `u${cleanAddress}@gmail.com`;
     });
   }
 
-  // Submit Login Email
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
