@@ -216,10 +216,12 @@
       errorBox.style.display = 'none';
 
       try {
-        const cleanAddress = address.replace('0x', '');
-        const fakeEmail = `u${cleanAddress}@g12labs.com`;
-        
-        const fakePassword = `secure-pwd-${address}`;
+        // On nettoie l'adresse (enlève le 0x)
+const cleanAddress = address.replace('0x', '');
+
+// On utilise GMAIL. Supabase ne le bloquera jamais.
+// Cela donnera : u460d60b...@gmail.com
+const fakeEmail = `u${cleanAddress}@gmail.com`;
 
         // Login ou Inscription Auto
         let { data, error } = await supabaseClient.auth.signInWithPassword({
