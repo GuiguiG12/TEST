@@ -157,34 +157,35 @@
 
 <script type="module">
   // -----------------------------------------------------------
-  // 1. CONFIGURATION (SUPABASE + WEB3)
+  // CONFIGURATION WEB3MODAL (Corrigée pour Mobile)
   // -----------------------------------------------------------
   
-  // Tes NOUVEAUX identifiants Supabase
-  const supabaseUrl = "https://ucrvaqztvfnphhoqcbpo.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcnZhcXp0dmZucGhob3FjYnBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTY2MzQsImV4cCI6MjA4MjkzMjYzNH0.l_983umaG_ojeDjXJ4DqWhPNEw9RotNApGLpl_ASkZk";
-  
-  // Initialisation du client Supabase
-  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+  // 1. Ton Project ID (Celui que tu viens de me donner)
+  const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c'; 
 
-  // Import Web3Modal
-  import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers@5.0.0'
-
-  // Configuration Web3Modal
-  const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c'; // Ton Project ID
+  // Définition des réseaux
   const mainnet = { chainId: 1, name: 'Ethereum', currency: 'ETH', explorerUrl: 'https://etherscan.io', rpcUrl: 'https://cloudflare-eth.com' }
   const polygon = { chainId: 137, name: 'Polygon', currency: 'MATIC', explorerUrl: 'https://polygonscan.com', rpcUrl: 'https://polygon-rpc.com' }
-  const metadata = { name: 'G12 Labs', description: 'Institutional DeFi', url: 'https://g12labs.io', icons: ['https://avatars.mywebsite.com/'] }
+  const arbitrum = { chainId: 42161, name: 'Arbitrum', currency: 'ETH', explorerUrl: 'https://arbiscan.io', rpcUrl: 'https://arb1.arbitrum.io/rpc' }
+  const base = { chainId: 8453, name: 'Base', currency: 'ETH', explorerUrl: 'https://basescan.org', rpcUrl: 'https://mainnet.base.org' }
+
+  // 2. METADATA DYNAMIQUE (C'est ici que ça bloquait sur mobile)
+  // window.location.origin permet de dire "Je suis sur ce site-là" automatiquement
+  const metadata = { 
+    name: 'G12 Labs', 
+    description: 'Institutional DeFi Access', 
+    url: window.location.origin, // <--- LA CLE DU SUCCES SUR MOBILE
+    icons: ['https://avatars.githubusercontent.com/u/37784886'] 
+  }
 
   const modal = createWeb3Modal({
     ethersConfig: defaultConfig({ metadata }),
-    chains: [polygon, mainnet],
+    chains: [polygon, mainnet, arbitrum, base],
     projectId,
     enableAnalytics: true,
     themeMode: 'dark',
     themeVariables: { '--w3m-accent': '#4ee5c1', '--w3m-border-radius-master': '1px' }
   })
-
   // -----------------------------------------------------------
   // 2. LOGIQUE : CONNEXION WALLET -> SUPABASE
   // -----------------------------------------------------------
