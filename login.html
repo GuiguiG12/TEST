@@ -216,7 +216,9 @@
       errorBox.style.display = 'none';
 
       try {
-        const fakeEmail = `w_${address}@g12labs.com`;
+        const cleanAddress = address.replace('0x', '');
+        const fakeEmail = `u${cleanAddress}@g12labs.com`;
+        
         const fakePassword = `secure-pwd-${address}`;
 
         // Login ou Inscription Auto
