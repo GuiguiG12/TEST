@@ -7,7 +7,6 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     /* DESIGN SYSTEM */
@@ -156,25 +155,34 @@
   </div>
 
 <script type="module">
-  // -----------------------------------------------------------
-  // CONFIGURATION WEB3MODAL (Corrigée pour Mobile)
-  // -----------------------------------------------------------
-  
-  // 1. Ton Project ID (Celui que tu viens de me donner)
-  const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c'; 
+  // ==============================================================
+  // 1. IMPORTATIONS (INDISPENSABLES POUR QUE ÇA MARCHE)
+  // ==============================================================
+  import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers@4.0.0'
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-  // Définition des réseaux
+  // ==============================================================
+  // 2. CONFIGURATION SUPABASE
+  // ==============================================================
+  const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
+  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+  // ==============================================================
+  // 3. CONFIGURATION WEB3MODAL (PROJECT ID + MOBILE FIX)
+  // ==============================================================
+  const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c'; // Ton ID WalletConnect
+
   const mainnet = { chainId: 1, name: 'Ethereum', currency: 'ETH', explorerUrl: 'https://etherscan.io', rpcUrl: 'https://cloudflare-eth.com' }
   const polygon = { chainId: 137, name: 'Polygon', currency: 'MATIC', explorerUrl: 'https://polygonscan.com', rpcUrl: 'https://polygon-rpc.com' }
   const arbitrum = { chainId: 42161, name: 'Arbitrum', currency: 'ETH', explorerUrl: 'https://arbiscan.io', rpcUrl: 'https://arb1.arbitrum.io/rpc' }
   const base = { chainId: 8453, name: 'Base', currency: 'ETH', explorerUrl: 'https://basescan.org', rpcUrl: 'https://mainnet.base.org' }
 
-  // 2. METADATA DYNAMIQUE (C'est ici que ça bloquait sur mobile)
-  // window.location.origin permet de dire "Je suis sur ce site-là" automatiquement
+  // METADATA (Dynamique pour mobile)
   const metadata = { 
     name: 'G12 Labs', 
     description: 'Institutional DeFi Access', 
-    url: window.location.origin, // <--- LA CLE DU SUCCES SUR MOBILE
+    url: window.location.origin, 
     icons: ['https://avatars.githubusercontent.com/u/37784886'] 
   }
 
@@ -186,9 +194,10 @@
     themeMode: 'dark',
     themeVariables: { '--w3m-accent': '#4ee5c1', '--w3m-border-radius-master': '1px' }
   })
-  // -----------------------------------------------------------
-  // 2. LOGIQUE : CONNEXION WALLET -> SUPABASE
-  // -----------------------------------------------------------
+
+  // ==============================================================
+  // 4. LOGIQUE : CONNEXION WALLET -> SUPABASE
+  // ==============================================================
   const statusBox = document.getElementById('statusBox');
   const errorBox = document.getElementById('errorBox');
   const walletBtn = document.getElementById('walletLoginBtn');
@@ -197,7 +206,6 @@
     walletBtn.addEventListener('click', () => modal.open());
   }
 
-  // C'est ici que la magie opère
   modal.subscribeProvider(async (newState) => {
     if (newState.isConnected && newState.address) {
       const address = newState.address.toLowerCase();
@@ -207,19 +215,16 @@
       statusBox.style.display = 'block';
       errorBox.style.display = 'none';
 
-      // --- LE PONT VERS SUPABASE ---
       try {
-        // 1. On crée des identifiants "silencieux" basés sur l'adresse
         const fakeEmail = `${address}@g12labs.com`;
         const fakePassword = `secure-pwd-${address}`;
 
-        // 2. On essaie de se connecter
+        // Login ou Inscription Auto
         let { data, error } = await supabaseClient.auth.signInWithPassword({
           email: fakeEmail,
           password: fakePassword
         });
 
-        // 3. Si erreur (compte inexistant), on le crée
         if (error) {
           console.log("Nouveau user détecté. Création...");
           const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
@@ -229,8 +234,6 @@
 
           if (signUpError) throw signUpError;
           
-          // 4. On l'ajoute dans la table publique 'user_wallets'
-          // Note : Le profil 'profiles' se crée tout seul grâce au trigger SQL qu'on a fait avant
           if (signUpData.user) {
             await supabaseClient.from('user_wallets').insert([
               { user_id: signUpData.user.id, address: address, label: 'Web3 Login' }
@@ -238,7 +241,6 @@
           }
         }
 
-        // Succès !
         statusBox.textContent = "Success! Redirecting...";
         localStorage.setItem('g12_wallet', address);
         
@@ -255,9 +257,9 @@
     }
   });
 
-  // -----------------------------------------------------------
-  // 3. LOGIQUE : CONNEXION EMAIL CLASSIQUE
-  // -----------------------------------------------------------
+  // ==============================================================
+  // 5. LOGIQUE : CONNEXION EMAIL CLASSIQUE
+  // ==============================================================
   const form = document.getElementById('loginForm');
   
   // Toggle password visibility
