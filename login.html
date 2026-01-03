@@ -162,21 +162,13 @@
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
   // ==============================================================
-  // 2. CONFIGURATION SUPABASE
+  // 2. CONFIGURATION
   // ==============================================================
   const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
   const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-  // ==============================================================
-  // 3. CONFIGURATION WEB3MODAL
-  // ==============================================================
   const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c';
-
-  const mainnet = { chainId: 1, name: 'Ethereum', currency: 'ETH', explorerUrl: 'https://etherscan.io', rpcUrl: 'https://cloudflare-eth.com' }
-  const polygon = { chainId: 137, name: 'Polygon', currency: 'MATIC', explorerUrl: 'https://polygonscan.com', rpcUrl: 'https://polygon-rpc.com' }
-  const arbitrum = { chainId: 42161, name: 'Arbitrum', currency: 'ETH', explorerUrl: 'https://arbiscan.io', rpcUrl: 'https://arb1.arbitrum.io/rpc' }
-  const base = { chainId: 8453, name: 'Base', currency: 'ETH', explorerUrl: 'https://basescan.org', rpcUrl: 'https://mainnet.base.org' }
 
   const metadata = { 
     name: 'G12 Labs', 
@@ -187,96 +179,104 @@
 
   const modal = createWeb3Modal({
     ethersConfig: defaultConfig({ metadata }),
-    chains: [polygon, mainnet, arbitrum, base],
+    chains: [
+      { chainId: 1, name: 'Ethereum', currency: 'ETH', explorerUrl: 'https://etherscan.io', rpcUrl: 'https://cloudflare-eth.com' },
+      { chainId: 137, name: 'Polygon', currency: 'MATIC', explorerUrl: 'https://polygonscan.com', rpcUrl: 'https://polygon-rpc.com' }
+    ],
     projectId,
     enableAnalytics: true,
-    themeMode: 'dark',
-    themeVariables: { '--w3m-accent': '#4ee5c1', '--w3m-border-radius-master': '1px' }
+    themeMode: 'dark'
   })
 
   // ==============================================================
-  // 4. LOGIQUE : CONNEXION WALLET -> SUPABASE
+  // 3. UI ELEMENTS
   // ==============================================================
   const statusBox = document.getElementById('statusBox');
   const errorBox = document.getElementById('errorBox');
   const walletBtn = document.getElementById('walletLoginBtn');
 
-  if (walletBtn) {
-    walletBtn.addEventListener('click', () => modal.open());
-  }
+  if (walletBtn) walletBtn.addEventListener('click', () => modal.open());
+
+  // ==============================================================
+  // 4. LOGIQUE WALLET (AVEC LE VERROU DE SÉCURITÉ)
+  // ==============================================================
+  
+  // 🔒 VARIABLE DE VERROUILLAGE (Empêche le spam et le ban IP)
+  let isProcessingAuth = false;
 
   modal.subscribeProvider(async (newState) => {
+    // Si déjà en cours, on stop tout de suite.
+    if (isProcessingAuth) return;
+
     if (newState.isConnected && newState.address) {
+      isProcessingAuth = true; // 🔴 ON VERROUILLE
+
       const address = newState.address.toLowerCase();
-      console.log("🦊 Wallet connecté :", address);
       
-      statusBox.textContent = "Wallet connected. Authenticating...";
       statusBox.style.display = 'block';
+      statusBox.textContent = "Verifying secure credentials...";
       errorBox.style.display = 'none';
 
       try {
-        // 1. On nettoie l'adresse (enlève le 0x)
         const cleanAddress = address.replace('0x', '');
-
-        // 2. On définit l'email (GMAIL pour passer partout)
-        const fakeEmail = `u${cleanAddress}_2@gmail.com`;
-
-        // 3. On définit le mot de passe (C'était l'erreur précédente)
+        // Email standardisé (plus de date, plus de _2)
+        const fakeEmail = `u${cleanAddress}@gmail.com`;
         const fakePassword = `secure-pwd-${cleanAddress}`;
 
-        // 4. On lance la connexion
+        // 1. Tentative de connexion
         let { data, error } = await supabaseClient.auth.signInWithPassword({
           email: fakeEmail,
           password: fakePassword
         });
 
-        // 5. Si l'utilisateur n'existe pas, on le crée
+        // 2. Si échec, Création du compte
         if (error) {
-          console.log("Nouveau user détecté. Création...");
+          console.log("Account not found. Creating...");
           const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({
             email: fakeEmail,
             password: fakePassword,
-             options: {
-              data: {
-                full_name: 'Investor ' + cleanAddress.substring(0, 6)
-              }
-            }
+            options: { data: { full_name: 'Investor ' + cleanAddress.substring(0, 6) } }
           });
-
+          
           if (signUpError) throw signUpError;
           
           if (signUpData.user) {
-            await supabaseClient.from('user_wallets').insert([
+             await supabaseClient.from('user_wallets').insert([
               { user_id: signUpData.user.id, address: address, label: 'Web3 Login' }
             ]);
           }
         }
-
-        // 6. SUCCÈS : Redirection (C'est la partie qui manquait dans ton fichier)
-        statusBox.textContent = "Success! Redirecting...";
+        
+        // 3. SUCCÈS
+        statusBox.textContent = "Access Granted. Redirecting...";
         localStorage.setItem('g12_wallet', address);
         
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 1000);
+        window.location.href = 'dashboard.html';
 
       } catch (err) {
-        // 7. GESTION D'ERREUR (Manquait aussi)
         console.error(err);
+        isProcessingAuth = false; // 🟢 ON DÉVERROUILLE EN CAS D'ERREUR
+        
         statusBox.style.display = 'none';
-        errorBox.textContent = "Auth Error: " + err.message;
+        
+        if(err.message.includes("Rate limit")) {
+             errorBox.innerHTML = "Too many attempts. Please wait 15 min or switch network (WiFi/4G).";
+        } else {
+             errorBox.textContent = "Auth Error: " + err.message;
+        }
         errorBox.style.display = 'block';
       }
     }
   });
 
   // ==============================================================
-  // 5. LOGIQUE : CONNEXION EMAIL CLASSIQUE
+  // 5. LOGIQUE : CONNEXION EMAIL CLASSIQUE (RESTITUÉE)
   // ==============================================================
   const form = document.getElementById('loginForm');
   const toggleBtn = document.getElementById('togglePassword');
   const passInput = document.getElementById('password');
   
+  // Gestion de l'oeil (Mot de passe)
   if (toggleBtn && passInput) {
     toggleBtn.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
@@ -287,6 +287,7 @@
     });
   }
 
+  // Gestion du formulaire Email/Password
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
