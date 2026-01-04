@@ -229,62 +229,84 @@
   // ==============================================================
   // WALLET LOGIN (works on desktop extensions + mobile WalletConnect)
   // ==============================================================
-  let isProcessing = false;
+  walletBtn.addEventListener("click", async () => {
+  if (isProcessing) return;
+  isProcessing = true;
 
-  if (walletBtn) {
-    walletBtn.addEventListener('click', async () => {
-      if (isProcessing) return;
-      isProcessing = true;
+  try {
+    showStatus("Opening wallet selector...");
+    errorBox.style.display = "none";
 
-      try {
-        showStatus("Opening wallet selector...");
+    // 1) Ouvre le modal
+    await modal.open();
 
-        // Ouvre Web3Modal (extension sur PC, QR sur mobile, etc.)
-        await modal.open();
+    // 2) Attendre un provider réellement connecté (WalletConnect est parfois lent)
+    showStatus("Waiting for wallet connection (scan QR + approve)...");
+    let provider = null;
 
-        // Récupère le provider connecté (WalletConnect ou extension)
-        const provider = modal.getWalletProvider();
-        if (!provider) throw new Error("Wallet not connected");
-
-        const web3Provider = new ethers.providers.Web3Provider(provider);
-        const signer = web3Provider.getSigner();
-
-        const address = (await signer.getAddress()).toLowerCase();
-        const network = await web3Provider.getNetwork();
-        const chainId = network?.chainId || 1;
-
-        showStatus("Requesting nonce...");
-        const nonceData = await postJson(`${functionsBase}/get-nonce`, { address });
-
-        showStatus("Please sign the message in your wallet...");
-        const signature = await signer.signMessage(nonceData.message);
-
-        showStatus("Verifying signature...");
-        const loginData = await postJson(`${functionsBase}/web3-login`, { address, signature, chain_id: chainId });
-
-        // Stocker la session token (dashboard)
-        localStorage.setItem("g12_token", loginData.token);
-        localStorage.setItem("g12_user_id", loginData.user_id);
-        localStorage.setItem("g12_wallet", address);
-        localStorage.setItem("g12_expires_at", loginData.expires_at);
-
-        showStatus("Access granted. Redirecting...");
-        window.location.href = "dashboard.html";
-
-      } catch (err) {
-        console.error(err);
-
-        // code 4001 : user rejected signature (souvent)
-        if (err?.code === 4001) {
-          showError("Signature rejected. You must sign to verify ownership.");
-        } else {
-          showError("Wallet login failed: " + (err?.message || String(err)));
-        }
-      } finally {
-        isProcessing = false;
+    const start = Date.now();
+    while (!provider) {
+      provider = modal.getWalletProvider();
+      if (provider) break;
+      if (Date.now() - start > 90000) { // 90s
+        throw new Error("Wallet not connected (timeout). Scan the QR and approve in your wallet.");
       }
+      await new Promise(r => setTimeout(r, 300));
+    }
+
+    // 3) Créer provider ethers
+    const web3Provider = new ethers.providers.Web3Provider(provider);
+
+    // 4) Attendre que l’adresse soit accessible (preuve que c’est vraiment connecté)
+    const signer = web3Provider.getSigner();
+    let address = "";
+
+    const start2 = Date.now();
+    while (!address) {
+      try {
+        address = (await signer.getAddress()).toLowerCase();
+      } catch (e) {
+        // tant que le wallet n'a pas encore "approved", getAddress peut échouer
+      }
+      if (address) break;
+      if (Date.now() - start2 > 90000) {
+        throw new Error("Wallet connected but not authorized. Please approve the connection in your wallet.");
+      }
+      await new Promise(r => setTimeout(r, 300));
+    }
+
+    const network = await web3Provider.getNetwork();
+    const chainId = network?.chainId || 1;
+
+    showStatus("Requesting nonce...");
+    const nonceData = await postJson(`${functionsBase}/get-nonce`, { address });
+
+    showStatus("Please sign the message in your wallet...");
+    const signature = await signer.signMessage(nonceData.message);
+
+    showStatus("Logging in...");
+    const loginData = await postJson(`${functionsBase}/web3-login`, {
+      address,
+      signature,
+      chain_id: chainId
     });
+
+    localStorage.setItem("g12_token", loginData.token);
+    localStorage.setItem("g12_user_id", loginData.user_id);
+    localStorage.setItem("g12_wallet", address);
+    localStorage.setItem("g12_expires_at", loginData.expires_at);
+
+    showStatus("Access granted. Redirecting...");
+    window.location.href = "dashboard.html";
+
+  } catch (err) {
+    console.error(err);
+    showError("Wallet login failed: " + (err?.message || String(err)));
+  } finally {
+    isProcessing = false;
   }
+});
+
 
   // ==============================================================
   // EMAIL/PASSWORD LOGIN (optional - leaves your UI intact)
