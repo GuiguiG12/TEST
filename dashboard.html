@@ -2,8 +2,6 @@
 <html lang="en" data-theme="carbon">
 <head>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>G12 Labs — Dashboard</title>
@@ -16,610 +14,281 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
   <style>
-    /* =========================================================
-       DESIGN SYSTEM (IDENTIQUE À TON FICHIER ORIGINAL)
-       ========================================================= */
+    /* DESIGN SYSTEM */
     :root {
       --font-sans: 'Inter', sans-serif;
       --sidebar-width: 280px;
       --radius-lg: 1rem; --radius-md: 0.75rem; --radius-sm: 0.5rem; --radius-pill: 999px;
       --accent-teal: #4ee5c1; --accent-mint: #a8ffc8;
       --accent-grad: linear-gradient(90deg, var(--accent-teal), var(--accent-mint));
-      --color-success: #22c55e; --color-danger: #ef4444; --color-warning: #f59e0b;
     }
 
     [data-theme="carbon"] {
       --bg-app: #050505; --bg-sidebar: #0a0a0a; --sidebar-border: #1f1f1f;
-      --card-bg: #0f0f0f; --card-border-color: #1f1f1f; --card-inner-shadow: none; --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+      --card-bg: #0f0f0f; --card-border-color: #1f1f1f; --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
       --text-main: #ededed; --text-muted: #a1a1a1; --text-soft: #525252;
-      --input-bg: #0a0a0a; --input-border: #262626; --btn-glass-bg: #171717; --btn-glass-hover: #262626;
-      --chart-grid: #1f1f1f; --chart-tooltip-bg: #171717; --logo-filter: brightness(0) invert(1);
+      --input-bg: #0a0a0a; --input-border: #262626; --btn-glass-bg: #171717;
+      --logo-filter: brightness(0) invert(1);
     }
 
     [data-theme="quartz"] {
       --bg-app: #ffffff; --bg-sidebar: #f9fafb; --sidebar-border: #e5e7eb;
-      --card-bg: #ffffff; --card-border-color: #e5e7eb; --card-inner-shadow: none; --card-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      --card-bg: #ffffff; --card-border-color: #e5e7eb; --card-shadow: 0 2px 4px rgba(0,0,0,0.02);
       --text-main: #0a0a0a; --text-muted: #525252; --text-soft: #a3a3a3;
-      --input-bg: #ffffff; --input-border: #e5e7eb; --btn-glass-bg: #f3f4f6; --btn-glass-hover: #e5e7eb;
-      --chart-grid: #f3f4f6; --chart-tooltip-bg: #ffffff; --logo-filter: invert(1) brightness(0); 
+      --input-bg: #ffffff; --input-border: #e5e7eb; --btn-glass-bg: #f3f4f6;
+      --logo-filter: invert(1) brightness(0); 
     }
 
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--font-sans); background-color: var(--bg-app); color: var(--text-main); overflow-x: hidden; visibility: visible; opacity: 1; }
-    body.loaded { visibility: visible; opacity: 1; }
+    body { margin: 0; font-family: var(--font-sans); background-color: var(--bg-app); color: var(--text-main); visibility: visible; opacity: 1; }
 
-    /* LAYOUT & COMPONENTS */
-    .sidebar { width: var(--sidebar-width); position: fixed; top: 0; bottom: 0; left: 0; background: var(--bg-sidebar); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid var(--sidebar-border); padding: 1.5rem; display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
-    .logo-area { margin-bottom: 1.5rem; display: block; }
-    .logo-img { display: block; width: 140px; height: auto; filter: var(--logo-filter); transition: filter 0.3s ease; }
+    /* LAYOUT */
+    .sidebar { width: var(--sidebar-width); position: fixed; top: 0; bottom: 0; left: 0; background: var(--bg-sidebar); border-right: 1px solid var(--sidebar-border); padding: 1.5rem; display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s; }
+    .logo-img { width: 140px; filter: var(--logo-filter); margin-bottom: 2rem; }
     
     .user-card { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; background: var(--btn-glass-bg); border-radius: var(--radius-md); border: 1px solid var(--sidebar-border); margin-bottom: 2rem; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #222, #000); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.85rem; font-weight: 700; border: 1px solid var(--sidebar-border); }
-    .user-info div { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
-    .user-info span { font-size: 0.75rem; color: var(--text-soft); }
-
-    .nav-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-soft); margin: 0 0 0.5rem 0.5rem; }
-    .nav-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.75rem 1rem; margin-bottom: 0.25rem; border-radius: var(--radius-sm); color: var(--text-muted); text-decoration: none; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
-    .nav-item:hover { background: var(--btn-glass-bg); color: var(--text-main); }
-    .nav-item.active { background: rgba(78, 229, 193, 0.1); color: var(--accent-teal); }
-    .nav-item i { font-size: 1.2rem; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 1px solid var(--sidebar-border); }
     
-    .logout-btn { margin-top: auto; display: flex; align-items: center; gap: 0.8rem; padding: 1rem; color: var(--text-soft); text-decoration: none; font-size: 0.9rem; font-weight: 500; border-top: 1px solid var(--sidebar-border); transition: color 0.2s; cursor: pointer; }
-    .logout-btn:hover { color: var(--color-danger); }
-
-    .main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; display: flex; flex-direction: column; }
-    .container-center { width: 100%; max-width: 1400px; margin: 0 auto; padding: 2.5rem 3rem; }
-
+    .nav-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.75rem 1rem; margin-bottom: 0.25rem; border-radius: var(--radius-sm); color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+    .nav-item:hover, .nav-item.active { background: rgba(78, 229, 193, 0.1); color: var(--accent-teal); }
+    
+    .main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; padding: 2.5rem 3rem; }
     .header-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; }
-    .welcome-text h1 { font-size: 2.2rem; font-weight: 800; margin: 0; color: var(--text-main); letter-spacing: -0.03em; }
-    .welcome-text p { color: var(--text-muted); margin: 0.4rem 0 0; font-size: 1rem; }
-    .header-actions { display: flex; gap: 0.8rem; }
     
-    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; border-radius: var(--radius-pill); font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; transition: transform 0.2s; text-decoration: none; }
-    .btn:hover { transform: translateY(-2px); }
-    .btn-primary { background: var(--accent-grad); color: #000; box-shadow: 0 4px 15px rgba(78, 229, 193, 0.3); }
-    .btn-secondary { background: var(--btn-glass-bg); color: var(--text-main); border: 1px solid var(--sidebar-border); }
-    .theme-toggle { width: 40px; height: 40px; border-radius: 50%; background: var(--btn-glass-bg); border: 1px solid var(--sidebar-border); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: color 0.2s; }
-    .theme-toggle:hover { color: var(--accent-teal); }
-
-    .mobile-toggle { display: none; background: none; border: none; font-size: 1.8rem; color: var(--text-main); cursor: pointer; margin-right: 1rem; }
-    .mobile-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(4px); }
-    .mobile-overlay.active { opacity: 1; pointer-events: auto; }
-
-    /* CARDS */
     .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
-    .card { background: var(--card-bg); border: 1px solid var(--card-border-color); box-shadow: var(--card-inner-shadow), var(--card-shadow); border-radius: var(--radius-lg); padding: 1.5rem; backdrop-filter: blur(14px); position: relative; display: flex; flex-direction: column; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .card-title { font-size: 1rem; font-weight: 600; color: var(--text-muted); }
-
-    .kpi-card { grid-column: span 3; padding: 1.8rem; }
-    .kpi-value { font-size: 2.2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; margin: 0.5rem 0; }
-    .kpi-trend { font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; }
-
+    .card { background: var(--card-bg); border: 1px solid var(--card-border-color); border-radius: var(--radius-lg); padding: 1.5rem; }
+    
+    .kpi-card { grid-column: span 3; }
+    .kpi-value { font-size: 2.2rem; font-weight: 800; margin: 0.5rem 0; }
     .chart-half { grid-column: span 6; min-height: 380px; }
-    .chart-body { flex: 1; width: 100%; min-height: 0; }
-    
-    .allocations-card { grid-column: span 6; }
-    .alloc-list { display: flex; flex-direction: column; gap: 1rem; }
-    .alloc-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: var(--radius-md); border: 1px solid var(--sidebar-border); transition: background 0.2s; }
-    .alloc-row:hover { background: rgba(255,255,255,0.06); }
-    .alloc-info h4 { margin: 0; font-size: 1rem; color: var(--text-main); }
-    .alloc-info p { margin: 2px 0 0; font-size: 0.8rem; color: var(--text-soft); }
-    .alloc-stats { text-align: right; }
-    .alloc-val { display: block; font-weight: 600; color: var(--text-main); }
-    .alloc-apy { font-size: 0.8rem; color: var(--accent-teal); }
+    .full-width { grid-column: span 12; }
 
-    .tx-container { grid-column: span 6; }
-    .tx-row { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 0; border-bottom: 1px solid var(--sidebar-border); }
-    .tx-left { display: flex; align-items: center; gap: 0.8rem; }
-    .tx-icon { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--text-muted); }
-    .tx-info div { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
-    .tx-info span { font-size: 0.75rem; color: var(--text-soft); }
-    .tx-amount { font-weight: 600; font-size: 0.95rem; color: var(--text-main); }
-
-    /* FORM & SETTINGS */
-    .form-group { margin-bottom: 1.5rem; }
-    .form-label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-main); }
-    .form-input { width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); font-family: inherit; font-size: 0.9rem; }
-    
-    .theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
-    .theme-card { border: 1px solid var(--sidebar-border); border-radius: var(--radius-md); padding: 1rem; cursor: pointer; position: relative; }
-    .theme-card.active { border-color: var(--accent-teal); background: rgba(78, 229, 193, 0.05); }
-    .theme-preview { height: 60px; background: #222; border-radius: 4px; margin-bottom: 0.8rem; display: flex; gap: 4px; padding: 4px; }
-    .theme-preview.light { background: #eee; }
-    .tp-sidebar { width: 20%; background: #333; height: 100%; border-radius: 2px; }
-    .tp-main { width: 80%; background: #111; height: 100%; border-radius: 2px; }
-    .theme-preview.light .tp-sidebar { background: #fff; }
-    .theme-preview.light .tp-main { background: #f9f9f9; }
-
-    /* Table */
-    .table-container { overflow-x: auto; }
-    .full-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-    .full-table th { text-align: left; padding: 1rem; color: var(--text-muted); font-size: 0.85rem; border-bottom: 1px solid var(--sidebar-border); }
-    .full-table td { padding: 1rem; border-bottom: 1px solid var(--sidebar-border); font-size: 0.9rem; color: var(--text-main); }
-    
-    .view-section { display: none; }
-    .view-section.active { display: block; animation: fadeIn 0.3s; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    @media (max-width: 1200px) { .kpi-card { grid-column: span 6; } .chart-half { grid-column: span 12; } .allocations-card { grid-column: span 12; } .tx-container { grid-column: span 12; } }
-    @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-wrapper { margin-left: 0; } .container-center { padding: 1.5rem; } .mobile-toggle { display: block; } .header-row { flex-direction: column; align-items: flex-start; gap: 1rem; } .header-actions { width: 100%; justify-content: space-between; } .grid { display: flex; flex-direction: column; } }
+    /* Mobile */
+    @media (max-width: 1000px) { .kpi-card { grid-column: span 6; } .chart-half { grid-column: span 12; } }
+    @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .main-wrapper { margin-left: 0; padding: 1.5rem; } }
   </style>
 </head>
 <body>
 
-<div class="mobile-overlay" id="mobileOverlay" onclick="closeSidebar()"></div>
-
 <aside class="sidebar" id="sidebar">
-  <a href="#" class="logo-area">
-    <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="logo-img" />
-  </a>
+  <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="logo-img" />
 
   <div class="user-card">
     <div class="avatar" id="sidebarAvatar">..</div>
     <div class="user-info">
-      <div id="sidebarName">Partner</div>
-      <span>ID #042</span>
+      <div id="sidebarName" style="font-weight:600; font-size:0.9rem;">Loading...</div>
+      <span id="sidebarID" style="font-size:0.75rem; color:var(--text-soft);">...</span>
     </div>
   </div>
 
-  <div class="nav-label">Dashboard</div>
-  <div class="nav-item active" onclick="switchView('dashboard', this)">
-    <i class="ph ph-squares-four"></i> Overview
-  </div>
-  <a href="#" onclick="alert('Coming Soon')" class="nav-item">
-    <i class="ph ph-chart-line-up"></i> Global Performance
-  </a>
-  
-  <div class="nav-label">Account</div>
-  <div class="nav-item" onclick="switchView('transactions', this)">
-    <i class="ph ph-arrows-left-right"></i> Transactions
-  </div>
-  <div class="nav-item" onclick="switchView('settings', this)">
-    <i class="ph ph-gear"></i> Settings
-  </div>
+  <div class="nav-item active" onclick="switchView('dashboard')"><i class="ph ph-squares-four"></i> Overview</div>
+  <div class="nav-item" onclick="switchView('transactions')"><i class="ph ph-list-dashes"></i> Transactions</div>
+  <div class="nav-item" onclick="alert('Settings coming soon')"><i class="ph ph-gear"></i> Settings</div>
 
-  <a href="#" class="logout-btn" id="logoutBtn">
+  <div class="nav-item" id="logoutBtn" style="margin-top:auto; border-top:1px solid var(--sidebar-border); padding-top:1rem;">
     <i class="ph ph-sign-out"></i> Disconnect
-  </a>
+  </div>
 </aside>
 
 <div class="main-wrapper">
-  <div class="container-center">
+  
+  <div class="header-row">
+    <div>
+      <h1 id="headerWelcome" style="margin:0; font-size:2rem;">Welcome back</h1>
+      <p style="color:var(--text-muted); margin:5px 0 0;">Blockchain Portfolio Overview</p>
+    </div>
+    <div style="display:flex; gap:10px;">
+       <button id="themeToggle" style="background:var(--card-bg); border:1px solid var(--sidebar-border); width:40px; height:40px; border-radius:50%; color:var(--text-muted); cursor:pointer;"><i class="ph ph-sun"></i></button>
+    </div>
+  </div>
+
+  <div id="view-dashboard" class="grid">
     
-    <div class="header-row">
-      <div style="display:flex; align-items:center;">
-        <button class="mobile-toggle" onclick="openSidebar()"><i class="ph ph-list"></i></button>
-        <div class="welcome-text">
-          <h1 id="headerWelcome">Welcome back!</h1>
-          <p>Scanning blockchain data...</p>
-        </div>
-      </div>
-
-      <div class="header-actions">
-        <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Theme"><i class="ph ph-sun"></i></button>
-        <button class="btn btn-secondary" onclick="alert('Withdrawals disabled')"><i class="ph ph-arrow-down"></i> Withdraw</button>
-        <button class="btn btn-primary" onclick="alert('Use your wallet to deposit')"><i class="ph ph-plus"></i> Deposit</button>
-      </div>
+    <div class="card kpi-card">
+      <div style="color:var(--text-muted); font-size:0.9rem;">Total Shares</div>
+      <div class="kpi-value" id="kpiShares">0.00</div>
+      <div style="font-size:0.85rem; color:var(--accent-teal);">Active in Vault</div>
     </div>
 
-    <div id="view-dashboard" class="view-section active">
-      <div class="grid">
-
-        <div class="card kpi-card">
-          <div class="card-header" style="margin-bottom:0.5rem">
-            <span class="card-title">Total Shares</span>
-            <i class="ph ph-wallet" style="color:var(--accent-teal)"></i>
-          </div>
-          <div class="kpi-value" id="kpiTotalShares">0.00</div>
-          <div class="kpi-trend">
-            <span style="color:var(--text-muted)">Units held in Vault</span>
-          </div>
-        </div>
-
-        <div class="card kpi-card">
-          <div class="card-header" style="margin-bottom:0.5rem">
-            <span class="card-title">Est. Value (USDC)</span>
-            <i class="ph ph-trend-up" style="color:var(--accent-teal)"></i>
-          </div>
-          <div class="kpi-value" id="kpiEstValue" style="color:var(--accent-teal)">--</div>
-          <div class="kpi-trend">
-            <span style="color:var(--text-muted)">Live value (1:1 Peg)</span>
-          </div>
-        </div>
-
-        <div class="card kpi-card">
-          <div class="card-header" style="margin-bottom:0.5rem">
-            <span class="card-title">Avg. Monthly Return</span>
-            <i class="ph ph-chart-bar" style="color:var(--text-muted)"></i>
-          </div>
-          <div class="kpi-value">--</div>
-          <div class="kpi-trend">
-            <span style="color:var(--text-muted)">Calculated monthly</span>
-          </div>
-        </div>
-
-        <div class="card kpi-card">
-          <div class="card-header" style="margin-bottom:0.5rem">
-            <span class="card-title">Est. Yield</span>
-          </div>
-          <div class="kpi-value">--</div>
-          <div class="kpi-trend">
-            <span style="color:var(--text-muted)">Pending payout</span>
-          </div>
-        </div>
-
-        <div class="card chart-half">
-          <div class="card-header">
-            <span class="card-title">Portfolio Value</span>
-            <div class="time-toggles">
-               <button class="time-btn active">3M</button>
-            </div>
-          </div>
-          <div id="chartPortfolio" class="chart-body"></div>
-        </div>
-
-        <div class="card chart-half">
-          <div class="card-header">
-            <span class="card-title">Weekly Returns</span>
-            <div class="time-toggles">
-              <button class="time-btn active">3M</button>
-            </div>
-          </div>
-          <div id="chartWeekly" class="chart-body"></div>
-        </div>
-
-        <div class="card allocations-card">
-          <div class="card-header">
-            <span class="card-title">Active Allocations</span>
-            <i class="ph ph-strategy" style="color:var(--text-muted)"></i>
-          </div>
-          <div class="alloc-list" id="allocList">
-             <div style="padding:2rem; text-align:center; color:var(--text-soft)">Scanning Vaults...</div>
-          </div>
-        </div>
-
-        <div class="card tx-container">
-          <div class="card-header">
-            <span class="card-title">Recent Activity</span>
-            <button class="time-btn" onclick="switchView('transactions')">View All</button>
-          </div>
-          <div class="tx-list" id="dashboardTxList">
-            <div style="padding:1rem; color:var(--text-soft)">Loading history...</div>
-          </div>
-        </div>
-
-      </div>
-    </div> 
-
-    <div id="view-transactions" class="view-section">
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Transaction History</span>
-          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <button class="btn btn-secondary" style="padding:0.4rem 1rem;">Export CSV</button>
-          </div>
-        </div>
-        <div class="table-container">
-          <table class="full-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Chain</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Hash</th>
-              </tr>
-            </thead>
-            <tbody id="fullTxTableBody">
-              </tbody>
-          </table>
-        </div>
-      </div>
+    <div class="card kpi-card">
+      <div style="color:var(--text-muted); font-size:0.9rem;">Est. Value (USDC)</div>
+      <div class="kpi-value" id="kpiValue">--</div>
+      <div style="font-size:0.85rem; color:var(--text-soft);">Based on Live NAV</div>
     </div>
 
-    <div id="view-settings" class="view-section">
-      <div class="settings-header">
-        <h2>General Settings</h2>
-        <p>Manage your account.</p>
-      </div>
-      <div class="card">
-        <div class="form-group">
-          <label class="form-label">Investor ID</label>
-          <input type="text" id="settingID" class="form-input" disabled style="opacity:0.7;">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Linked Wallet</label>
-          <input type="text" id="settingWallet" class="form-input" disabled style="opacity:0.7; font-family:monospace;">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Theme Mode</label>
-          <div class="theme-grid">
-            <div class="theme-card active" onclick="setTheme('carbon', this)">
-              <div class="theme-preview"><div class="tp-sidebar"></div><div class="tp-main"></div></div>
-              <div style="font-size:0.9rem; font-weight:500;">Dark</div>
-            </div>
-            <div class="theme-card" onclick="setTheme('quartz', this)">
-              <div class="theme-preview light"><div class="tp-sidebar"></div><div class="tp-main"></div></div>
-              <div style="font-size:0.9rem; font-weight:500;">Light</div>
-            </div>
-          </div>
-        </div>
+    <div class="card kpi-card">
+      <div style="color:var(--text-muted); font-size:0.9rem;">Net Yield</div>
+      <div class="kpi-value">--</div>
+      <div style="font-size:0.85rem; color:var(--text-soft);">Calculated Monthly</div>
+    </div>
+
+    <div class="card kpi-card">
+       <div style="color:var(--text-muted); font-size:0.9rem;">Wallet Status</div>
+       <div class="kpi-value" style="font-size:1.5rem; margin-top:1rem; color:var(--accent-teal);">Connected</div>
+       <div id="kpiWalletAddr" style="font-size:0.8rem; font-family:monospace; opacity:0.7;">0x...</div>
+    </div>
+
+    <div class="card full-width">
+      <h3 style="margin-top:0;">Your Vault Allocations</h3>
+      <div id="allocList" style="display:flex; flex-direction:column; gap:1rem;">
+         <div style="padding:2rem; text-align:center; color:var(--text-soft);">Scanning blockchain...</div>
       </div>
     </div>
 
   </div>
+
 </div>
 
 <script>
-  // 1. CONFIGURATION SUPABASE
-  const supabaseUrl = "https://qdnejvjedtjmnijdbmaw.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkbmVqdmplZHRqbW5pamRibWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MzY1MzYsImV4cCI6MjA3NTUxMjUzNn0.xveNlH2LgbsJtp0Z8-Q8mGeF7bbI4MvtUb9wp2KBc2A";
+  // =========================================================
+  // 1. CONFIGURATION (NOUVEAU PROJET)
+  // =========================================================
+  // Ton ID de projet correct (celui où tu as déployé la fonction)
+  const projectRef = "ucrvaqztvfnphhoqcbpo"; 
+  const supabaseUrl = `https://${projectRef}.supabase.co`;
+  
+  // TA NOUVELLE CLÉ ANON (Celle que tu m'as donnée)
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcnZhcXp0dmZucGhob3FjYnBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTY2MzQsImV4cCI6MjA4MjkzMjYzNH0.l_983umaG_ojeDjXJ4DqWhPNEw9RotNApGLpl_ASkZk";
 
-  // 2. CONFIGURATION BLOCKCHAIN (ETHERSCAN V2)
+  // Config Etherscan / Blockchain
   const CONFIG = {
-    // Ta Clé Etherscan qui lit tout
-    apiKey: "E12EJ9IVTKNG1I6RP2189942FN8E3R3V9P",
-    
-    // Configuration des chaînes supportées
+    apiKey: "E12EJ9IVTKNG1I6RP2189942FN8E3R3V9P", // Ta clé Etherscan
     chains: [
       {
-        id: "arbitrum",
-        chainId: 42161, // ID Arbitrum One pour l'API
-        name: "Arbitrum One",
-        vaultAddress: "0x591e7194fee6f5615ea89000318e630eab92fbe1", // Ton Vault
-        rpcUrl: "https://arb1.arbitrum.io/rpc",
-        explorer: "https://arbiscan.io/tx/"
-      },
-      {
-        id: "base",
-        chainId: 8453, // ID Base Mainnet
-        name: "Base Mainnet",
-        vaultAddress: "", // <-- AJOUTE L'ADRESSE DU VAULT BASE ICI QUAND TU L'AURAS
-        rpcUrl: "https://mainnet.base.org",
-        explorer: "https://basescan.org/tx/"
+        id: "arbitrum", chainId: 42161, name: "Arbitrum One",
+        vaultAddress: "0x591e7194fee6f5615ea89000318e630eab92fbe1", // Ton Vault Test
+        rpcUrl: "https://arb1.arbitrum.io/rpc"
       }
     ]
   };
 
-  let supabase;
-  if (window.supabase) {
-    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-  }
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  // 3. INITIALISATION SESSION
-  async function initSession() {
-    if (!supabase) return;
+  // =========================================================
+  // 2. INITIALISATION & SÉCURITÉ
+  // =========================================================
+  async function initDashboard() {
+    // A. Vérifier la session
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
-
-    const user = session.user;
-    const userId = user.id;
-
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
-    const { data: walletData } = await supabase.from('user_wallets').select('address').eq('user_id', userId).maybeSingle();
-
-    const displayId = profile?.investor_id || "UNK";
     
-    // Mise à jour UI identité
-    document.getElementById('sidebarName').innerText = "Investor";
-    document.getElementById('sidebarAvatar').innerText = displayId.substring(0,2).toUpperCase();
-    document.getElementById('headerWelcome').innerText = `Welcome back, ${displayId}`;
-    if(document.getElementById('settingID')) document.getElementById('settingID').value = displayId;
+    if (!session) {
+      console.log("No active session. Redirecting to login...");
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const userId = session.user.id;
+    console.log("User Logged In:", userId);
+
+    // B. Récupérer le Profil (Table: profiles)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (profile) {
+      document.getElementById('sidebarName').innerText = profile.full_name || "Investor";
+      document.getElementById('sidebarID').innerText = profile.investor_id || "ID Pending";
+      document.getElementById('headerWelcome').innerText = `Welcome, ${profile.investor_id}`;
+      document.getElementById('sidebarAvatar').innerText = (profile.investor_id || "G12").substring(4,6);
+    }
+
+    // C. Récupérer le Wallet lié (Table: user_wallets)
+    const { data: walletData } = await supabase
+      .from('user_wallets')
+      .select('address')
+      .eq('user_id', userId)
+      .single();
 
     if (walletData && walletData.address) {
        const userWallet = walletData.address;
-       if(document.getElementById('settingWallet')) document.getElementById('settingWallet').value = userWallet;
+       document.getElementById('kpiWalletAddr').innerText = userWallet.substring(0,6) + "..." + userWallet.substring(38);
        
-       // Lancer le scan Blockchain
-       scanBlockchainData(userWallet);
+       // D. Lancer le scan Blockchain avec la vraie adresse
+       scanVaults(userWallet);
     } else {
-       document.getElementById('allocList').innerHTML = '<div style="padding:2rem;text-align:center">No wallet linked. Please link one in settings.</div>';
+       document.getElementById('allocList').innerHTML = "No wallet linked to this account.";
     }
-
-    document.body.classList.add('loaded');
   }
 
-  // 4. LOGIQUE SCAN BLOCKCHAIN (Mode Etherscan V2)
-  async function scanBlockchainData(userWallet) {
+  // =========================================================
+  // 3. SCAN BLOCKCHAIN (Lecture Seule)
+  // =========================================================
+  async function scanVaults(userWallet) {
     const allocList = document.getElementById('allocList');
-    const dashboardTxList = document.getElementById('dashboardTxList');
-    const fullTxBody = document.getElementById('fullTxTableBody');
-    
+    allocList.innerHTML = ''; // Clear loading
     let totalShares = 0;
-    let transactions = [];
-    
-    // On vide la liste avant de commencer
-    allocList.innerHTML = '';
 
-    // Boucle sur les chaînes (Arbitrum, Base...)
     for (const chain of CONFIG.chains) {
-        if (!chain.vaultAddress) continue; // Si pas d'adresse configurée, on passe
-
         try {
-            // A. LIRE LE SOLDE (Via RPC rapide)
+            // Lecture RPC Directe
             const provider = new ethers.providers.JsonRpcProvider(chain.rpcUrl);
-            const vaultContract = new ethers.Contract(chain.vaultAddress, ["function balanceOf(address) view returns (uint256)"], provider);
+            const vaultContract = new ethers.Contract(
+                chain.vaultAddress, 
+                ["function balanceOf(address) view returns (uint256)"], 
+                provider
+            );
+            
             const balanceBN = await vaultContract.balanceOf(userWallet);
             const balance = parseFloat(ethers.utils.formatUnits(balanceBN, 18)); 
 
             if (balance > 0) {
                 totalShares += balance;
-                // Ajouter à la liste des Allocations
-                allocList.innerHTML += `
-                <div class="alloc-row">
-                  <div style="display:flex; gap:1rem; align-items:center;">
-                    <div style="width:40px; height:40px; background:rgba(78,229,193,0.2); border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--accent-teal);">V</div>
-                    <div class="alloc-info">
-                      <h4>G12 Vault</h4>
-                      <p>${chain.name} • Liquid</p>
-                    </div>
-                  </div>
-                  <div class="alloc-stats">
-                    <span class="alloc-val">${balance.toFixed(4)} Shares</span>
-                    <span class="alloc-apy" style="color:var(--text-muted)">Active</span>
-                  </div>
-                </div>`;
+                addAllocRow(chain.name, balance, "Active");
+            } else {
+                // Si pas d'investissement, on peut le logger ou ne rien afficher
+                console.log("No balance on", chain.name);
             }
-
-            // B. LIRE L'HISTORIQUE (Via Etherscan V2 API)
-            // On utilise le endpoint V2 qui prend chainid en paramètre
-            const url = `https://api.etherscan.io/v2/api?chainid=${chain.chainId}&module=account&action=txlist&address=${userWallet}&startblock=0&endblock=99999999&sort=desc&apikey=${CONFIG.apiKey}`;
-            
-            const res = await fetch(url).then(r => r.json());
-
-            if (res.status === "1" && res.result.length > 0) {
-                // Filtrer les transactions qui touchent le Vault
-                const myTxs = res.result.filter(tx => tx.to.toLowerCase() === chain.vaultAddress.toLowerCase());
-                
-                myTxs.forEach(tx => {
-                    transactions.push({
-                        date: new Date(tx.timeStamp * 1000),
-                        chain: chain.name,
-                        type: 'Vault Interact',
-                        amount: '---', // Placeholder car difficile à décoder sans ABI complet
-                        hash: tx.hash,
-                        explorer: chain.explorer
-                    });
-                });
-            }
-
         } catch (err) {
-            console.error(`Erreur scan ${chain.name}:`, err);
+            console.error("Error scanning chain:", chain.name, err);
         }
     }
 
-    // Si aucune allocation trouvée
-    if (allocList.innerHTML === '') {
-        allocList.innerHTML = '<div style="padding:2rem; text-align:center; color:var(--text-soft)">No active investments found.</div>';
-    }
-
-    // Mise à jour des KPIs Totaux
-    document.getElementById('kpiTotalShares').innerText = totalShares.toLocaleString(undefined, {minimumFractionDigits: 2});
-    document.getElementById('kpiEstValue').innerText = totalShares > 0 ? "~ $" + totalShares.toLocaleString() : "--";
-
-    // Affichage Transactions
-    transactions.sort((a, b) => b.date - a.date); // Trier par date
-    dashboardTxList.innerHTML = '';
-    fullTxBody.innerHTML = '';
-
-    if (transactions.length > 0) {
-        transactions.forEach((tx, idx) => {
-            const dateStr = tx.date.toLocaleDateString();
-            
-            // Tableau complet
-            fullTxBody.innerHTML += `
-              <tr>
-                <td>${dateStr}</td>
-                <td><span style="font-size:0.75em; background:#222; padding:2px 5px; border-radius:4px;">${tx.chain}</span></td>
-                <td>${tx.type}</td>
-                <td>${tx.amount}</td>
-                <td><a href="${tx.explorer}${tx.hash}" target="_blank" style="color:var(--accent-teal)">View</a></td>
-              </tr>
-            `;
-
-            // Widget Dashboard (Max 3)
-            if (idx < 3) {
-                dashboardTxList.innerHTML += `
-                <div class="tx-row">
-                  <div class="tx-left">
-                    <div class="tx-icon"><i class="ph ph-arrows-left-right"></i></div>
-                    <div class="tx-info"><div>${tx.type}</div><span>${dateStr} • ${tx.chain}</span></div>
-                  </div>
-                </div>`;
-            }
-        });
-    } else {
-        dashboardTxList.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-soft)">No history found</div>';
+    // Mise à jour UI
+    document.getElementById('kpiShares').innerText = totalShares.toFixed(4);
+    if(totalShares === 0) {
+        allocList.innerHTML = `<div style="padding:1rem; color:var(--text-soft); text-align:center;">No active positions found in G12 Vaults for wallet ${userWallet.substring(0,6)}...</div>`;
     }
   }
 
-  // 5. UI & EVENTS
-  window.addEventListener('DOMContentLoaded', () => {
-    initSession();
-    updateThemeIcon('carbon'); 
-    initCharts();
-  });
-  
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (supabase) await supabase.auth.signOut();
+  function addAllocRow(name, amount, status) {
+      const html = `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem; background:rgba(255,255,255,0.03); border:1px solid var(--sidebar-border); border-radius:0.5rem;">
+          <div style="display:flex; align-items:center; gap:1rem;">
+             <div style="width:40px; height:40px; background:rgba(78,229,193,0.1); color:var(--accent-teal); display:flex; align-items:center; justify-content:center; border-radius:8px; font-weight:bold;">V</div>
+             <div>
+                <div style="font-weight:600;">G12 Strategy</div>
+                <div style="font-size:0.8rem; color:var(--text-soft);">${name}</div>
+             </div>
+          </div>
+          <div style="text-align:right;">
+             <div style="font-weight:700; font-size:1.1rem;">${amount.toFixed(4)} Shares</div>
+             <div style="font-size:0.8rem; color:var(--accent-teal);">${status}</div>
+          </div>
+      </div>`;
+      document.getElementById('allocList').innerHTML += html;
+  }
+
+  // =========================================================
+  // 4. EVENTS & UTILS
+  // =========================================================
+  window.addEventListener('DOMContentLoaded', initDashboard);
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
       window.location.href = 'login.html';
-    });
-  }
+  });
 
-  function switchView(viewName, navItem) {
-    if(navItem) {
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      navItem.classList.add('active');
-    }
-    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-    document.getElementById('view-' + viewName).classList.add('active');
-    closeSidebar();
-    if(viewName === 'dashboard') setTimeout(() => { chartPortfolio && chartPortfolio.resize(); chartWeekly && chartWeekly.resize(); }, 50);
-  }
+  document.getElementById('themeToggle').addEventListener('click', () => {
+     const html = document.documentElement;
+     html.setAttribute('data-theme', html.getAttribute('data-theme') === 'carbon' ? 'quartz' : 'carbon');
+  });
 
-  function toggleTheme() {
-    const html = document.documentElement;
-    const next = html.getAttribute('data-theme') === 'carbon' ? 'quartz' : 'carbon';
-    html.setAttribute('data-theme', next);
-    updateThemeIcon(next);
-    initCharts(); 
+  function switchView(view) {
+      if(view === 'dashboard') document.getElementById('view-dashboard').style.display = 'grid';
   }
-  function setTheme(theme, el) {
-    document.documentElement.setAttribute('data-theme', theme);
-    document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    updateThemeIcon(theme);
-    initCharts();
-  }
-  function updateThemeIcon(theme) {
-    const btn = document.getElementById('themeToggleBtn');
-    if(!btn) return;
-    const icon = btn.querySelector('i');
-    icon.className = theme === 'carbon' ? 'ph ph-sun' : 'ph ph-moon';
-  }
-  function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('mobileOverlay').classList.add('active'); }
-  function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('mobileOverlay').classList.remove('active'); }
-
-  // CHARTS (Placeholder Data)
-  let chartPortfolio, chartWeekly;
-  function initCharts() {
-    if(chartPortfolio) chartPortfolio.dispose();
-    if(chartWeekly) chartWeekly.dispose();
-    const isDark = document.documentElement.getAttribute('data-theme') === 'carbon';
-    const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-    const textColor = isDark ? '#9aa4b2' : '#6B7280';
-    
-    // Portfolio Chart
-    const domP = document.getElementById('chartPortfolio');
-    if(domP) {
-      chartPortfolio = echarts.init(domP);
-      chartPortfolio.setOption({
-        backgroundColor: 'transparent',
-        grid: { left: 40, right: 20, top: 20, bottom: 30, containLabel: true },
-        tooltip: { trigger: 'axis', backgroundColor: isDark ? 'rgba(10,10,10,0.95)' : 'rgba(255,255,255,0.98)' },
-        xAxis: { type: 'category', data: ['W1','W2','W3','W4'], axisLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
-        yAxis: { type: 'value', splitLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
-        series: [{ data: [1000, 1200, 1150, 1300], type: 'line', smooth: true, lineStyle: { color: '#4ee5c1' } }]
-      });
-    }
-    // Weekly Chart
-    const domW = document.getElementById('chartWeekly');
-    if(domW) {
-      chartWeekly = echarts.init(domW);
-      chartWeekly.setOption({
-        backgroundColor: 'transparent',
-        grid: { left: 40, right: 20, top: 20, bottom: 30, containLabel: true },
-        xAxis: { type: 'category', data: ['M','T','W','T','F'], axisLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
-        yAxis: { type: 'value', splitLine: { lineStyle: { color: gridColor } }, axisLabel: { color: textColor } },
-        series: [{ type: 'bar', data: [1, 2, -1, 3, 2], itemStyle: { color: '#4ee5c1' } }]
-      });
-    }
-  }
-  window.addEventListener('resize', () => { chartPortfolio && chartPortfolio.resize(); chartWeekly && chartWeekly.resize(); });
 </script>
+
 </body>
 </html>
