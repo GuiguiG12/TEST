@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>G12 Labs — Partner Login</title>
-  
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
@@ -12,8 +12,8 @@
     /* DESIGN SYSTEM */
     :root {
       --font-sans: 'Inter', sans-serif;
-      --bg-app: #050505;       
-      --card-bg: #0f0f0f; 
+      --bg-app: #050505;
+      --card-bg: #0f0f0f;
       --card-border: #1f1f1f;
       --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
       --text-main: #ededed; --text-muted: #a1a1a1; --text-soft: #525252;
@@ -24,17 +24,17 @@
     }
 
     * { box-sizing: border-box; }
-    body { 
+    body {
       margin: 0; font-family: var(--font-sans); background-color: var(--bg-app); color: var(--text-main);
       display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem;
     }
-    
+
     .login-card {
-      background: var(--card-bg); width: 100%; max-width: 420px; padding: 2.5rem; 
+      background: var(--card-bg); width: 100%; max-width: 420px; padding: 2.5rem;
       border-radius: 1rem; border: 1px solid var(--card-border);
       box-shadow: var(--card-shadow); text-align: center;
     }
-    
+
     .logo-area { margin-bottom: 2rem; display: flex; justify-content: center; }
     .logo-img { width: 160px; height: auto; display: block; }
 
@@ -43,12 +43,12 @@
 
     .form-group { margin-bottom: 1.2rem; text-align: left; }
     .form-label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-muted); }
-    
+
     .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
 
     .form-input {
       width: 100%; padding: 0.75rem 1rem; padding-right: 45px;
-      border-radius: 0.5rem; 
+      border-radius: 0.5rem;
       background: var(--input-bg); border: 1px solid var(--input-border);
       color: var(--text-main); font-size: 0.95rem; font-family: inherit;
       transition: border-color 0.2s, box-shadow 0.2s;
@@ -87,8 +87,8 @@
       background: rgba(78, 229, 193, 0.1); padding: 0.5rem; border-radius: 0.3rem; border: 1px solid rgba(78, 229, 193, 0.2);
     }
 
-    .divider { 
-      display: flex; align-items: center; gap: 1rem; margin: 1.8rem 0; 
+    .divider {
+      display: flex; align-items: center; gap: 1rem; margin: 1.8rem 0;
       color: var(--text-soft); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
     }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--input-border); }
@@ -111,7 +111,7 @@
     <div class="logo-area">
       <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="logo-img" />
     </div>
-    
+
     <h1 class="login-title">Welcome back</h1>
     <p class="login-subtitle">Enter your credentials to access your dashboard.</p>
 
@@ -123,7 +123,7 @@
         <label class="form-label">Email Address</label>
         <input type="email" id="email" class="form-input" placeholder="partner@example.com" required>
       </div>
-      
+
       <div class="form-group">
         <label class="form-label" style="display:flex; justify-content:space-between;">Password</label>
         <div class="input-wrapper">
@@ -133,7 +133,7 @@
           </button>
         </div>
       </div>
-      
+
       <button type="submit" class="btn btn-primary">Sign In</button>
     </form>
 
@@ -144,7 +144,7 @@
         <i class="ph ph-wallet"></i> Connect Wallet
       </button>
     </div>
-    
+
     <p style="text-align:center; font-size:0.8rem; color:var(--text-soft); margin-top:0.8rem;">
       No account needed. Just connect.
     </p>
@@ -155,118 +155,180 @@
   </div>
 
 <script type="module">
+  // ==============================================================
+  // IMPORTS
+  // ==============================================================
   import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers@4.0.0'
-  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
   import { ethers } from "https://esm.sh/ethers@5.7.2"
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
   // ==============================================================
-  // 1. CONFIGURATION (NOUVEAU PROJET)
+  // CONFIG (Supabase + Edge Functions)
   // ==============================================================
-  // J'ai reconstruit l'URL avec ton ID de projet
-  const projectRef = "ucrvaqztvfnphhoqcbpo"; 
+  const projectRef = "ucrvaqztvfnphhoqcbpo";
+  const functionsBase = `https://${projectRef}.supabase.co/functions/v1`;
+
+  // (Optionnel) : uniquement pour le login email/password classique
+  // Si tu ne l’utilises pas, tu peux supprimer createClient + le handler du form.
   const supabaseUrl = `https://${projectRef}.supabase.co`;
-  
-  // TA CLÉ ANON (Remplace par la nouvelle si elle a changé, sinon garde l'ancienne)
-  // Vérifie bien dans Project Settings > API si c'est toujours la même !
-  // Si tu as recréé le projet, tu DOIS aller chercher la nouvelle clé Anon.
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcnZhcXp0dmZucGhob3FjYnBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTY2MzQsImV4cCI6MjA4MjkzMjYzNH0.l_983umaG_ojeDjXJ4DqWhPNEw9RotNApGLpl_ASkZk"; 
-  
-  const supabaseClient = createClient(supabaseUrl, supabaseKey);
+  const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcnZhcXp0dmZucGhob3FjYnBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTY2MzQsImV4cCI6MjA4MjkzMjYzNH0.l_983umaG_ojeDjXJ4DqWhPNEw9RotNApGLpl_ASkZk";
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
-  // Web3Modal Config
-  const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c';
-  const metadata = { 
-    name: 'G12 Labs', description: 'Institutional DeFi Access', 
-    url: window.location.origin, icons: ['https://avatars.githubusercontent.com/u/37784886'] 
-  }
+  // ==============================================================
+  // CONFIG (Web3Modal / WalletConnect)
+  // ==============================================================
+  const wcProjectId = '5f9c4ad6a6cadf402f5815fa8f07308c';
+
+  const metadata = {
+    name: 'G12 Labs',
+    description: 'Institutional DeFi Access',
+    url: window.location.origin,
+    icons: ['https://avatars.githubusercontent.com/u/37784886']
+  };
 
   const modal = createWeb3Modal({
     ethersConfig: defaultConfig({ metadata }),
+    // Mets uniquement les chains que tu veux supporter
     chains: [
-      { chainId: 1, name: 'Ethereum', currency: 'ETH', explorerUrl: 'https://etherscan.io', rpcUrl: 'https://cloudflare-eth.com' },
-      { chainId: 137, name: 'Polygon', currency: 'MATIC', explorerUrl: 'https://polygonscan.com', rpcUrl: 'https://polygon-rpc.com' }
+      { chainId: 1,   name: 'Ethereum', currency: 'ETH',   explorerUrl: 'https://etherscan.io',    rpcUrl: 'https://cloudflare-eth.com' },
+      { chainId: 137, name: 'Polygon',  currency: 'MATIC', explorerUrl: 'https://polygonscan.com', rpcUrl: 'https://polygon-rpc.com' }
     ],
-    projectId,
+    projectId: wcProjectId,
     themeMode: 'dark'
-  })
+  });
 
   // ==============================================================
-  // 2. LOGIQUE SIWE (Sign-In With Ethereum)
+  // UI
   // ==============================================================
   const statusBox = document.getElementById('statusBox');
-  const errorBox = document.getElementById('errorBox');
+  const errorBox  = document.getElementById('errorBox');
   const walletBtn = document.getElementById('walletLoginBtn');
 
-  if (walletBtn) walletBtn.addEventListener('click', () => modal.open());
+  function showStatus(msg) {
+    statusBox.style.display = 'block';
+    statusBox.textContent = msg;
+    errorBox.style.display = 'none';
+  }
+  function showError(msg) {
+    statusBox.style.display = 'none';
+    errorBox.style.display = 'block';
+    errorBox.textContent = msg;
+  }
 
+  async function postJson(url, body) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
+    return json;
+  }
+
+  // ==============================================================
+  // WALLET LOGIN (works on desktop extensions + mobile WalletConnect)
+  // ==============================================================
   let isProcessing = false;
 
-  modal.subscribeProvider(async (newState) => {
-    if (isProcessing) return;
-    
-    if (newState.isConnected && newState.address) {
+  if (walletBtn) {
+    walletBtn.addEventListener('click', async () => {
+      if (isProcessing) return;
       isProcessing = true;
-      const address = newState.address;
-
-      statusBox.style.display = 'block';
-      statusBox.innerHTML = `Wallet connected.<br>Please sign the request in your wallet...`;
-      errorBox.style.display = 'none';
 
       try {
-        // 1. Préparer le fournisseur Web3 pour la signature
-        const provider = new ethers.providers.Web3Provider(newState.provider);
-        const signer = provider.getSigner();
+        showStatus("Opening wallet selector...");
 
-        // 2. Créer le message de sécurité (DOIT correspondre exactement au backend)
-        const nonce = Math.floor(Math.random() * 1000000).toString();
-        const message = `Welcome to G12 Labs!\n\nClick to sign in and accept the Terms of Service.\n\nThis request will not trigger a blockchain transaction or cost any gas fees.\n\nWallet address:\n${address}\n\nNonce:\n${nonce}`;
+        // Ouvre Web3Modal (extension sur PC, QR sur mobile, etc.)
+        await modal.open();
 
-        // 3. Demander la signature (C'est là que MetaMask s'ouvre)
-        const signature = await signer.signMessage(message);
+        // Récupère le provider connecté (WalletConnect ou extension)
+        const provider = modal.getWalletProvider();
+        if (!provider) throw new Error("Wallet not connected");
 
-        statusBox.innerHTML = `Verifying identity...`;
+        const web3Provider = new ethers.providers.Web3Provider(provider);
+        const signer = web3Provider.getSigner();
 
-        // 4. Envoyer à ton Edge Function Supabase
-        const { data, error } = await supabaseClient.functions.invoke('wallet-login', {
-          body: { address, signature, nonce }
-        });
+        const address = (await signer.getAddress()).toLowerCase();
+        const network = await web3Provider.getNetwork();
+        const chainId = network?.chainId || 1;
 
-        if (error) throw error;
-        if (!data.session) throw new Error("No session returned from server");
+        showStatus("Requesting nonce...");
+        const nonceData = await postJson(`${functionsBase}/get-nonce`, { address });
 
-        // 5. Connecter l'utilisateur avec le token reçu
-        const { error: authError } = await supabaseClient.auth.setSession(data.session);
-        if (authError) throw authError;
+        showStatus("Please sign the message in your wallet...");
+        const signature = await signer.signMessage(nonceData.message);
 
-        // 6. Succès
-        statusBox.innerHTML = "Identity Verified.<br>Redirecting...";
-        localStorage.setItem('g12_wallet', address);
-        
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 1000);
+        showStatus("Verifying signature...");
+        const loginData = await postJson(`${functionsBase}/web3-login`, { address, signature, chain_id: chainId });
+
+        // Stocker la session token (dashboard)
+        localStorage.setItem("g12_token", loginData.token);
+        localStorage.setItem("g12_user_id", loginData.user_id);
+        localStorage.setItem("g12_wallet", address);
+        localStorage.setItem("g12_expires_at", loginData.expires_at);
+
+        showStatus("Access granted. Redirecting...");
+        window.location.href = "dashboard.html";
 
       } catch (err) {
         console.error(err);
-        isProcessing = false;
-        statusBox.style.display = 'none';
-        errorBox.textContent = "Login Failed: " + (err.message || err);
-        errorBox.style.display = 'block';
-        
-        // Si l'utilisateur refuse de signer
-        if(err.code === 4001) { 
-            errorBox.textContent = "Signature rejected. You must sign to verify ownership.";
-        }
-      }
-    }
-  });
 
-  // --- Login Email Classique (Reste identique) ---
+        // code 4001 : user rejected signature (souvent)
+        if (err?.code === 4001) {
+          showError("Signature rejected. You must sign to verify ownership.");
+        } else {
+          showError("Wallet login failed: " + (err?.message || String(err)));
+        }
+      } finally {
+        isProcessing = false;
+      }
+    });
+  }
+
+  // ==============================================================
+  // EMAIL/PASSWORD LOGIN (optional - leaves your UI intact)
+  // ==============================================================
   const form = document.getElementById('loginForm');
+  const toggleBtn = document.getElementById('togglePassword');
+  const passInput = document.getElementById('password');
+
+  // Toggle password eye
+  if (toggleBtn && passInput) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      passInput.setAttribute('type', type);
+      const icon = toggleBtn.querySelector('i');
+      icon.className = type === 'password' ? 'ph ph-eye' : 'ph ph-eye-slash';
+    });
+  }
+
+  // Email login (only if you still want it)
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      // ... (Ton code email existant ici) ...
+      errorBox.style.display = 'none';
+      statusBox.style.display = 'none';
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn.textContent;
+
+      btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Signing in...';
+      btn.disabled = true;
+
+      try {
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        showError("Login failed: " + (err?.message || String(err)));
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
     });
   }
 </script>
