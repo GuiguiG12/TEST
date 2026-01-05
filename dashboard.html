@@ -246,7 +246,7 @@ const VAULT_ABI = [
 
 const COMPTROLLER_ABI = [
   "function buyShares(uint256,uint256) returns (uint256)",
-  "function redeemShares(uint256,uint256) returns (uint256)"
+  "function redeemSharesInKind(address,uint256,address[],address[]) returns (address[],uint256[])"
 ];
 
 const ERC20_ABI = [
@@ -452,7 +452,7 @@ async function executeDeposit() {
 }
 
 /* =========================================================
-   REDEEM
+   REDEEM - UTILISE LA VRAIE FONCTION ENZYME
    ========================================================= */
 
 async function executeRedeem() {
@@ -492,15 +492,20 @@ async function executeRedeem() {
       return;
     }
 
-    // Calculer minAssets (2.5% slippage)
-    const minAssets = shares.mul(975).div(1000);
-    console.log("📊 MinAssets:", minAssets.toString());
-
-    // redeemShares
+    // ✅ UTILISER redeemSharesInKind (la vraie fonction Enzyme)
     btn.innerHTML = '<span class="loader"></span> Redeeming...';
-    console.log("🚀 Calling redeemShares...");
+    console.log("🚀 Calling redeemSharesInKind...");
     
-    const tx = await comptrollerContract.redeemShares(shares, minAssets, { gasLimit: 600000 });
+    // redeemSharesInKind(address _recipient, uint256 _sharesQuantity, address[] _payoutAssets, address[] _payoutAssetsToSkip)
+    // On reçoit tous les actifs tracked ([] = tous les actifs, pas de skip)
+    const tx = await comptrollerContract.redeemSharesInKind(
+      me,        // recipient
+      shares,    // sharesQuantity
+      [],        // payoutAssets (empty = all tracked assets)
+      [],        // payoutAssetsToSkip (empty = don't skip any)
+      { gasLimit: 600000 }
+    );
+    
     console.log("⏳ Tx sent:", tx.hash);
 
     btn.innerHTML = '<span class="loader"></span> Waiting confirmation...';
