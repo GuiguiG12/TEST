@@ -1,467 +1,344 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="carbon">
+<html lang="en">
 <head>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta charset="UTF-8" />
+  <title>G12 Labs — Dashboard (Enzyme)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>G12 Labs — Investor Cockpit</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+  <!-- Ethers -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
   <style>
-    /* DESIGN SYSTEM V2 (More Vivid) */
-    :root {
-      --font-sans: 'Inter', sans-serif;
-      --sidebar-width: 280px;
-      --accent-teal: #4ee5c1; --accent-mint: #a8ffc8; --accent-blue: #4e95e5;
-      --accent-grad: linear-gradient(90deg, var(--accent-teal), var(--accent-mint));
-      --bg-app: #050505; --bg-sidebar: #0a0a0a; --card-bg: #0f0f0f;
-      --border: #1f1f1f; --text-main: #ededed; --text-muted: #a1a1a1;
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+      background: #0b0f14;
+      color: #e6e8eb;
     }
 
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--font-sans); background-color: var(--bg-app); color: var(--text-main); }
-
-    /* LAYOUT */
-    .sidebar {
-      width: var(--sidebar-width);
-      position: fixed; top: 0; bottom: 0; left: 0;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border);
-      padding: 1.5rem;
-      display: flex; flex-direction: column;
-      z-index: 100;
+    .container {
+      max-width: 960px;
+      margin: auto;
+      padding: 24px;
     }
-    .main-wrapper { margin-left: var(--sidebar-width); min-height: 100vh; padding: 2.5rem 3rem; }
 
-    .logo-img { width: 140px; filter: brightness(0) invert(1); margin-bottom: 2rem; }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
 
-    .nav-item {
-      display: flex; align-items: center; gap: 0.8rem;
-      padding: 0.75rem 1rem; margin-bottom: 0.25rem;
-      border-radius: 0.5rem;
-      color: var(--text-muted);
+    .sub {
+      opacity: 0.6;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: #111827;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .value {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    button {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: none;
+      border-radius: 12px;
+      padding: 10px 18px;
+      color: #001b0d;
+      font-weight: 600;
       cursor: pointer;
-      transition: 0.2s;
     }
-    .nav-item:hover, .nav-item.active { background: rgba(78, 229, 193, 0.1); color: var(--accent-teal); }
 
-    /* GRID & CARDS */
-    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 1rem; padding: 1.5rem; position: relative; overflow: hidden; }
-
-    .col-3 { grid-column: span 3; }
-    .col-4 { grid-column: span 4; }
-    .col-6 { grid-column: span 6; }
-    .col-8 { grid-column: span 8; }
-    .col-12 { grid-column: span 12; }
-
-    /* KPI STYLES */
-    .kpi-label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    .kpi-value { font-size: 2rem; font-weight: 700; color: #fff; }
-    .kpi-sub { font-size: 0.8rem; color: var(--accent-teal); margin-top: 0.25rem; display: flex; align-items: center; gap: 4px; }
-
-    /* BUTTONS */
-    .btn {
-      border: none; padding: 0.8rem 1.5rem; border-radius: 0.5rem;
-      font-weight: 600; cursor: pointer;
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      transition: transform 0.1s;
+    button.secondary {
+      background: #1f2937;
+      color: #e6e8eb;
     }
-    .btn:active { transform: scale(0.98); }
-    .btn-primary { background: var(--accent-grad); color: #000; }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
-    .btn-outline:hover { border-color: var(--text-muted); }
 
-    /* MODAL */
-    .modal-overlay {
-      position: fixed; top:0; left:0; right:0; bottom:0;
-      background: rgba(0,0,0,0.8);
-      z-index: 999; display: none;
-      align-items: center; justify-content: center;
-      backdrop-filter: blur(5px);
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
-    .modal { background: #111; border: 1px solid var(--border); width: 400px; padding: 2rem; border-radius: 1rem; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    .input-group { margin: 1.5rem 0; }
-    .modal-input { width: 100%; background: #000; border: 1px solid #333; padding: 1rem; color: white; border-radius: 0.5rem; font-size: 1.2rem; }
 
-    /* LOADING SPINNER */
-    .loader { width: 16px; height: 16px; border: 2px solid #fff; border-bottom-color: transparent; border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
-    @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    /* Modal */
+    #txModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
 
-    @media (max-width: 1000px) {
-      .col-3, .col-4 { grid-column: span 6; }
-      .col-6, .col-8 { grid-column: span 12; }
+    .modal {
+      background: #0f172a;
+      padding: 24px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: #020617;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    .loader {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      display: inline-block;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .footer {
+      text-align: center;
+      opacity: 0.4;
+      font-size: 12px;
+      margin-top: 40px;
     }
   </style>
 </head>
+
 <body>
+<div class="container">
 
-<aside class="sidebar">
-  <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="logo-img" />
+  <h1>G12 Labs</h1>
+  <div class="sub">Real Enzyme Vault Dashboard</div>
 
-  <div style="padding: 1rem; background: #111; border-radius: 0.5rem; margin-bottom: 2rem; border: 1px solid #222;">
-    <div style="font-size: 0.8rem; color: #666;">Connected as</div>
-    <div id="sidebarName" style="font-weight: 600; margin-top: 4px;">Loading...</div>
-    <div id="sidebarWallet" style="font-size: 0.75rem; color: var(--accent-teal); font-family: monospace; margin-top: 4px;">0x...</div>
-  </div>
-
-  <div class="nav-item active"><i class="ph ph-chart-pie-slice"></i> Dashboard</div>
-  <div class="nav-item"><i class="ph ph-arrows-left-right"></i> Transactions</div>
-  <div class="nav-item"><i class="ph ph-file-text"></i> Documents</div>
-
-  <div style="margin-top: auto;">
-    <div class="nav-item" id="logoutBtn"><i class="ph ph-sign-out"></i> Disconnect</div>
-  </div>
-</aside>
-
-<div class="main-wrapper">
-
-  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
-    <div>
-      <h1 style="margin: 0; font-size: 1.8rem;">Portfolio Overview</h1>
-      <p style="color: var(--text-muted); margin: 5px 0 0;">Real-time interaction with G12 Strategy Vault (Arbitrum)</p>
-    </div>
-    <div style="display: flex; gap: 1rem;">
-      <button class="btn btn-outline" onclick="openModal('withdraw')">
-        <i class="ph ph-arrow-up-right"></i> Withdraw
-      </button>
-      <button class="btn btn-primary" onclick="openModal('deposit')">
-        <i class="ph ph-plus"></i> Invest Now
-      </button>
+  <div class="card">
+    <div class="row">
+      <div>Total Vault Supply</div>
+      <div class="value" id="aumDisplay">—</div>
     </div>
   </div>
 
-  <div class="grid">
-    <div class="card col-4">
-      <div class="kpi-label">Your Position</div>
-      <div class="kpi-value" id="userBalanceDisplay">-- Shares</div>
-      <div class="kpi-sub" id="userValueDisplay">≈ $0.00 USD</div>
+  <div class="card">
+    <div class="row">
+      <div>Your Shares</div>
+      <div class="value" id="userBalanceDisplay">—</div>
     </div>
-
-    <div class="card col-4">
-      <div class="kpi-label">G12 Share Price</div>
-      <div class="kpi-value" id="sharePriceDisplay">Loading...</div>
-      <div class="kpi-sub"><i class="ph ph-trend-up"></i> Live NAV Calculation</div>
-    </div>
-
-    <div class="card col-4">
-      <div class="kpi-label">Vault AUM (Total)</div>
-      <div class="kpi-value" id="aumDisplay">Loading...</div>
-      <div class="kpi-sub">Total Assets under Management</div>
+    <div class="row">
+      <div>Estimated Value</div>
+      <div id="userValueDisplay">—</div>
     </div>
   </div>
 
-  <div class="grid">
-    <div class="card col-8" style="min-height: 400px;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-        <div class="kpi-label">Performance (Simulated)</div>
-      </div>
-      <div id="mainChart" style="width: 100%; height: 320px;"></div>
-    </div>
-
-    <div class="card col-4">
-      <div class="kpi-label">Vault Details</div>
-      <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
-
-        <div style="display: flex; justify-content: space-between; padding-bottom: 0.5rem; border-bottom: 1px solid #222;">
-          <span style="color: #666;">Status</span>
-          <span style="color: var(--accent-teal); font-weight: 600;">Active</span>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; padding-bottom: 0.5rem; border-bottom: 1px solid #222;">
-          <span style="color: #666;">Denomination</span>
-          <span id="denomAsset" style="font-family: monospace;">Scanning...</span>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; padding-bottom: 0.5rem; border-bottom: 1px solid #222;">
-          <span style="color: #666;">Chain</span>
-          <span>Arbitrum One</span>
-        </div>
-
-        <div style="padding: 1rem; background: rgba(78, 229, 193, 0.05); border-radius: 0.5rem; font-size: 0.85rem; color: var(--accent-teal); line-height: 1.5;">
-          <i class="ph ph-info"></i> This vault is managed by Enzyme protocol. All deposits are non-custodial and verifiable on-chain.
-        </div>
-
-        <a href="https://arbiscan.io/address/0x591e7194fee6f5615ea89000318e630eab92fbe1" target="_blank"
-           style="text-align: center; font-size: 0.8rem; color: #666; text-decoration: none; margin-top: auto;">
-          View Contract on Arbiscan <i class="ph ph-arrow-square-out"></i>
-        </a>
-      </div>
+  <div class="card">
+    <div class="row">
+      <button onclick="openModal('deposit')">Deposit</button>
+      <button class="secondary" onclick="openModal('redeem')">Redeem</button>
     </div>
   </div>
 
+  <div class="footer">
+    G12 Labs · Enzyme · Arbitrum
+  </div>
 </div>
 
-<div class="modal-overlay" id="txModal">
+<!-- MODAL -->
+<div id="txModal">
   <div class="modal">
-    <h2 id="modalTitle" style="margin-top: 0;">Invest</h2>
-    <p style="color: #888; font-size: 0.9rem;">Interact directly with the Vault Smart Contract.</p>
-
-    <div class="input-group">
-      <label style="display: block; color: #666; font-size: 0.8rem; margin-bottom: 0.5rem;">Amount</label>
-      <input type="number" id="txAmount" class="modal-input" placeholder="0.00" />
-      <div style="text-align: right; color: #666; font-size: 0.8rem; margin-top: 5px;">
-        Asset: <span id="modalAsset">Unknown</span>
-      </div>
-    </div>
-
-    <button id="confirmTxBtn" class="btn btn-primary" style="width: 100%; justify-content: center;">
-      Confirm Transaction
-    </button>
-    <button class="btn btn-outline" onclick="closeModal()" style="width: 100%; margin-top: 10px; justify-content: center; border: none;">
-      Cancel
-    </button>
+    <h3 id="modalTitle">—</h3>
+    <input id="txAmount" placeholder="Amount" type="number" step="any" />
+    <button id="confirmTxBtn">Confirm</button>
+    <button class="secondary" style="margin-top:10px;width:100%" onclick="closeModal()">Cancel</button>
   </div>
 </div>
 
 <script>
-  // =========================================================
-  // 1) CONFIGURATION (Edge Functions)
-  // =========================================================
-  const projectRef = "ucrvaqztvfnphhoqcbpo";
-  const functionsBase = `https://${projectRef}.supabase.co/functions/v1`;
+/* =========================================================
+   CONFIG
+   ========================================================= */
 
-  // ENZYME CONFIGURATION (ARBITRUM)
-  const VAULT_ADDRESS = "0x591e7194fee6f5615ea89000318e630eab92fbe1";
-  const RPC_URL = "https://arb1.arbitrum.io/rpc";
+const VAULT_PROXY = "0x591E7194FEe6f5615EA89000318E630EaB92FBe1";
+const RPC_URL = "https://arb1.arbitrum.io/rpc";
 
-  // ABIs MINIMALES
-  const VAULT_ABI = [
-    "function getAccessor() view returns (address)",
-    "function balanceOf(address) view returns (uint256)",
-    "function totalSupply() view returns (uint256)",
-    "function getTrackedAssets() view returns (address[])"
-  ];
+const VAULT_ABI = [
+  "function getAccessor() view returns (address)",
+  "function balanceOf(address) view returns (uint256)",
+  "function totalSupply() view returns (uint256)"
+];
 
-  const COMPTROLLER_ABI = [
-    "function getDenominationAsset() view returns (address)",
-    "function buyShares(address[], uint256[], uint256[]) returns (uint256)"
-  ];
+const COMPTROLLER_ABI = [
+  "function getDenominationAsset() view returns (address)",
+  "function buyShares(uint256,uint256) returns (uint256)",
+  "function redeemShares(uint256,uint256) returns (uint256)"
+];
 
-  const ERC20_ABI = [
-    "function symbol() view returns (string)",
-    "function decimals() view returns (uint8)",
-    "function approve(address, uint256) returns (bool)",
-    "function allowance(address, address) view returns (uint256)"
-  ];
+const ERC20_ABI = [
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function balanceOf(address) view returns (uint256)",
+  "function approve(address,uint256)",
+  "function allowance(address,address) view returns (uint256)"
+];
 
-  let provider, signer, userAddress;
-  let vaultContract, comptrollerContract;
-  let denominationAssetAddr, denominationSymbol, denominationDecimals;
+let rpcProvider, vault, comptroller, asset, assetDecimals, assetSymbol, user;
 
-  function shortAddr(a) {
-    if (!a || a.length < 10) return a || "";
-    return a.slice(0, 6) + "..." + a.slice(-4);
-  }
+/* =========================================================
+   INIT
+   ========================================================= */
 
-  async function fetchMeOrRedirect() {
-    const token = localStorage.getItem("g12_token");
-    if (!token) {
-      window.location.href = "login.html";
-      return null;
-    }
+async function initDashboard() {
+  rpcProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+  vault = new ethers.Contract(VAULT_PROXY, VAULT_ABI, rpcProvider);
 
-    const res = await fetch(`${functionsBase}/me`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+  const comptrollerAddr = await vault.getAccessor();
+  comptroller = new ethers.Contract(comptrollerAddr, COMPTROLLER_ABI, rpcProvider);
 
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok || !json.ok) {
-      localStorage.removeItem("g12_token");
-      localStorage.removeItem("g12_user_id");
-      localStorage.removeItem("g12_wallet");
-      localStorage.removeItem("g12_expires_at");
-      window.location.href = "login.html";
-      return null;
-    }
+  const assetAddr = await comptroller.getDenominationAsset();
+  asset = new ethers.Contract(assetAddr, ERC20_ABI, rpcProvider);
 
-    return json;
-  }
+  assetDecimals = await asset.decimals();
+  assetSymbol = await asset.symbol();
 
-  // =========================================================
-  // 2) INIT
-  // =========================================================
-  async function init() {
-    const me = await fetchMeOrRedirect();
-    if (!me) return;
-
-    // UI: Connected as
-    document.getElementById('sidebarName').innerText = "Investor";
-    userAddress = me.wallet?.address || localStorage.getItem("g12_wallet") || "";
-    document.getElementById('sidebarWallet').innerText = userAddress ? shortAddr(userAddress) : "No wallet";
-
-    // Blockchain read-only
-    provider = new ethers.providers.JsonRpcProvider(RPC_URL);
-    vaultContract = new ethers.Contract(VAULT_ADDRESS, VAULT_ABI, provider);
-
-    scanVaultData();
-    if (userAddress) scanUserBalance();
-    initChart();
-  }
-
-  // --- LOGIQUE ENZYME (read-only) ---
-  async function scanVaultData() {
-    try {
-      const accessorAddr = await vaultContract.getAccessor();
-      comptrollerContract = new ethers.Contract(accessorAddr, COMPTROLLER_ABI, provider);
-
-      denominationAssetAddr = await comptrollerContract.getDenominationAsset();
-      const assetContract = new ethers.Contract(denominationAssetAddr, ERC20_ABI, provider);
-
-      denominationSymbol = await assetContract.symbol();
-      denominationDecimals = await assetContract.decimals();
-
-      document.getElementById('denomAsset').innerText = denominationSymbol;
-      document.getElementById('modalAsset').innerText = denominationSymbol;
-
-      const totalSupply = await vaultContract.totalSupply();
-      const totalShares = parseFloat(ethers.utils.formatUnits(totalSupply, 18));
-
-      document.getElementById('aumDisplay').innerText = totalShares.toFixed(2) + " Shares";
-
-      const mockPrice = 1.0;
-      document.getElementById('sharePriceDisplay').innerText = mockPrice.toFixed(4) + " " + denominationSymbol;
-
-    } catch (err) {
-      console.error("Vault Scan Error:", err);
-      document.getElementById('denomAsset').innerText = "Error scanning";
+  if (window.ethereum) {
+    const web3 = new ethers.providers.Web3Provider(window.ethereum);
+    const accounts = await web3.listAccounts();
+    if (accounts.length) {
+      user = accounts[0];
+      scanUser();
     }
   }
 
-  async function scanUserBalance() {
-    try {
-      const balanceBN = await vaultContract.balanceOf(userAddress);
-      const balance = parseFloat(ethers.utils.formatUnits(balanceBN, 18));
+  scanVault();
+}
 
-      document.getElementById('userBalanceDisplay').innerText = balance.toFixed(4) + " Shares";
-      document.getElementById('userValueDisplay').innerText = "≈ " + balance.toFixed(2) + " " + (denominationSymbol || "Unit");
-    } catch (err) {
-      console.error("User Balance Error:", err);
+async function scanVault() {
+  const supply = await vault.totalSupply();
+  document.getElementById("aumDisplay").innerText =
+    parseFloat(ethers.utils.formatUnits(supply, 18)).toFixed(2) + " Shares";
+}
+
+async function scanUser() {
+  const bal = await vault.balanceOf(user);
+  const shares = parseFloat(ethers.utils.formatUnits(bal, 18));
+  document.getElementById("userBalanceDisplay").innerText = shares.toFixed(4) + " Shares";
+  document.getElementById("userValueDisplay").innerText =
+    "≈ " + shares.toFixed(2) + " " + assetSymbol;
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+let currentAction = null;
+
+function openModal(action) {
+  currentAction = action;
+  document.getElementById("modalTitle").innerText =
+    action === "deposit" ? "Deposit " + assetSymbol : "Redeem Shares";
+  document.getElementById("txModal").style.display = "flex";
+  document.getElementById("confirmTxBtn").onclick =
+    action === "deposit" ? executeDeposit : executeRedeem;
+}
+
+function closeModal() {
+  document.getElementById("txModal").style.display = "none";
+  document.getElementById("txAmount").value = "";
+}
+
+/* =========================================================
+   DEPOSIT
+   ========================================================= */
+
+async function executeDeposit() {
+  const amountInput = document.getElementById("txAmount").value;
+  if (!amountInput || amountInput <= 0) return alert("Invalid amount");
+
+  const btn = document.getElementById("confirmTxBtn");
+  btn.innerHTML = '<span class="loader"></span> Wallet';
+
+  try {
+    const web3 = new ethers.providers.Web3Provider(window.ethereum);
+    await web3.send("eth_requestAccounts", []);
+    const signer = web3.getSigner();
+    const me = await signer.getAddress();
+
+    const assetTx = new ethers.Contract(asset.address, ERC20_ABI, signer);
+    const comptrollerTx = new ethers.Contract(comptroller.address, COMPTROLLER_ABI, signer);
+
+    const amount = ethers.utils.parseUnits(amountInput, assetDecimals);
+
+    const allowance = await assetTx.allowance(me, VAULT_PROXY);
+    if (allowance.lt(amount)) {
+      btn.innerHTML = '<span class="loader"></span> Approving';
+      await (await assetTx.approve(VAULT_PROXY, ethers.constants.MaxUint256)).wait();
     }
+
+    btn.innerHTML = '<span class="loader"></span> Depositing';
+    await (await comptrollerTx.buyShares(amount, 0, { gasLimit: 600000 })).wait();
+
+    closeModal();
+    scanUser();
+    alert("Deposit successful 🚀");
+
+  } catch (e) {
+    console.error(e);
+    alert("Deposit failed");
+    btn.innerText = "Confirm";
   }
+}
 
-  // =========================================================
-  // 3) MODAL + TX (still uses window.ethereum for write)
-  // =========================================================
-  let currentAction = '';
+/* =========================================================
+   REDEEM
+   ========================================================= */
 
-  window.openModal = (action) => {
-    currentAction = action;
-    const modal = document.getElementById('txModal');
-    const title = document.getElementById('modalTitle');
-    const btn = document.getElementById('confirmTxBtn');
+async function executeRedeem() {
+  const amountInput = document.getElementById("txAmount").value;
+  if (!amountInput || amountInput <= 0) return alert("Invalid amount");
 
-    modal.style.display = 'flex';
-    if(action === 'deposit') {
-      title.innerText = `Invest in G12 (${denominationSymbol || 'Asset'})`;
-      btn.innerText = "Approve & Deposit";
-      btn.onclick = executeDeposit;
-    } else {
-      title.innerText = "Redeem Shares";
-      btn.innerText = "Redeem";
-      btn.onclick = () => alert("Redeem functionality coming in V2.1");
-    }
-  };
+  const btn = document.getElementById("confirmTxBtn");
+  btn.innerHTML = '<span class="loader"></span> Wallet';
 
-  window.closeModal = () => {
-    document.getElementById('txModal').style.display = 'none';
-  };
+  try {
+    const web3 = new ethers.providers.Web3Provider(window.ethereum);
+    await web3.send("eth_requestAccounts", []);
+    const signer = web3.getSigner();
 
-  async function executeDeposit() {
-    const amountVal = document.getElementById('txAmount').value;
-    if(!amountVal || amountVal <= 0) return alert("Please enter a valid amount");
+    const comptrollerTx = new ethers.Contract(comptroller.address, COMPTROLLER_ABI, signer);
+    const shares = ethers.utils.parseUnits(amountInput, 18);
 
-    const btn = document.getElementById('confirmTxBtn');
-    btn.innerHTML = '<span class="loader"></span> Waiting for Wallet...';
+    btn.innerHTML = '<span class="loader"></span> Redeeming';
+    await (await comptrollerTx.redeemShares(shares, 0, { gasLimit: 600000 })).wait();
 
-    try {
-      if (!window.ethereum) throw new Error("No wallet found (extension required for deposit on desktop).");
+    closeModal();
+    scanUser();
+    alert("Redeem successful 💸");
 
-      const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-      await web3Provider.send("eth_requestAccounts", []);
-      const signer = web3Provider.getSigner();
-
-      const assetWithSigner = new ethers.Contract(denominationAssetAddr, ERC20_ABI, signer);
-      const comptrollerWithSigner = new ethers.Contract(comptrollerContract.address, COMPTROLLER_ABI, signer);
-
-      const amountBN = ethers.utils.parseUnits(amountVal, denominationDecimals);
-
-      const txApprove = await assetWithSigner.approve(comptrollerContract.address, amountBN);
-      btn.innerHTML = '<span class="loader"></span> Approving...';
-      await txApprove.wait();
-
-      btn.innerHTML = '<span class="loader"></span> Minting Shares...';
-      const txBuy = await comptrollerWithSigner.buyShares(
-        [await signer.getAddress()],
-        [amountBN],
-        [1]
-      );
-
-      await txBuy.wait();
-
-      alert("Investment Successful! Welcome to the vault.");
-      closeModal();
-      scanUserBalance();
-
-    } catch (err) {
-      console.error(err);
-      alert("Transaction Failed: " + (err.reason || err.message));
-      btn.innerText = "Try Again";
-    }
+  } catch (e) {
+    console.error(e);
+    alert("Redeem failed");
+    btn.innerText = "Confirm";
   }
+}
 
-  // =========================================================
-  // 4) CHARTS
-  // =========================================================
-  function initChart() {
-    const chartDom = document.getElementById('mainChart');
-    const myChart = echarts.init(chartDom, 'dark');
-
-    const dateList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const valueList = [100, 102, 101, 104, 107, 108, 110];
-
-    const option = {
-      backgroundColor: 'transparent',
-      grid: { top: 10, right: 10, bottom: 20, left: 40 },
-      xAxis: { type: 'category', data: dateList, axisLine:{show:false}, axisTick:{show:false}, axisLabel:{color:'#666'} },
-      yAxis: { type: 'value', splitLine: { lineStyle: { color: '#222' } }, axisLabel:{color:'#666'} },
-      series: [{
-        data: valueList,
-        type: 'line',
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { width: 3, color: '#4ee5c1' },
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            {offset: 0, color: 'rgba(78, 229, 193, 0.3)'},
-            {offset: 1, color: 'rgba(78, 229, 193, 0)'}
-          ])
-        }
-      }],
-      tooltip: { trigger: 'axis' }
-    };
-
-    myChart.setOption(option);
-    window.addEventListener('resize', myChart.resize);
-  }
-
-  // =========================================================
-  // 5) LOGOUT (local)
-  // =========================================================
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    localStorage.removeItem("g12_token");
-    localStorage.removeItem("g12_user_id");
-    localStorage.removeItem("g12_wallet");
-    localStorage.removeItem("g12_expires_at");
-    window.location.href = 'login.html';
-  });
-
-  window.addEventListener('DOMContentLoaded', init);
+window.addEventListener("DOMContentLoaded", initDashboard);
 </script>
 </body>
 </html>
