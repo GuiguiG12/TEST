@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>G12 Labs — Dashboard (Enzyme)</title>
+  <title>G12 Labs – Dashboard (Enzyme)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Ethers -->
@@ -98,6 +98,7 @@
       background: #020617;
       color: #fff;
       margin-bottom: 16px;
+      box-sizing: border-box;
     }
 
     .loader {
@@ -120,6 +121,18 @@
       opacity: 0.4;
       font-size: 12px;
       margin-top: 40px;
+    }
+
+    .error {
+      color: #ef4444;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .success {
+      color: #22c55e;
+      font-size: 13px;
+      margin-top: 8px;
     }
   </style>
 </head>
@@ -165,6 +178,7 @@
   <div class="modal">
     <h3 id="modalTitle">—</h3>
     <input id="txAmount" placeholder="Amount" type="number" step="any" />
+    <div id="modalMessage"></div>
     <button id="confirmTxBtn">Confirm</button>
     <button class="secondary" style="margin-top:10px;width:100%" onclick="closeModal()">Cancel</button>
   </div>
@@ -205,42 +219,54 @@ let rpcProvider, vault, comptroller, asset, assetDecimals, assetSymbol, user;
    ========================================================= */
 
 async function initDashboard() {
-  rpcProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
-  vault = new ethers.Contract(VAULT_PROXY, VAULT_ABI, rpcProvider);
+  try {
+    rpcProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
+    vault = new ethers.Contract(VAULT_PROXY, VAULT_ABI, rpcProvider);
 
-  const comptrollerAddr = await vault.getAccessor();
-  comptroller = new ethers.Contract(comptrollerAddr, COMPTROLLER_ABI, rpcProvider);
+    const comptrollerAddr = await vault.getAccessor();
+    comptroller = new ethers.Contract(comptrollerAddr, COMPTROLLER_ABI, rpcProvider);
 
-  const assetAddr = await comptroller.getDenominationAsset();
-  asset = new ethers.Contract(assetAddr, ERC20_ABI, rpcProvider);
+    const assetAddr = await comptroller.getDenominationAsset();
+    asset = new ethers.Contract(assetAddr, ERC20_ABI, rpcProvider);
 
-  assetDecimals = await asset.decimals();
-  assetSymbol = await asset.symbol();
+    assetDecimals = await asset.decimals();
+    assetSymbol = await asset.symbol();
 
-  if (window.ethereum) {
-    const web3 = new ethers.providers.Web3Provider(window.ethereum);
-    const accounts = await web3.listAccounts();
-    if (accounts.length) {
-      user = accounts[0];
-      scanUser();
+    if (window.ethereum) {
+      const web3 = new ethers.providers.Web3Provider(window.ethereum);
+      const accounts = await web3.listAccounts();
+      if (accounts.length) {
+        user = accounts[0];
+        scanUser();
+      }
     }
-  }
 
-  scanVault();
+    scanVault();
+  } catch (e) {
+    console.error("Init failed:", e);
+  }
 }
 
 async function scanVault() {
-  const supply = await vault.totalSupply();
-  document.getElementById("aumDisplay").innerText =
-    parseFloat(ethers.utils.formatUnits(supply, 18)).toFixed(2) + " Shares";
+  try {
+    const supply = await vault.totalSupply();
+    document.getElementById("aumDisplay").innerText =
+      parseFloat(ethers.utils.formatUnits(supply, 18)).toFixed(2) + " Shares";
+  } catch (e) {
+    console.error("Scan vault failed:", e);
+  }
 }
 
 async function scanUser() {
-  const bal = await vault.balanceOf(user);
-  const shares = parseFloat(ethers.utils.formatUnits(bal, 18));
-  document.getElementById("userBalanceDisplay").innerText = shares.toFixed(4) + " Shares";
-  document.getElementById("userValueDisplay").innerText =
-    "≈ " + shares.toFixed(2) + " " + assetSymbol;
+  try {
+    const bal = await vault.balanceOf(user);
+    const shares = parseFloat(ethers.utils.formatUnits(bal, 18));
+    document.getElementById("userBalanceDisplay").innerText = shares.toFixed(4) + " Shares";
+    document.getElementById("userValueDisplay").innerText =
+      "≈ " + shares.toFixed(2) + " " + assetSymbol;
+  } catch (e) {
+    console.error("Scan user failed:", e);
+  }
 }
 
 /* =========================================================
@@ -254,6 +280,8 @@ function openModal(action) {
   document.getElementById("modalTitle").innerText =
     action === "deposit" ? "Deposit " + assetSymbol : "Redeem Shares";
   document.getElementById("txModal").style.display = "flex";
+  document.getElementById("txAmount").value = "";
+  document.getElementById("modalMessage").innerHTML = "";
   document.getElementById("confirmTxBtn").onclick =
     action === "deposit" ? executeDeposit : executeRedeem;
 }
@@ -261,18 +289,29 @@ function openModal(action) {
 function closeModal() {
   document.getElementById("txModal").style.display = "none";
   document.getElementById("txAmount").value = "";
+  document.getElementById("modalMessage").innerHTML = "";
+}
+
+function showModalMessage(msg, isError = false) {
+  const el = document.getElementById("modalMessage");
+  el.innerHTML = `<div class="${isError ? 'error' : 'success'}">${msg}</div>`;
 }
 
 /* =========================================================
-   DEPOSIT
+   DEPOSIT (FIXED)
    ========================================================= */
 
 async function executeDeposit() {
   const amountInput = document.getElementById("txAmount").value;
-  if (!amountInput || amountInput <= 0) return alert("Invalid amount");
+  if (!amountInput || amountInput <= 0) {
+    showModalMessage("Invalid amount", true);
+    return;
+  }
 
   const btn = document.getElementById("confirmTxBtn");
-  btn.innerHTML = '<span class="loader"></span> Wallet';
+  const originalText = btn.innerText;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Connecting';
 
   try {
     const web3 = new ethers.providers.Web3Provider(window.ethereum);
@@ -285,56 +324,99 @@ async function executeDeposit() {
 
     const amount = ethers.utils.parseUnits(amountInput, assetDecimals);
 
+    // Check balance
+    btn.innerHTML = '<span class="loader"></span> Checking';
+    const balance = await assetTx.balanceOf(me);
+    if (balance.lt(amount)) {
+      showModalMessage(`Insufficient ${assetSymbol} balance`, true);
+      btn.disabled = false;
+      btn.innerText = originalText;
+      return;
+    }
+
+    // Check/approve
     const allowance = await assetTx.allowance(me, VAULT_PROXY);
     if (allowance.lt(amount)) {
       btn.innerHTML = '<span class="loader"></span> Approving';
-      await (await assetTx.approve(VAULT_PROXY, ethers.constants.MaxUint256)).wait();
+      const txApprove = await assetTx.approve(VAULT_PROXY, ethers.constants.MaxUint256);
+      await txApprove.wait();
     }
 
+    // Calculate minShares (2.5% slippage protection)
+    const minShares = amount.mul(975).div(1000);
+
     btn.innerHTML = '<span class="loader"></span> Depositing';
-    await (await comptrollerTx.buyShares(amount, 0, { gasLimit: 600000 })).wait();
+    const tx = await comptrollerTx.buyShares(amount, minShares, { gasLimit: 600000 });
+    await tx.wait();
 
     closeModal();
     scanUser();
-    alert("Deposit successful 🚀");
+    scanVault();
+    alert("Deposit successful 🚀\nTx: " + tx.hash);
 
   } catch (e) {
     console.error(e);
-    alert("Deposit failed");
-    btn.innerText = "Confirm";
+    showModalMessage(e.message || "Transaction failed", true);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = originalText;
   }
 }
 
 /* =========================================================
-   REDEEM
+   REDEEM (FIXED)
    ========================================================= */
 
 async function executeRedeem() {
   const amountInput = document.getElementById("txAmount").value;
-  if (!amountInput || amountInput <= 0) return alert("Invalid amount");
+  if (!amountInput || amountInput <= 0) {
+    showModalMessage("Invalid amount", true);
+    return;
+  }
 
   const btn = document.getElementById("confirmTxBtn");
-  btn.innerHTML = '<span class="loader"></span> Wallet';
+  const originalText = btn.innerText;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Connecting';
 
   try {
     const web3 = new ethers.providers.Web3Provider(window.ethereum);
     await web3.send("eth_requestAccounts", []);
     const signer = web3.getSigner();
+    const me = await signer.getAddress();
 
     const comptrollerTx = new ethers.Contract(comptroller.address, COMPTROLLER_ABI, signer);
     const shares = ethers.utils.parseUnits(amountInput, 18);
 
+    // Check balance
+    btn.innerHTML = '<span class="loader"></span> Checking';
+    const balance = await vault.balanceOf(me);
+    if (balance.lt(shares)) {
+      showModalMessage("Insufficient shares balance", true);
+      btn.disabled = false;
+      btn.innerText = originalText;
+      return;
+    }
+
+    // Calculate minAssets (2.5% slippage protection)
+    // Assuming 1 share ≈ 1 asset (adjust if needed)
+    const minAssets = shares.mul(975).div(1000);
+
     btn.innerHTML = '<span class="loader"></span> Redeeming';
-    await (await comptrollerTx.redeemShares(shares, 0, { gasLimit: 600000 })).wait();
+    const tx = await comptrollerTx.redeemShares(shares, minAssets, { gasLimit: 600000 });
+    await tx.wait();
 
     closeModal();
     scanUser();
-    alert("Redeem successful 💸");
+    scanVault();
+    alert("Redeem successful 💸\nTx: " + tx.hash);
 
   } catch (e) {
     console.error(e);
-    alert("Redeem failed");
-    btn.innerText = "Confirm";
+    showModalMessage(e.message || "Transaction failed", true);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = originalText;
   }
 }
 
