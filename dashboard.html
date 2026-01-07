@@ -2,492 +2,919 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>G12 Labs – Dashboard v3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
+  <title>G12 Labs — Dashboard</title>
   
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
   <style>
+    :root {
+      --bg-app: #050505;
+      --bg-card: #0a0a0a;
+      --bg-card-hover: #0f0f0f;
+      --border-color: #1a1a1a;
+      --text-main: #ffffff;
+      --text-muted: #a1a1a1;
+      --text-soft: #525252;
+      --accent: #4ee5c1;
+      --accent-secondary: #a8ffc8;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warning: #f59e0b;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
-      background: #0b0f14;
-      color: #e6e8eb;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-app);
+      color: var(--text-main);
+      min-height: 100vh;
     }
 
-    .container { max-width: 960px; margin: auto; padding: 24px; }
-    h1 { font-size: 28px; margin-bottom: 6px; }
-    .sub { opacity: 0.6; margin-bottom: 32px; }
-    .card { background: #111827; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-    .row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .value { font-size: 22px; font-weight: 600; }
+    /* HEADER */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(20px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-    button {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      border: none;
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .logo img {
+      height: 32px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .network-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(78, 229, 193, 0.1);
+      border: 1px solid rgba(78, 229, 193, 0.2);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    .network-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    /* WELCOME SECTION */
+    .welcome {
+      margin-bottom: 40px;
+    }
+
+    .welcome h1 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--text-main), var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .welcome p {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    /* STATS GRID */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(78, 229, 193, 0.2);
+    }
+
+    .stat-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .stat-label i {
+      font-size: 16px;
+      color: var(--accent);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .stat-sub {
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    /* ACTION CARDS */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .action-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .action-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .action-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .input-label span {
+      color: var(--accent);
+      cursor: pointer;
+    }
+
+    .input-wrapper {
+      display: flex;
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 10px 18px;
-      color: #001b0d;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--accent);
+    }
+
+    .input-wrapper input {
+      flex: 1;
+      padding: 14px 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .input-wrapper input::placeholder {
+      color: var(--text-soft);
+    }
+
+    .input-suffix {
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      background: rgba(255,255,255,0.02);
+      border-left: 1px solid var(--border-color);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    button:hover { opacity: 0.9; }
-    button.secondary { background: #1f2937; color: #e6e8eb; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    #txModal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      justify-content: center;
+      transition: all 0.2s;
+      display: flex;
       align-items: center;
-      z-index: 10;
+      justify-content: center;
+      gap: 8px;
+      border: none;
     }
 
-    .modal {
-      background: #0f172a;
-      padding: 24px;
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(78, 229, 193, 0.3);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: var(--text-soft);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* INFO CARD */
+    .info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
       border-radius: 16px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      padding: 24px;
     }
-    .modal h3 { margin-top: 0; margin-bottom: 16px; }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      color: #fff;
-      margin-bottom: 12px;
+    .info-card h3 {
       font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    input:focus { outline: none; border-color: #22c55e; }
 
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-row .label {
+      color: var(--text-muted);
+    }
+
+    .info-row .value {
+      color: var(--text-main);
+      font-weight: 500;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    .info-row .value a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* MESSAGE */
+    .message {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--error);
+    }
+
+    .message.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      color: var(--success);
+    }
+
+    .message.info {
+      background: rgba(78, 229, 193, 0.1);
+      border: 1px solid rgba(78, 229, 193, 0.2);
+      color: var(--accent);
+    }
+
+    /* NOT CONNECTED STATE */
+    .not-connected {
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .not-connected i {
+      font-size: 64px;
+      color: var(--text-soft);
+      margin-bottom: 24px;
+    }
+
+    .not-connected h2 {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .not-connected p {
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+
+    /* LOADER */
     .loader {
       width: 16px;
       height: 16px;
-      border: 2px solid #fff;
-      border-top: 2px solid transparent;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
       border-radius: 50%;
-      display: inline-block;
-      animation: spin 1s linear infinite;
-      margin-right: 8px;
+      animation: spin 0.8s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .footer { text-align: center; opacity: 0.4; font-size: 12px; margin-top: 40px; }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
 
-    .message {
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 12px;
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .header {
+        padding: 16px 20px;
+      }
+      
+      .container {
+        padding: 24px 16px;
+      }
+
+      .welcome h1 {
+        font-size: 24px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .actions-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-soft);
       font-size: 13px;
     }
-    .error { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .success { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
-    .info { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
 
-    .modal button { width: 100%; margin-bottom: 8px; }
-    
-    .version { 
-      position: fixed; 
-      bottom: 10px; 
-      right: 10px; 
-      opacity: 0.3; 
-      font-size: 11px;
-      background: #1f2937;
-      padding: 4px 8px;
-      border-radius: 4px;
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
     }
   </style>
 </head>
 
 <body>
-<div class="container">
-  <h1>G12 Labs</h1>
-  <div class="sub">Enzyme Vault Dashboard · Arbitrum</div>
 
-  <div class="card">
-    <div class="row">
-      <div>Total Vault Supply</div>
-      <div class="value" id="aumDisplay">—</div>
-    </div>
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <img src="fulllogo_transparent_nobuffer.png" alt="G12" onerror="this.style.display='none'" />
+    <span>G12 Labs</span>
+  </div>
+  <div class="header-right">
+    <div class="network-badge">Arbitrum</div>
+    <appkit-button></appkit-button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="container">
+
+  <!-- NOT CONNECTED STATE -->
+  <div id="notConnected" class="not-connected">
+    <i class="ph ph-wallet"></i>
+    <h2>Connect Your Wallet</h2>
+    <p>Connect your wallet to view your portfolio and manage investments.</p>
+    <appkit-button></appkit-button>
   </div>
 
-  <div class="card">
-    <div class="row">
-      <div>Your Shares</div>
-      <div class="value" id="userBalanceDisplay">—</div>
+  <!-- CONNECTED STATE -->
+  <div id="dashboard" style="display: none;">
+    
+    <!-- WELCOME -->
+    <div class="welcome">
+      <h1>Welcome back</h1>
+      <p>Manage your G12 vault investments</p>
     </div>
-    <div class="row">
-      <div>Estimated Value</div>
-      <div id="userValueDisplay">—</div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">
+          <i class="ph ph-coins"></i>
+          Your Shares
+        </div>
+        <div class="stat-value" id="userShares">—</div>
+        <div class="stat-sub">G12 Vault Shares</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">
+          <i class="ph ph-currency-dollar"></i>
+          Estimated Value
+        </div>
+        <div class="stat-value" id="userValue">—</div>
+        <div class="stat-sub">In USDC</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">
+          <i class="ph ph-wallet"></i>
+          Your USDC Balance
+        </div>
+        <div class="stat-value" id="usdcBalance">—</div>
+        <div class="stat-sub">Available to deposit</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">
+          <i class="ph ph-chart-pie"></i>
+          Vault Total Supply
+        </div>
+        <div class="stat-value" id="vaultSupply">—</div>
+        <div class="stat-sub">Total shares issued</div>
+      </div>
     </div>
+
+    <!-- ACTIONS -->
+    <div class="actions-grid">
+      
+      <!-- DEPOSIT -->
+      <div class="action-card">
+        <h3>📥 Deposit USDC</h3>
+        <p>Deposit USDC to receive vault shares. Your shares represent your ownership in the vault.</p>
+        
+        <div id="depositMessage" class="message"></div>
+        
+        <div class="input-group">
+          <div class="input-label">
+            <span>Amount</span>
+            <span onclick="setMaxDeposit()">MAX</span>
+          </div>
+          <div class="input-wrapper">
+            <input type="number" id="depositAmount" placeholder="0.00" step="any" />
+            <div class="input-suffix">USDC</div>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" id="depositBtn" onclick="executeDeposit()">
+          <i class="ph ph-arrow-down"></i>
+          Deposit
+        </button>
+      </div>
+
+      <!-- REDEEM -->
+      <div class="action-card">
+        <h3>📤 Redeem Shares</h3>
+        <p>Redeem your vault shares to receive USDC back. You'll receive proportional value.</p>
+        
+        <div id="redeemMessage" class="message"></div>
+        
+        <div class="input-group">
+          <div class="input-label">
+            <span>Shares</span>
+            <span onclick="setMaxRedeem()">MAX</span>
+          </div>
+          <div class="input-wrapper">
+            <input type="number" id="redeemAmount" placeholder="0.00" step="any" />
+            <div class="input-suffix">Shares</div>
+          </div>
+        </div>
+        
+        <button class="btn btn-secondary" id="redeemBtn" onclick="executeRedeem()">
+          <i class="ph ph-arrow-up"></i>
+          Redeem
+        </button>
+      </div>
+
+    </div>
+
+    <!-- VAULT INFO -->
+    <div class="info-card">
+      <h3><i class="ph ph-info"></i> Vault Information</h3>
+      <div class="info-row">
+        <span class="label">Vault Name</span>
+        <span class="value">G12 Test Vault</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Network</span>
+        <span class="value">Arbitrum One</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Denomination Asset</span>
+        <span class="value">USDC</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Vault Address</span>
+        <span class="value"><a href="https://arbiscan.io/address/0x591E7194FEe6f5615EA89000318E630EaB92FBe1" target="_blank">0x591E...FBe1</a></span>
+      </div>
+      <div class="info-row">
+        <span class="label">Enzyme App</span>
+        <span class="value"><a href="https://app.enzyme.finance/vault/0x591e7194fee6f5615ea89000318e630eab92fbe1?network=arbitrum" target="_blank">View on Enzyme</a></span>
+      </div>
+    </div>
+
   </div>
 
-  <div class="card">
-    <div class="row">
-      <button id="depositBtn">Deposit USDC</button>
-      <button class="secondary" id="redeemBtn">Redeem Shares</button>
-    </div>
-  </div>
+</main>
 
-  <div class="footer">G12 Labs · Enzyme · Arbitrum</div>
-</div>
+<footer class="footer">
+  G12 Labs · Powered by <a href="https://enzyme.finance" target="_blank">Enzyme Protocol</a> · Arbitrum
+</footer>
 
-<div id="txModal">
-  <div class="modal">
-    <h3 id="modalTitle">—</h3>
-    <div id="modalInfo"></div>
-    <input id="txAmount" placeholder="Amount" type="number" step="any" />
-    <div id="modalMessage"></div>
-    <button id="confirmTxBtn">Confirm</button>
-    <button class="secondary" id="cancelBtn">Cancel</button>
-  </div>
-</div>
+<!-- SCRIPTS -->
+<script type="module">
+import { createAppKit } from 'https://esm.sh/@reown/appkit'
+import { EthersAdapter } from 'https://esm.sh/@reown/appkit-adapter-ethers'
+import { arbitrum } from 'https://esm.sh/@reown/appkit/networks'
 
-<div class="version">v3.0-clean</div>
+// ============================================
+// CONFIGURATION
+// ============================================
+const CONFIG = {
+  projectId: '5f9c4ad6a6cadf402f5815fa8f07308c',
+  vaultProxy: '0x591E7194FEe6f5615EA89000318E630EaB92FBe1',
+  comptrollerProxy: '0xfDFdEB5D433b46c017ea142590d5b7eD1804f28f',
+  usdc: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+  rpc: 'https://arb1.arbitrum.io/rpc'
+}
 
-<script>
-console.log("🚀 G12 Labs Dashboard v3.0 - CLEAN VERSION");
-console.log("⚡ Cache-busted - Fresh code loaded");
-
-// ========== CONFIG ==========
-const VAULT_PROXY = "0x591E7194FEe6f5615EA89000318E630EaB92FBe1";
-const COMPTROLLER = "0xfDFdEB5D433b46c017ea142590d5b7eD1804f28f";
-const USDC = "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
-const RPC_URL = "https://arb1.arbitrum.io/rpc";
+// ABIs
+const ERC20_ABI = [
+  'function balanceOf(address) view returns (uint256)',
+  'function decimals() view returns (uint8)',
+  'function approve(address spender, uint256 amount) returns (bool)',
+  'function allowance(address owner, address spender) view returns (uint256)'
+]
 
 const VAULT_ABI = [
-  "function balanceOf(address) view returns (uint256)",
-  "function totalSupply() view returns (uint256)"
-];
+  'function balanceOf(address) view returns (uint256)',
+  'function totalSupply() view returns (uint256)'
+]
 
-const ERC20_ABI = [
-  "function symbol() view returns (string)",
-  "function decimals() view returns (uint8)",
-  "function balanceOf(address) view returns (uint256)",
-  "function approve(address,uint256) returns (bool)",
-  "function allowance(address,address) view returns (uint256)"
-];
+// IMPORTANT: buyShares prend 2 paramètres selon la doc Enzyme
+const COMPTROLLER_ABI = [
+  'function buyShares(uint256 _investmentAmount, uint256 _minSharesQuantity) returns (uint256 sharesReceived_)',
+  'function redeemSharesForSpecificAssets(address _recipient, uint256 _sharesQuantity, address[] _payoutAssets, uint256[] _payoutAssetPercentages) returns (address[] payoutAssets_, uint256[] payoutAmounts_)'
+]
 
-let rpcProvider, vault, usdc, user;
-
-// ========== INIT ==========
-async function initDashboard() {
-  try {
-    console.log("🔧 Initializing...");
-    
-    rpcProvider = new ethers.providers.JsonRpcProvider(RPC_URL);
-    vault = new ethers.Contract(VAULT_PROXY, VAULT_ABI, rpcProvider);
-    usdc = new ethers.Contract(USDC, ERC20_ABI, rpcProvider);
-
-    if (window.ethereum) {
-      const web3 = new ethers.providers.Web3Provider(window.ethereum);
-      const accounts = await web3.listAccounts();
-      if (accounts.length > 0) {
-        user = accounts[0];
-        console.log("👤 User:", user);
-        scanUser();
-      }
-    }
-
-    scanVault();
-    
-    // Event listeners
-    document.getElementById("depositBtn").addEventListener("click", () => {
-      console.log("🟢 DEPOSIT button clicked");
-      openModal("deposit");
-    });
-    
-    document.getElementById("redeemBtn").addEventListener("click", () => {
-      console.log("🔴 REDEEM button clicked");
-      openModal("redeem");
-    });
-    
-    document.getElementById("cancelBtn").addEventListener("click", closeModal);
-    
-    console.log("✅ Dashboard ready");
-  } catch (e) {
-    console.error("❌ Init failed:", e);
-  }
+// ============================================
+// APPKIT SETUP
+// ============================================
+const metadata = {
+  name: 'G12 Labs',
+  description: 'DeFi Investment Platform',
+  url: 'https://guiguig12.github.io',
+  icons: ['https://guiguig12.github.io/TEST/fulllogo_transparent_nobuffer.png']
 }
 
-async function scanVault() {
-  try {
-    const supply = await vault.totalSupply();
-    const formatted = parseFloat(ethers.utils.formatUnits(supply, 18)).toFixed(2);
-    document.getElementById("aumDisplay").innerText = formatted + " Shares";
-  } catch (e) {
-    console.error("Error scanning vault:", e);
-  }
+const modal = createAppKit({
+  adapters: [new EthersAdapter()],
+  networks: [arbitrum],
+  projectId: CONFIG.projectId,
+  metadata,
+  features: {
+    analytics: true,
+    email: true,
+    socials: ['google', 'apple', 'discord'],
+    onramp: true,
+    swaps: true
+  },
+  themeMode: 'dark'
+})
+
+// ============================================
+// GLOBAL STATE
+// ============================================
+let userAddress = null
+let provider = null
+let signer = null
+let userUsdcBalance = 0
+let userSharesBalance = 0
+
+// ============================================
+// UI HELPERS
+// ============================================
+function showDashboard(show) {
+  document.getElementById('notConnected').style.display = show ? 'none' : 'block'
+  document.getElementById('dashboard').style.display = show ? 'block' : 'none'
 }
 
-async function scanUser() {
-  try {
-    const bal = await vault.balanceOf(user);
-    const shares = parseFloat(ethers.utils.formatUnits(bal, 18));
-    document.getElementById("userBalanceDisplay").innerText = shares.toFixed(4) + " Shares";
-    document.getElementById("userValueDisplay").innerText = "≈ " + shares.toFixed(2) + " USDC";
-  } catch (e) {
-    console.error("Error scanning user:", e);
-  }
+function showMessage(elementId, message, type = 'info') {
+  const el = document.getElementById(elementId)
+  el.textContent = message
+  el.className = `message show ${type}`
 }
 
-// ========== MODAL ==========
-let currentAction = null;
+function hideMessage(elementId) {
+  document.getElementById(elementId).className = 'message'
+}
 
-async function openModal(action) {
-  console.log("📋 Opening modal for:", action);
-  currentAction = action;
-  
-  document.getElementById("modalTitle").innerText = 
-    action === "deposit" ? "Deposit USDC" : "Redeem Shares";
-  document.getElementById("txModal").style.display = "flex";
-  document.getElementById("txAmount").value = "";
-  document.getElementById("modalMessage").innerHTML = "";
-  document.getElementById("modalInfo").innerHTML = "";
-  
-  // Show available balance
-  if (user) {
-    try {
-      if (action === "deposit") {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const usdcContract = new ethers.Contract(USDC, ERC20_ABI, provider);
-        const balance = await usdcContract.balanceOf(user);
-        const formatted = parseFloat(ethers.utils.formatUnits(balance, 6)).toFixed(2);
-        document.getElementById("modalInfo").innerHTML = 
-          `<div class="message info">Available: ${formatted} USDC</div>`;
-      } else {
-        const balance = await vault.balanceOf(user);
-        const formatted = parseFloat(ethers.utils.formatUnits(balance, 18)).toFixed(4);
-        document.getElementById("modalInfo").innerHTML = 
-          `<div class="message info">Available: ${formatted} Shares</div>`;
-      }
-    } catch (e) {
-      console.error("Error fetching balance:", e);
-    }
-  }
-  
-  // Assign correct function
-  const btn = document.getElementById("confirmTxBtn");
-  if (action === "deposit") {
-    console.log("✅ Assigning executeDeposit to button");
-    btn.onclick = executeDeposit;
+function setButtonLoading(btnId, loading, text = '') {
+  const btn = document.getElementById(btnId)
+  if (loading) {
+    btn.disabled = true
+    btn.innerHTML = `<span class="loader"></span> ${text}`
   } else {
-    console.log("✅ Assigning executeRedeem to button");
-    btn.onclick = executeRedeem;
+    btn.disabled = false
+    btn.innerHTML = btnId === 'depositBtn' 
+      ? '<i class="ph ph-arrow-down"></i> Deposit'
+      : '<i class="ph ph-arrow-up"></i> Redeem'
   }
+}
+
+// ============================================
+// DATA LOADING
+// ============================================
+async function loadUserData() {
+  if (!userAddress) return
   
-  btn.disabled = false;
-  btn.innerText = "Confirm";
-}
-
-function closeModal() {
-  document.getElementById("txModal").style.display = "none";
-}
-
-function showMessage(msg, type = "info") {
-  document.getElementById("modalMessage").innerHTML = 
-    `<div class="message ${type}">${msg}</div>`;
-}
-
-// ========== DEPOSIT - CODE QUI A MARCHÉ EN CONSOLE ==========
-async function executeDeposit() {
-  console.log("🟢 === DEPOSIT FUNCTION CALLED ===");
-  
-  const amountInput = document.getElementById("txAmount").value;
-  if (!amountInput || parseFloat(amountInput) <= 0) {
-    showMessage("Please enter a valid amount", "error");
-    return;
-  }
-
-  const btn = document.getElementById("confirmTxBtn");
-  btn.disabled = true;
-  btn.innerHTML = '<span class="loader"></span> Connecting...';
-
   try {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const me = await signer.getAddress();
+    const rpcProvider = new ethers.providers.JsonRpcProvider(CONFIG.rpc)
+    const vault = new ethers.Contract(CONFIG.vaultProxy, VAULT_ABI, rpcProvider)
+    const usdc = new ethers.Contract(CONFIG.usdc, ERC20_ABI, rpcProvider)
     
-    console.log("👤 Wallet:", me);
-
-    // ✅ BON ABI - buyShares avec 2 paramètres
-    const comptrollerABI = [
-      "function buyShares(uint256 _investmentAmount, uint256 _minSharesQuantity) returns (uint256 sharesReceived_)"
-    ];
-    const comptroller = new ethers.Contract(COMPTROLLER, comptrollerABI, signer);
+    // Fetch all data
+    const [shares, usdcBal, totalSupply] = await Promise.all([
+      vault.balanceOf(userAddress),
+      usdc.balanceOf(userAddress),
+      vault.totalSupply()
+    ])
     
-    const amount = ethers.utils.parseUnits(amountInput, 6);
-    console.log("💰 Amount:", amount.toString());
-
-    // USDC contract
-    const usdcContract = new ethers.Contract(
-      USDC,
-      [
-        "function approve(address,uint256) returns (bool)",
-        "function allowance(address,address) view returns (uint256)",
-        "function balanceOf(address) view returns (uint256)"
-      ],
-      signer
-    );
+    // Store for later
+    userSharesBalance = parseFloat(ethers.utils.formatUnits(shares, 18))
+    userUsdcBalance = parseFloat(ethers.utils.formatUnits(usdcBal, 6))
     
-    // Check balance
-    btn.innerHTML = '<span class="loader"></span> Checking...';
-    const balance = await usdcContract.balanceOf(me);
-    console.log("💰 USDC Balance:", ethers.utils.formatUnits(balance, 6));
+    // Update UI
+    document.getElementById('userShares').textContent = userSharesBalance.toFixed(4)
+    document.getElementById('userValue').textContent = `~$${userSharesBalance.toFixed(2)}`
+    document.getElementById('usdcBalance').textContent = userUsdcBalance.toFixed(2)
+    document.getElementById('vaultSupply').textContent = parseFloat(ethers.utils.formatUnits(totalSupply, 18)).toFixed(2)
     
-    if (balance.lt(amount)) {
-      showMessage("Insufficient USDC balance", "error");
-      btn.disabled = false;
-      btn.innerText = "Confirm";
-      return;
-    }
+    console.log('✅ Data loaded:', { userSharesBalance, userUsdcBalance })
     
-    // Check/Approve VAULT_PROXY
-    let allowance = await usdcContract.allowance(me, VAULT_PROXY);
-    console.log("🔐 Current Allowance VaultProxy:", allowance.toString());
-    console.log("🔐 Required Amount:", amount.toString());
-    console.log("🔐 VaultProxy Address:", VAULT_PROXY);
-    
-    if (allowance.lt(amount)) {
-      btn.innerHTML = '<span class="loader"></span> Approving...';
-      console.log("✍️ Approving VaultProxy...");
-      console.log("⏰ Waiting for approval tx...");
-      
-      const approveTx = await usdcContract.approve(VAULT_PROXY, ethers.constants.MaxUint256);
-      console.log("📝 Approve Tx Hash:", approveTx.hash);
-      
-      const approveReceipt = await approveTx.wait();
-      console.log("✅ Approve confirmed! Block:", approveReceipt.blockNumber);
-      
-      // Vérifier que l'approval a bien fonctionné
-      allowance = await usdcContract.allowance(me, VAULT_PROXY);
-      console.log("🔐 New Allowance:", allowance.toString());
-      
-      if (allowance.lt(amount)) {
-        throw new Error("Approval failed! Allowance still insufficient");
-      }
-    } else {
-      console.log("✅ Allowance already sufficient");
-    }
-
-    // Calculate minShares
-    const minShares = amount.mul(975).div(1000);
-    console.log("📊 MinShares:", minShares.toString());
-
-    // buyShares
-    btn.innerHTML = '<span class="loader"></span> Depositing...';
-    console.log("🚀 Calling buyShares...");
-    
-    const tx = await comptroller.buyShares(
-      amount,
-      minShares,
-      { gasLimit: 500000 }
-    );
-    
-    console.log("⏳ Tx:", tx.hash);
-    
-    btn.innerHTML = '<span class="loader"></span> Confirming...';
-    const receipt = await tx.wait();
-    
-    console.log("🎉 SUCCESS!");
-    console.log("📊 Gas:", receipt.gasUsed.toString());
-    console.log("🔗 Arbiscan:", `https://arbiscan.io/tx/${tx.hash}`);
-    
-    closeModal();
-    scanUser();
-    scanVault();
-    alert("✅ Deposit successful!\n\n" + tx.hash);
-
   } catch (e) {
-    console.error("❌ DEPOSIT ERROR:", e);
-    showMessage(e.message || "Transaction failed", "error");
-    btn.disabled = false;
-    btn.innerText = "Confirm";
+    console.error('❌ Error loading data:', e)
   }
 }
 
-// ========== REDEEM ==========
-async function executeRedeem() {
-  console.log("🔴 === REDEEM FUNCTION CALLED ===");
-  
-  const amountInput = document.getElementById("txAmount").value;
-  if (!amountInput || parseFloat(amountInput) <= 0) {
-    showMessage("Please enter a valid amount", "error");
-    return;
+// ============================================
+// DEPOSIT FUNCTION
+// ============================================
+window.executeDeposit = async function() {
+  const amountStr = document.getElementById('depositAmount').value
+  if (!amountStr || parseFloat(amountStr) <= 0) {
+    showMessage('depositMessage', 'Please enter a valid amount', 'error')
+    return
   }
-
-  const btn = document.getElementById("confirmTxBtn");
-  btn.disabled = true;
-  btn.innerHTML = '<span class="loader"></span> Connecting...';
-
+  
+  const amount = parseFloat(amountStr)
+  if (amount > userUsdcBalance) {
+    showMessage('depositMessage', 'Insufficient USDC balance', 'error')
+    return
+  }
+  
+  hideMessage('depositMessage')
+  setButtonLoading('depositBtn', true, 'Preparing...')
+  
   try {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = provider.getSigner();
-    const me = await signer.getAddress();
-
-    const comptrollerABI = [
-      "function redeemSharesInKind(address,uint256,address[],address[]) returns (address[],uint256[])"
-    ];
-    const comptroller = new ethers.Contract(COMPTROLLER, comptrollerABI, signer);
+    // Get signer from AppKit
+    const walletProvider = modal.getWalletProvider()
+    if (!walletProvider) throw new Error('Wallet not connected')
     
-    const shares = ethers.utils.parseUnits(amountInput, 18);
-    console.log("📊 Shares:", shares.toString());
-
-    // Check balance
-    btn.innerHTML = '<span class="loader"></span> Checking...';
-    const balance = await vault.balanceOf(me);
-    const balanceFormatted = ethers.utils.formatUnits(balance, 18);
-
-    if (balance.lt(shares)) {
-      showMessage(`Insufficient shares. You have ${parseFloat(balanceFormatted).toFixed(4)}`, "error");
-      btn.disabled = false;
-      btn.innerText = "Confirm";
-      return;
+    provider = new ethers.providers.Web3Provider(walletProvider)
+    signer = provider.getSigner()
+    
+    const usdc = new ethers.Contract(CONFIG.usdc, ERC20_ABI, signer)
+    const comptroller = new ethers.Contract(CONFIG.comptrollerProxy, COMPTROLLER_ABI, signer)
+    
+    const depositAmount = ethers.utils.parseUnits(amountStr, 6) // USDC = 6 decimals
+    
+    console.log('📝 Deposit amount:', depositAmount.toString())
+    console.log('📝 Comptroller:', CONFIG.comptrollerProxy)
+    
+    // STEP 1: Check allowance on COMPTROLLER (not vault!)
+    setButtonLoading('depositBtn', true, 'Checking allowance...')
+    const allowance = await usdc.allowance(userAddress, CONFIG.comptrollerProxy)
+    console.log('🔐 Current allowance:', allowance.toString())
+    
+    // STEP 2: Approve if needed - APPROVE COMPTROLLER!
+    if (allowance.lt(depositAmount)) {
+      setButtonLoading('depositBtn', true, 'Approving USDC...')
+      showMessage('depositMessage', 'Please approve USDC spending in your wallet...', 'info')
+      
+      const approveTx = await usdc.approve(CONFIG.comptrollerProxy, ethers.constants.MaxUint256)
+      console.log('📝 Approve tx:', approveTx.hash)
+      
+      setButtonLoading('depositBtn', true, 'Waiting for approval...')
+      await approveTx.wait()
+      console.log('✅ Approval confirmed')
     }
-
-    // redeemSharesInKind
-    btn.innerHTML = '<span class="loader"></span> Redeeming...';
-    console.log("🚀 Calling redeemSharesInKind...");
     
-    const tx = await comptroller.redeemSharesInKind(
-      me,
-      shares,
-      [],
-      [],
+    // STEP 3: Calculate minShares (with 2.5% slippage tolerance)
+    const minShares = depositAmount.mul(975).div(1000)
+    console.log('📊 Min shares:', minShares.toString())
+    
+    // STEP 4: Buy shares
+    setButtonLoading('depositBtn', true, 'Depositing...')
+    showMessage('depositMessage', 'Please confirm the deposit in your wallet...', 'info')
+    
+    const tx = await comptroller.buyShares(depositAmount, minShares, {
+      gasLimit: 500000
+    })
+    console.log('📝 Deposit tx:', tx.hash)
+    
+    setButtonLoading('depositBtn', true, 'Confirming...')
+    const receipt = await tx.wait()
+    console.log('✅ Deposit confirmed! Block:', receipt.blockNumber)
+    
+    showMessage('depositMessage', `✅ Deposit successful! TX: ${tx.hash.slice(0,10)}...`, 'success')
+    document.getElementById('depositAmount').value = ''
+    
+    // Reload data
+    await loadUserData()
+    
+  } catch (e) {
+    console.error('❌ Deposit error:', e)
+    showMessage('depositMessage', e.reason || e.message || 'Transaction failed', 'error')
+  }
+  
+  setButtonLoading('depositBtn', false)
+}
+
+// ============================================
+// REDEEM FUNCTION
+// ============================================
+window.executeRedeem = async function() {
+  const amountStr = document.getElementById('redeemAmount').value
+  if (!amountStr || parseFloat(amountStr) <= 0) {
+    showMessage('redeemMessage', 'Please enter a valid amount', 'error')
+    return
+  }
+  
+  const amount = parseFloat(amountStr)
+  if (amount > userSharesBalance) {
+    showMessage('redeemMessage', 'Insufficient shares balance', 'error')
+    return
+  }
+  
+  hideMessage('redeemMessage')
+  setButtonLoading('redeemBtn', true, 'Preparing...')
+  
+  try {
+    // Get signer from AppKit
+    const walletProvider = modal.getWalletProvider()
+    if (!walletProvider) throw new Error('Wallet not connected')
+    
+    provider = new ethers.providers.Web3Provider(walletProvider)
+    signer = provider.getSigner()
+    
+    const comptroller = new ethers.Contract(CONFIG.comptrollerProxy, COMPTROLLER_ABI, signer)
+    
+    const sharesAmount = ethers.utils.parseUnits(amountStr, 18) // Shares = 18 decimals
+    
+    console.log('📝 Redeem shares:', sharesAmount.toString())
+    
+    // Use redeemSharesForSpecificAssets - get 100% in USDC
+    setButtonLoading('redeemBtn', true, 'Redeeming...')
+    showMessage('redeemMessage', 'Please confirm the redemption in your wallet...', 'info')
+    
+    const tx = await comptroller.redeemSharesForSpecificAssets(
+      userAddress,           // recipient
+      sharesAmount,          // shares to redeem
+      [CONFIG.usdc],         // payout assets (USDC)
+      [10000],               // 100% in basis points (10000 = 100%)
       { gasLimit: 600000 }
-    );
-    console.log("⏳ Tx:", tx.hash);
-
-    btn.innerHTML = '<span class="loader"></span> Confirming...';
-    await tx.wait();
+    )
+    console.log('📝 Redeem tx:', tx.hash)
     
-    console.log("🎉 SUCCESS!");
-    closeModal();
-    scanUser();
-    scanVault();
-    alert("✅ Redeem successful!\n\n" + tx.hash);
-
+    setButtonLoading('redeemBtn', true, 'Confirming...')
+    const receipt = await tx.wait()
+    console.log('✅ Redeem confirmed! Block:', receipt.blockNumber)
+    
+    showMessage('redeemMessage', `✅ Redemption successful! TX: ${tx.hash.slice(0,10)}...`, 'success')
+    document.getElementById('redeemAmount').value = ''
+    
+    // Reload data
+    await loadUserData()
+    
   } catch (e) {
-    console.error("❌ REDEEM ERROR:", e);
-    showMessage(e.message || "Transaction failed", "error");
-    btn.disabled = false;
-    btn.innerText = "Confirm";
+    console.error('❌ Redeem error:', e)
+    showMessage('redeemMessage', e.reason || e.message || 'Transaction failed', 'error')
   }
+  
+  setButtonLoading('redeemBtn', false)
 }
 
-window.addEventListener("DOMContentLoaded", initDashboard);
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+window.setMaxDeposit = function() {
+  document.getElementById('depositAmount').value = userUsdcBalance.toFixed(6)
+}
+
+window.setMaxRedeem = function() {
+  document.getElementById('redeemAmount').value = userSharesBalance.toFixed(6)
+}
+
+// ============================================
+// ACCOUNT SUBSCRIPTION
+// ============================================
+modal.subscribeAccount((account) => {
+  console.log('👤 Account changed:', account)
+  
+  if (account.isConnected && account.address) {
+    userAddress = account.address
+    showDashboard(true)
+    loadUserData()
+  } else {
+    userAddress = null
+    showDashboard(false)
+  }
+})
+
+// Check if already connected on page load
+const initialAccount = modal.getAddress()
+if (initialAccount) {
+  userAddress = initialAccount
+  showDashboard(true)
+  loadUserData()
+}
+
+console.log('🚀 G12 Dashboard initialized')
 </script>
+
 </body>
 </html>
