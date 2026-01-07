@@ -10,6 +10,13 @@
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 
+  <script>
+    window.global = window;
+    if (!window.process) {
+      window.process = { env: {} };
+    }
+  </script>
+
   <style>
     :root {
       --bg-app: #050505;
@@ -432,12 +439,17 @@
       color: var(--accent);
       text-decoration: none;
     }
+    
+    /* On force l'affichage du bouton AppKit sur mobile */
+    appkit-button {
+      display: block;
+      min-height: 40px;
+    }
   </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
 <header class="header">
   <div class="logo">
     <img src="fulllogo_transparent_nobuffer.png" alt="G12" onerror="this.style.display='none'" />
@@ -449,10 +461,8 @@
   </div>
 </header>
 
-<!-- MAIN CONTENT -->
 <main class="container">
 
-  <!-- NOT CONNECTED STATE -->
   <div id="notConnected" class="not-connected">
     <i class="ph ph-wallet"></i>
     <h2>Connect Your Wallet</h2>
@@ -460,16 +470,13 @@
     <appkit-button></appkit-button>
   </div>
 
-  <!-- CONNECTED STATE -->
   <div id="dashboard" style="display: none;">
     
-    <!-- WELCOME -->
     <div class="welcome">
       <h1>Welcome back</h1>
       <p>Manage your G12 vault investments</p>
     </div>
 
-    <!-- STATS -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">
@@ -508,10 +515,8 @@
       </div>
     </div>
 
-    <!-- ACTIONS -->
     <div class="actions-grid">
       
-      <!-- DEPOSIT -->
       <div class="action-card">
         <h3>📥 Deposit USDC</h3>
         <p>Deposit USDC to receive vault shares. Your shares represent your ownership in the vault.</p>
@@ -535,7 +540,6 @@
         </button>
       </div>
 
-      <!-- REDEEM -->
       <div class="action-card">
         <h3>📤 Redeem Shares</h3>
         <p>Redeem your vault shares to receive USDC back. You'll receive proportional value.</p>
@@ -561,7 +565,6 @@
 
     </div>
 
-    <!-- VAULT INFO -->
     <div class="info-card">
       <h3><i class="ph ph-info"></i> Vault Information</h3>
       <div class="info-row">
@@ -594,11 +597,10 @@
   G12 Labs · Powered by <a href="https://enzyme.finance" target="_blank">Enzyme Protocol</a> · Arbitrum
 </footer>
 
-<!-- SCRIPTS -->
 <script type="module">
-import { createAppKit } from 'https://esm.sh/@reown/appkit'
-import { EthersAdapter } from 'https://esm.sh/@reown/appkit-adapter-ethers'
-import { arbitrum } from 'https://esm.sh/@reown/appkit/networks'
+import { createAppKit } from 'https://esm.sh/@reown/appkit@latest?bundle'
+import { EthersAdapter } from 'https://esm.sh/@reown/appkit-adapter-ethers@latest?bundle'
+import { arbitrum } from 'https://esm.sh/@reown/appkit/networks?bundle'
 
 // ============================================
 // CONFIGURATION
@@ -624,7 +626,6 @@ const VAULT_ABI = [
   'function totalSupply() view returns (uint256)'
 ]
 
-// IMPORTANT: buyShares prend 2 paramètres selon la doc Enzyme
 const COMPTROLLER_ABI = [
   'function buyShares(uint256 _investmentAmount, uint256 _minSharesQuantity) returns (uint256 sharesReceived_)',
   'function redeemSharesForSpecificAssets(address _recipient, uint256 _sharesQuantity, address[] _payoutAssets, uint256[] _payoutAssetPercentages) returns (address[] payoutAssets_, uint256[] payoutAmounts_)'
@@ -640,29 +641,201 @@ const metadata = {
   icons: ['https://guiguig12.github.io/TEST/fulllogo_transparent_nobuffer.png']
 }
 
-const modal = createAppKit({
-  adapters: [new EthersAdapter()],
-  networks: [arbitrum],
-  projectId: CONFIG.projectId,
-  metadata,
-  features: {
-    analytics: true,
-    email: true,
-    socials: ['google', 'apple', 'discord'],
-    onramp: true,
-    swaps: true
-  },
-  themeMode: 'dark'
-})
+let modal;
+try {
+    modal = createAppKit({
+      adapters: [new EthersAdapter()],
+      networks: [arbitrum],
+      projectId: CONFIG.projectId,
+      metadata,
+      features: {
+        analytics: true,
+        email: true,
+        socials: ['google', 'apple', 'discord'],
+        onramp: true,
+        swaps: true
+      },
+      themeMode: 'dark'
+    })
+} catch (e) {
+    console.error("AppKit Init Error:", e)
+}
 
 // ============================================
 // GLOBAL STATE
 // ============================================
 let userAddress = null
-let provider = null
-let signer = null
 let userUsdcBalance = 0
 let userSharesBalance = 0
+
+// Provider public pour la LECTURE
+const publicProvider = new ethers.providers.JsonRpcProvider(CONFIG.rpc)
+
+// ============================================
+// DATA LOADING
+// ============================================
+async function loadUserData() {
+  if (!userAddress) return
+  
+  try {
+    // Utilisation du RPC public
+    const vault = new ethers.Contract(CONFIG.vaultProxy, VAULT_ABI, publicProvider)
+    const usdc = new ethers.Contract(CONFIG.usdc, ERC20_ABI, publicProvider)
+    
+    const [shares, usdcBal, totalSupply] = await Promise.all([
+      vault.balanceOf(userAddress),
+      usdc.balanceOf(userAddress),
+      vault.totalSupply()
+    ])
+    
+    userSharesBalance = parseFloat(ethers.utils.formatUnits(shares, 18))
+    userUsdcBalance = parseFloat(ethers.utils.formatUnits(usdcBal, 6))
+    
+    // Update UI
+    document.getElementById('userShares').textContent = userSharesBalance.toFixed(4)
+    document.getElementById('userValue').textContent = `~$${userSharesBalance.toFixed(2)}`
+    document.getElementById('usdcBalance').textContent = userUsdcBalance.toFixed(2)
+    document.getElementById('vaultSupply').textContent = parseFloat(ethers.utils.formatUnits(totalSupply, 18)).toFixed(2)
+    
+  } catch (e) {
+    console.error('❌ Error loading data:', e)
+  }
+}
+
+// ============================================
+// DEPOSIT FUNCTION
+// ============================================
+window.executeDeposit = async function() {
+  const amountStr = document.getElementById('depositAmount').value
+  if (!amountStr || parseFloat(amountStr) <= 0) {
+    showMessage('depositMessage', 'Please enter a valid amount', 'error')
+    return
+  }
+  
+  hideMessage('depositMessage')
+  setButtonLoading('depositBtn', true, 'Initializing...')
+  
+  try {
+    const walletProvider = modal.getWalletProvider()
+    if (!walletProvider) throw new Error('Wallet not connected')
+    
+    const ethersProvider = new ethers.providers.Web3Provider(walletProvider)
+    const signer = ethersProvider.getSigner()
+    
+    // Network Check
+    const network = await ethersProvider.getNetwork()
+    if (network.chainId !== 42161) { 
+       await modal.switchNetwork(arbitrum)
+       await new Promise(r => setTimeout(r, 1000));
+    }
+
+    const depositAmount = ethers.utils.parseUnits(amountStr, 6)
+
+    // Check Allowance via PUBLIC RPC
+    setButtonLoading('depositBtn', true, 'Checking allowance...')
+    const publicUsdc = new ethers.Contract(CONFIG.usdc, ERC20_ABI, publicProvider)
+    const allowance = await publicUsdc.allowance(userAddress, CONFIG.comptrollerProxy)
+    
+    if (allowance.lt(depositAmount)) {
+      setButtonLoading('depositBtn', true, 'Approve in Wallet...')
+      showMessage('depositMessage', 'Please approve USDC usage in your wallet', 'info')
+      
+      const signerUsdc = new ethers.Contract(CONFIG.usdc, ERC20_ABI, signer)
+      const approveTx = await signerUsdc.approve(CONFIG.comptrollerProxy, ethers.constants.MaxUint256)
+      
+      setButtonLoading('depositBtn', true, 'Approving...')
+      await approveTx.wait()
+    }
+    
+    // Deposit
+    const minShares = depositAmount.mul(975).div(1000)
+    const comptroller = new ethers.Contract(CONFIG.comptrollerProxy, COMPTROLLER_ABI, signer)
+    
+    setButtonLoading('depositBtn', true, 'Sign Deposit...')
+    showMessage('depositMessage', 'Please confirm deposit in your wallet', 'info')
+    
+    // Estimate Gas + 20%
+    let gasLimit;
+    try {
+        gasLimit = await comptroller.estimateGas.buyShares(depositAmount, minShares);
+        gasLimit = gasLimit.mul(120).div(100); 
+    } catch(e) {
+        gasLimit = 2000000; // Fallback
+    }
+
+    const tx = await comptroller.buyShares(depositAmount, minShares, { gasLimit })
+    
+    setButtonLoading('depositBtn', true, 'Confirming...')
+    await tx.wait()
+    
+    showMessage('depositMessage', `✅ Deposit successful!`, 'success')
+    document.getElementById('depositAmount').value = ''
+    await loadUserData()
+    
+  } catch (e) {
+    console.error('Deposit Error:', e)
+    let msg = e.reason || e.message || 'Transaction failed';
+    if(msg.includes("user rejected")) msg = "User rejected transaction";
+    showMessage('depositMessage', msg, 'error')
+  }
+  
+  setButtonLoading('depositBtn', false)
+}
+
+// ============================================
+// REDEEM FUNCTION
+// ============================================
+window.executeRedeem = async function() {
+  const amountStr = document.getElementById('redeemAmount').value
+  if (!amountStr || parseFloat(amountStr) <= 0) return
+  
+  hideMessage('redeemMessage')
+  setButtonLoading('redeemBtn', true, 'Initializing...')
+  
+  try {
+    const walletProvider = modal.getWalletProvider()
+    const ethersProvider = new ethers.providers.Web3Provider(walletProvider)
+    const signer = ethersProvider.getSigner()
+    
+    const network = await ethersProvider.getNetwork()
+    if (network.chainId !== 42161) await modal.switchNetwork(arbitrum);
+
+    const comptroller = new ethers.Contract(CONFIG.comptrollerProxy, COMPTROLLER_ABI, signer)
+    const sharesAmount = ethers.utils.parseUnits(amountStr, 18)
+    
+    setButtonLoading('redeemBtn', true, 'Sign Redeem...')
+    showMessage('redeemMessage', 'Please confirm redeem in your wallet', 'info')
+    
+    // Estimate Gas + 20%
+    let gasLimit;
+    try {
+        gasLimit = await comptroller.estimateGas.redeemSharesForSpecificAssets(
+          userAddress, sharesAmount, [CONFIG.usdc], [10000]
+        );
+        gasLimit = gasLimit.mul(120).div(100); 
+    } catch(e) {
+        gasLimit = 2000000; 
+    }
+
+    const tx = await comptroller.redeemSharesForSpecificAssets(
+      userAddress, sharesAmount, [CONFIG.usdc], [10000], 
+      { gasLimit }
+    )
+    
+    setButtonLoading('redeemBtn', true, 'Confirming...')
+    await tx.wait()
+    
+    showMessage('redeemMessage', `✅ Redeem successful!`, 'success')
+    document.getElementById('redeemAmount').value = ''
+    await loadUserData()
+    
+  } catch (e) {
+    console.error('Redeem Error:', e)
+    showMessage('redeemMessage', e.reason || 'Transaction failed', 'error')
+  }
+  
+  setButtonLoading('redeemBtn', false)
+}
 
 // ============================================
 // UI HELPERS
@@ -690,211 +863,18 @@ function setButtonLoading(btnId, loading, text = '') {
   } else {
     btn.disabled = false
     btn.innerHTML = btnId === 'depositBtn' 
-      ? '<i class="ph ph-arrow-down"></i> Deposit'
+      ? '<i class="ph ph-arrow-down"></i> Deposit' 
       : '<i class="ph ph-arrow-up"></i> Redeem'
   }
 }
 
-// ============================================
-// DATA LOADING
-// ============================================
-async function loadUserData() {
-  if (!userAddress) return
-  
-  try {
-    const rpcProvider = new ethers.providers.JsonRpcProvider(CONFIG.rpc)
-    const vault = new ethers.Contract(CONFIG.vaultProxy, VAULT_ABI, rpcProvider)
-    const usdc = new ethers.Contract(CONFIG.usdc, ERC20_ABI, rpcProvider)
-    
-    // Fetch all data
-    const [shares, usdcBal, totalSupply] = await Promise.all([
-      vault.balanceOf(userAddress),
-      usdc.balanceOf(userAddress),
-      vault.totalSupply()
-    ])
-    
-    // Store for later
-    userSharesBalance = parseFloat(ethers.utils.formatUnits(shares, 18))
-    userUsdcBalance = parseFloat(ethers.utils.formatUnits(usdcBal, 6))
-    
-    // Update UI
-    document.getElementById('userShares').textContent = userSharesBalance.toFixed(4)
-    document.getElementById('userValue').textContent = `~$${userSharesBalance.toFixed(2)}`
-    document.getElementById('usdcBalance').textContent = userUsdcBalance.toFixed(2)
-    document.getElementById('vaultSupply').textContent = parseFloat(ethers.utils.formatUnits(totalSupply, 18)).toFixed(2)
-    
-    console.log('✅ Data loaded:', { userSharesBalance, userUsdcBalance })
-    
-  } catch (e) {
-    console.error('❌ Error loading data:', e)
-  }
-}
+window.setMaxDeposit = () => document.getElementById('depositAmount').value = userUsdcBalance.toFixed(6)
+window.setMaxRedeem = () => document.getElementById('redeemAmount').value = userSharesBalance.toFixed(6)
 
 // ============================================
-// DEPOSIT FUNCTION
-// ============================================
-window.executeDeposit = async function() {
-  const amountStr = document.getElementById('depositAmount').value
-  if (!amountStr || parseFloat(amountStr) <= 0) {
-    showMessage('depositMessage', 'Please enter a valid amount', 'error')
-    return
-  }
-  
-  const amount = parseFloat(amountStr)
-  if (amount > userUsdcBalance) {
-    showMessage('depositMessage', 'Insufficient USDC balance', 'error')
-    return
-  }
-  
-  hideMessage('depositMessage')
-  setButtonLoading('depositBtn', true, 'Preparing...')
-  
-  try {
-    // Get signer from AppKit
-    const walletProvider = modal.getWalletProvider()
-    if (!walletProvider) throw new Error('Wallet not connected')
-    
-    provider = new ethers.providers.Web3Provider(walletProvider)
-    signer = provider.getSigner()
-    
-    const usdc = new ethers.Contract(CONFIG.usdc, ERC20_ABI, signer)
-    const comptroller = new ethers.Contract(CONFIG.comptrollerProxy, COMPTROLLER_ABI, signer)
-    
-    const depositAmount = ethers.utils.parseUnits(amountStr, 6) // USDC = 6 decimals
-    
-    console.log('📝 Deposit amount:', depositAmount.toString())
-    console.log('📝 Comptroller:', CONFIG.comptrollerProxy)
-    
-    // STEP 1: Check allowance on COMPTROLLER (not vault!)
-    setButtonLoading('depositBtn', true, 'Checking allowance...')
-    const allowance = await usdc.allowance(userAddress, CONFIG.comptrollerProxy)
-    console.log('🔐 Current allowance:', allowance.toString())
-    
-    // STEP 2: Approve if needed - APPROVE COMPTROLLER!
-    if (allowance.lt(depositAmount)) {
-      setButtonLoading('depositBtn', true, 'Approving USDC...')
-      showMessage('depositMessage', 'Please approve USDC spending in your wallet...', 'info')
-      
-      const approveTx = await usdc.approve(CONFIG.comptrollerProxy, ethers.constants.MaxUint256)
-      console.log('📝 Approve tx:', approveTx.hash)
-      
-      setButtonLoading('depositBtn', true, 'Waiting for approval...')
-      await approveTx.wait()
-      console.log('✅ Approval confirmed')
-    }
-    
-    // STEP 3: Calculate minShares (with 2.5% slippage tolerance)
-    const minShares = depositAmount.mul(975).div(1000)
-    console.log('📊 Min shares:', minShares.toString())
-    
-    // STEP 4: Buy shares
-    setButtonLoading('depositBtn', true, 'Depositing...')
-    showMessage('depositMessage', 'Please confirm the deposit in your wallet...', 'info')
-    
-    const tx = await comptroller.buyShares(depositAmount, minShares, {
-      gasLimit: 500000
-    })
-    console.log('📝 Deposit tx:', tx.hash)
-    
-    setButtonLoading('depositBtn', true, 'Confirming...')
-    const receipt = await tx.wait()
-    console.log('✅ Deposit confirmed! Block:', receipt.blockNumber)
-    
-    showMessage('depositMessage', `✅ Deposit successful! TX: ${tx.hash.slice(0,10)}...`, 'success')
-    document.getElementById('depositAmount').value = ''
-    
-    // Reload data
-    await loadUserData()
-    
-  } catch (e) {
-    console.error('❌ Deposit error:', e)
-    showMessage('depositMessage', e.reason || e.message || 'Transaction failed', 'error')
-  }
-  
-  setButtonLoading('depositBtn', false)
-}
-
-// ============================================
-// REDEEM FUNCTION
-// ============================================
-window.executeRedeem = async function() {
-  const amountStr = document.getElementById('redeemAmount').value
-  if (!amountStr || parseFloat(amountStr) <= 0) {
-    showMessage('redeemMessage', 'Please enter a valid amount', 'error')
-    return
-  }
-  
-  const amount = parseFloat(amountStr)
-  if (amount > userSharesBalance) {
-    showMessage('redeemMessage', 'Insufficient shares balance', 'error')
-    return
-  }
-  
-  hideMessage('redeemMessage')
-  setButtonLoading('redeemBtn', true, 'Preparing...')
-  
-  try {
-    // Get signer from AppKit
-    const walletProvider = modal.getWalletProvider()
-    if (!walletProvider) throw new Error('Wallet not connected')
-    
-    provider = new ethers.providers.Web3Provider(walletProvider)
-    signer = provider.getSigner()
-    
-    const comptroller = new ethers.Contract(CONFIG.comptrollerProxy, COMPTROLLER_ABI, signer)
-    
-    const sharesAmount = ethers.utils.parseUnits(amountStr, 18) // Shares = 18 decimals
-    
-    console.log('📝 Redeem shares:', sharesAmount.toString())
-    
-    // Use redeemSharesForSpecificAssets - get 100% in USDC
-    setButtonLoading('redeemBtn', true, 'Redeeming...')
-    showMessage('redeemMessage', 'Please confirm the redemption in your wallet...', 'info')
-    
-    const tx = await comptroller.redeemSharesForSpecificAssets(
-      userAddress,           // recipient
-      sharesAmount,          // shares to redeem
-      [CONFIG.usdc],         // payout assets (USDC)
-      [10000],               // 100% in basis points (10000 = 100%)
-      { gasLimit: 600000 }
-    )
-    console.log('📝 Redeem tx:', tx.hash)
-    
-    setButtonLoading('redeemBtn', true, 'Confirming...')
-    const receipt = await tx.wait()
-    console.log('✅ Redeem confirmed! Block:', receipt.blockNumber)
-    
-    showMessage('redeemMessage', `✅ Redemption successful! TX: ${tx.hash.slice(0,10)}...`, 'success')
-    document.getElementById('redeemAmount').value = ''
-    
-    // Reload data
-    await loadUserData()
-    
-  } catch (e) {
-    console.error('❌ Redeem error:', e)
-    showMessage('redeemMessage', e.reason || e.message || 'Transaction failed', 'error')
-  }
-  
-  setButtonLoading('redeemBtn', false)
-}
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-window.setMaxDeposit = function() {
-  document.getElementById('depositAmount').value = userUsdcBalance.toFixed(6)
-}
-
-window.setMaxRedeem = function() {
-  document.getElementById('redeemAmount').value = userSharesBalance.toFixed(6)
-}
-
-// ============================================
-// ACCOUNT SUBSCRIPTION
+// SUBSCRIPTION
 // ============================================
 modal.subscribeAccount((account) => {
-  console.log('👤 Account changed:', account)
-  
   if (account.isConnected && account.address) {
     userAddress = account.address
     showDashboard(true)
@@ -905,15 +885,12 @@ modal.subscribeAccount((account) => {
   }
 })
 
-// Check if already connected on page load
-const initialAccount = modal.getAddress()
-if (initialAccount) {
-  userAddress = initialAccount
-  showDashboard(true)
-  loadUserData()
+// Check initial state
+if (modal.getAddress()) {
+    userAddress = modal.getAddress();
+    showDashboard(true);
+    loadUserData();
 }
-
-console.log('🚀 G12 Dashboard initialized')
 </script>
 
 </body>
