@@ -4,346 +4,187 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>G12 Labs — Partner Login</title>
-
+  
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
   <style>
     :root {
       --font-sans: 'Inter', sans-serif;
-      --bg-app: #050505;
-      --card-bg: #0f0f0f;
+      --bg-app: #050505;       
+      --card-bg: #0f0f0f; 
       --card-border: #1f1f1f;
       --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
       --text-main: #ededed; --text-muted: #a1a1a1; --text-soft: #525252;
-      --input-bg: #0a0a0a; --input-border: #262626; --input-focus: #4ee5c1;
       --accent-teal: #4ee5c1; --accent-mint: #a8ffc8;
-      --accent-grad: linear-gradient(90deg, var(--accent-teal), var(--accent-mint));
-      --btn-surface: #171717; --btn-surface-hover: #262626;
     }
 
     * { box-sizing: border-box; }
-    body {
+    body { 
       margin: 0; font-family: var(--font-sans); background-color: var(--bg-app); color: var(--text-main);
       display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem;
     }
-
+    
     .login-card {
-      background: var(--card-bg); width: 100%; max-width: 420px; padding: 2.5rem;
+      background: var(--card-bg); width: 100%; max-width: 420px; padding: 2.5rem; 
       border-radius: 1rem; border: 1px solid var(--card-border);
       box-shadow: var(--card-shadow); text-align: center;
     }
-
+    
     .logo-area { margin-bottom: 2rem; display: flex; justify-content: center; }
     .logo-img { width: 160px; height: auto; display: block; }
 
     .login-title { font-size: 1.4rem; font-weight: 700; margin: 0 0 0.5rem 0; color: var(--text-main); }
     .login-subtitle { font-size: 0.9rem; color: var(--text-muted); margin: 0 0 2rem 0; line-height: 1.5; }
 
-    .form-group { margin-bottom: 1.2rem; text-align: left; }
-    .form-label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-muted); }
+    .connect-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
 
-    .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
-
-    .form-input {
-      width: 100%; padding: 0.75rem 1rem; padding-right: 45px;
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-top: 1rem;
+      text-align: left;
+      width: 100%;
+      padding: 1rem;
+      background: rgba(78, 229, 193, 0.05);
       border-radius: 0.5rem;
-      background: var(--input-bg); border: 1px solid var(--input-border);
-      color: var(--text-main); font-size: 0.95rem; font-family: inherit;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      z-index: 1;
-    }
-    .form-input:focus { outline: none; border-color: var(--input-focus); box-shadow: 0 0 0 2px rgba(78, 229, 193, 0.1); }
-    .form-input::-ms-reveal, .form-input::-ms-clear { display: none; }
-
-    .password-toggle {
-      position: absolute; right: 0; top: 0; height: 100%; width: 45px;
-      background: transparent; border: none; color: var(--text-soft);
-      cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center;
-      transition: color 0.2s; z-index: 10;
-    }
-    .password-toggle:hover { color: var(--text-main); }
-
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-      width: 100%; padding: 0.85rem; border-radius: 999px;
-      font-weight: 600; font-size: 0.95rem; cursor: pointer;
-      border: 1px solid transparent; transition: all 0.2s; text-decoration: none;
+      border: 1px solid rgba(78, 229, 193, 0.1);
     }
 
-    .btn-primary {
-      background: var(--accent-grad); color: #050505; margin-top: 0.5rem;
-    }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(78, 229, 193, 0.2); }
-    .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
-
-    .error-msg {
-      color: #ef4444; font-size: 0.85rem; margin-bottom: 1rem; display: none;
-      background: rgba(239, 68, 68, 0.1); padding: 0.5rem; border-radius: 0.3rem; border: 1px solid rgba(239, 68, 68, 0.2);
-      word-break: break-word;
-    }
-    .status-msg {
-      color: var(--accent-teal); font-size: 0.85rem; margin-bottom: 1rem; display: none;
-      background: rgba(78, 229, 193, 0.1); padding: 0.5rem; border-radius: 0.3rem; border: 1px solid rgba(78, 229, 193, 0.2);
-      word-break: break-word;
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
     }
 
-    .divider {
-      display: flex; align-items: center; gap: 1rem; margin: 1.8rem 0;
-      color: var(--text-soft); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
+    .feature-item i {
+      color: var(--accent-teal);
+      font-size: 1rem;
     }
-    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--input-border); }
 
-    .social-grid { display: grid; gap: 0.8rem; }
-    .btn-secondary {
-      background: var(--btn-surface); color: var(--text-main); border: 1px solid var(--card-border); font-weight: 500;
+    .footer-link { 
+      margin-top: 2rem; 
+      display: block; 
+      font-size: 0.85rem; 
+      color: var(--text-muted); 
     }
-    .btn-secondary:hover { background: var(--btn-surface-hover); border-color: var(--text-muted); }
-    .btn-secondary i { font-size: 1.2rem; }
+    .footer-link a { 
+      color: var(--accent-teal); 
+      text-decoration: none; 
+      font-weight: 500; 
+    }
+    .footer-link a:hover { 
+      text-decoration: underline; 
+    }
 
-    .footer-link { margin-top: 2rem; display: block; font-size: 0.85rem; color: var(--text-muted); }
-    .footer-link a { color: var(--accent-teal); text-decoration: none; font-weight: 500; }
-    .footer-link a:hover { text-decoration: underline; }
+    #status {
+      margin-top: 1rem;
+      padding: 10px 15px;
+      background: rgba(78, 229, 193, 0.1);
+      border: 1px solid rgba(78, 229, 193, 0.2);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--accent-teal);
+      display: none;
+    }
   </style>
 </head>
-
 <body>
+
   <div class="login-card">
     <div class="logo-area">
       <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="logo-img" />
     </div>
+    
+    <h1 class="login-title">Welcome to G12 Labs</h1>
+    <p class="login-subtitle">Connect to access your investment dashboard.</p>
 
-    <h1 class="login-title">Welcome back</h1>
-    <p class="login-subtitle">Enter your credentials to access your dashboard.</p>
+    <div class="connect-section">
+      <!-- Bouton AppKit -->
+      <appkit-button></appkit-button>
 
-    <div id="errorBox" class="error-msg"></div>
-    <div id="statusBox" class="status-msg"></div>
+      <div id="status"></div>
 
-    <form id="loginForm">
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <input type="email" id="email" class="form-input" placeholder="partner@example.com" required>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" style="display:flex; justify-content:space-between;">Password</label>
-        <div class="input-wrapper">
-          <input type="password" id="password" class="form-input" placeholder="••••••••" required>
-          <button type="button" id="togglePassword" class="password-toggle" title="Show password">
-            <i class="ph ph-eye"></i>
-          </button>
+      <div class="features-list">
+        <div class="feature-item">
+          <i class="ph ph-check-circle"></i>
+          <span>Google, Apple, Discord login</span>
+        </div>
+        <div class="feature-item">
+          <i class="ph ph-check-circle"></i>
+          <span>Email login (no wallet needed)</span>
+        </div>
+        <div class="feature-item">
+          <i class="ph ph-check-circle"></i>
+          <span>MetaMask, Rabby, 600+ wallets</span>
+        </div>
+        <div class="feature-item">
+          <i class="ph ph-check-circle"></i>
+          <span>Buy crypto directly with card</span>
         </div>
       </div>
-
-      <button type="submit" class="btn btn-primary">Sign In</button>
-    </form>
-
-    <div class="divider">Or connect via Web3</div>
-
-    <div class="social-grid">
-      <button type="button" id="walletLoginBtn" class="btn btn-secondary" style="border-color: var(--accent-teal); color: var(--accent-teal);">
-        <i class="ph ph-wallet"></i> Connect Wallet
-      </button>
     </div>
 
-    <p style="text-align:center; font-size:0.8rem; color:var(--text-soft); margin-top:0.8rem;">
-      No account needed. Just connect.
-    </p>
-
     <div class="footer-link">
-      Don't have an invite yet? <a href="signup.html">Apply for access</a>
+      New here? <a href="access.html">Learn about G12</a>
     </div>
   </div>
 
-  <script type="module">
-    // ==============================================================
-    // IMPORTS
-    // ==============================================================
-    import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers@4.0.0'
-    import { ethers } from "https://esm.sh/ethers@5.7.2"
-    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+<script type="module">
+  import { createAppKit } from 'https://esm.sh/@reown/appkit'
+  import { EthersAdapter } from 'https://esm.sh/@reown/appkit-adapter-ethers'
+  import { arbitrum, base } from 'https://esm.sh/@reown/appkit/networks'
 
-    // ==============================================================
-    // CONFIG
-    // ==============================================================
-    const projectRef = "ucrvaqztvfnphhoqcbpo";
-    const functionsBase = `https://${projectRef}.supabase.co/functions/v1`;
+  const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c'
 
-    // Email/password login (optionnel)
-    const supabaseUrl = `https://${projectRef}.supabase.co`;
-    const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcnZhcXp0dmZucGhob3FjYnBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTY2MzQsImV4cCI6MjA4MjkzMjYzNH0.l_983umaG_ojeDjXJ4DqWhPNEw9RotNApGLpl_ASkZk";
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+  const metadata = {
+    name: 'G12 Labs',
+    description: 'Investissement DeFi simplifié',
+    url: 'https://guiguig12.github.io',
+    icons: ['https://guiguig12.github.io/TEST/fulllogo_transparent_nobuffer.png']
+  }
 
-    // WalletConnect / Web3Modal
-    const wcProjectId = '5f9c4ad6a6cadf402f5815fa8f07308c';
+  const modal = createAppKit({
+    adapters: [new EthersAdapter()],
+    networks: [arbitrum, base],
+    projectId,
+    metadata,
+    features: {
+      analytics: true,
+      email: true,
+      socials: ['google', 'apple', 'discord'],
+      onramp: true,
+      swaps: true
+    },
+    themeMode: 'dark'
+  })
 
-    const metadata = {
-      name: 'G12 Labs',
-      description: 'Institutional DeFi Access',
-      url: window.location.origin,
-      icons: ['https://avatars.githubusercontent.com/u/37784886']
-    };
-
-    const modal = createWeb3Modal({
-      ethersConfig: defaultConfig({ metadata }),
-      chains: [
-        { chainId: 1, name: 'Ethereum', currency: 'ETH', explorerUrl: 'https://etherscan.io', rpcUrl: 'https://cloudflare-eth.com' },
-        { chainId: 137, name: 'Polygon', currency: 'MATIC', explorerUrl: 'https://polygonscan.com', rpcUrl: 'https://polygon-rpc.com' }
-      ],
-      projectId: wcProjectId,
-      themeMode: 'dark'
-    });
-
-    // ==============================================================
-    // UI helpers
-    // ==============================================================
-    const statusBox = document.getElementById('statusBox');
-    const errorBox = document.getElementById('errorBox');
-    const walletBtn = document.getElementById('walletLoginBtn');
-
-    function showStatus(msg) {
-      statusBox.style.display = 'block';
-      statusBox.textContent = msg;
-      errorBox.style.display = 'none';
+  // Quand l'utilisateur se connecte → redirection vers dashboard
+  modal.subscribeAccount((account) => {
+    const statusDiv = document.getElementById('status')
+    
+    if (account.isConnected && account.address) {
+      statusDiv.style.display = 'block'
+      statusDiv.innerHTML = '✅ Connected! Redirecting...'
+      
+      // Sauvegarder l'adresse
+      localStorage.setItem('g12_wallet', account.address)
+      
+      // Rediriger vers le dashboard après 1 seconde
+      setTimeout(() => {
+        window.location.href = 'dashboard.html'
+      }, 1000)
     }
+  })
+</script>
 
-    function showError(msg) {
-      statusBox.style.display = 'none';
-      errorBox.style.display = 'block';
-      errorBox.textContent = msg;
-    }
-
-    async function postJson(url, body) {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
-      return json;
-    }
-
-    // ✅ IMPORTANT: was missing in your file (caused button to "not work")
-    let isProcessing = false;
-
-    // ==============================================================
-    // WALLET LOGIN
-    // ==============================================================
-    walletBtn.addEventListener("click", async () => {
-      if (isProcessing) return;
-      isProcessing = true;
-      walletBtn.disabled = true;
-
-      try {
-        showStatus("Opening wallet selector...");
-
-        await modal.open();
-
-        // Wait provider
-        showStatus("Waiting for wallet connection (scan QR + approve)...");
-        let provider = null;
-        const start = Date.now();
-        while (!provider) {
-          provider = modal.getWalletProvider();
-          if (provider) break;
-          if (Date.now() - start > 90000) {
-            throw new Error("Wallet not connected (timeout). Scan the QR and approve in your wallet.");
-          }
-          await new Promise(r => setTimeout(r, 300));
-        }
-
-        const web3Provider = new ethers.providers.Web3Provider(provider);
-
-        // Wait address (authorization)
-        const signer = web3Provider.getSigner();
-        let address = "";
-        const start2 = Date.now();
-        while (!address) {
-          try { address = (await signer.getAddress()).toLowerCase(); } catch {}
-          if (address) break;
-          if (Date.now() - start2 > 90000) {
-            throw new Error("Wallet connected but not authorized. Approve the connection in your wallet.");
-          }
-          await new Promise(r => setTimeout(r, 300));
-        }
-
-        const network = await web3Provider.getNetwork();
-        const chainId = network?.chainId || 1;
-
-        showStatus("Requesting nonce...");
-        const nonceData = await postJson(`${functionsBase}/get-nonce`, { address });
-
-        showStatus("Please sign the message in your wallet...");
-        const signature = await signer.signMessage(nonceData.message);
-
-        showStatus("Logging in...");
-        const loginData = await postJson(`${functionsBase}/web3-login`, {
-          address,
-          signature,
-          chain_id: chainId
-        });
-
-        localStorage.setItem("g12_token", loginData.token);
-        localStorage.setItem("g12_user_id", loginData.user_id);
-        localStorage.setItem("g12_wallet", address);
-        localStorage.setItem("g12_expires_at", loginData.expires_at);
-
-        showStatus("Access granted. Redirecting...");
-        window.location.href = "dashboard.html";
-
-      } catch (err) {
-        console.error(err);
-        showError("Wallet login failed: " + (err?.message || String(err)));
-      } finally {
-        isProcessing = false;
-        walletBtn.disabled = false;
-      }
-    });
-
-    // ==============================================================
-    // EMAIL/PASSWORD LOGIN (optional)
-    // ==============================================================
-    const form = document.getElementById('loginForm');
-    const toggleBtn = document.getElementById('togglePassword');
-    const passInput = document.getElementById('password');
-
-    if (toggleBtn && passInput) {
-      toggleBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passInput.setAttribute('type', type);
-        const icon = toggleBtn.querySelector('i');
-        icon.className = type === 'password' ? 'ph ph-eye' : 'ph ph-eye-slash';
-      });
-    }
-
-    if (form) {
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        errorBox.style.display = 'none';
-        statusBox.style.display = 'none';
-
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const btn = form.querySelector('button[type="submit"]');
-        const originalText = btn.textContent;
-
-        btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Signing in...';
-        btn.disabled = true;
-
-        try {
-          const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-          window.location.href = 'dashboard.html';
-        } catch (err) {
-          showError("Login failed: " + (err?.message || String(err)));
-          btn.innerHTML = originalText;
-          btn.disabled = false;
-        }
-      });
-    }
-  </script>
 </body>
 </html>
