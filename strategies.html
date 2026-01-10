@@ -135,7 +135,7 @@
     }
 
     .nav-brand-logo {
-      height: 1.4rem;
+      height: 2rem;
       width: auto;
     }
 
@@ -232,7 +232,14 @@
     .nav-toggle[aria-expanded='true'] span:nth-child(3) { bottom: auto; top: 50%; transform: translateY(-50%) rotate(-45deg); }
 
     @media (min-width: 64rem) {
-      .nav-links, .nav-cta { display: flex; }
+      .nav-links {
+        display: flex;
+        /* C'est ici que la magie opère pour le centrage absolu */
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .nav-cta { display: flex; }
       .nav-toggle { display: none; }
     }
 
@@ -267,7 +274,6 @@
     }
     body.menu-open { overflow: hidden; }
     @media (min-width: 64rem) { .nav-menu { display: none !important; } }
-
 
     /* =========================================
        STRATEGIES PAGE LAYOUT
@@ -458,13 +464,13 @@
     <div class="nav-shell">
       <div class="nav-inner">
         <a href="index.html" class="nav-brand">
-          <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="nav-brand-logo" />
+          <img src="logo_g12.svg" alt="G12 Labs" class="nav-brand-logo" />
         </a>
 
         <nav class="nav-links" aria-label="Main navigation">
           <a href="strategies.html">Strategies</a>
           <a href="blog.html">Journal</a>
-          <a href="docs.html" target="_blank">Docs</a>
+          <a href="docs.html" target="_blank">Lite paper</a>
         </nav>
 
         <div class="nav-cta">
@@ -488,7 +494,7 @@
       <div class="nav-menu-content">
         <a href="strategies.html">Strategies</a>
         <a href="blog.html">Journal</a>
-        <a href="docs.html" target="_blank">Docs</a>
+        <a href="docs.html" target="_blank">Lite paper</a>
         
         <div class="nav-menu-secondary">
           <div class="lang-switch">
@@ -673,7 +679,7 @@
           <ul class="footer-links-list">
             <li><a href="blog.html">Journal</a></li>
             <li><a href="access.html">Access</a></li>
-            <li><a href="https://github.com/G12-Labs" target="_blank">Documentation</a></li>
+            <li><a href="docs.html" target="_blank">Documentation</a></li>
           </ul>
         </div>
         <div class="footer-column">
