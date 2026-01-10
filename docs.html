@@ -80,62 +80,149 @@
     strong { color: var(--text-main); font-weight: 600; }
 
     /* =========================================
-       NAVBAR STYLES (STRICT COPY FROM INDEX)
+       NAVBAR STYLES (EXACT COPY FROM INDEX)
        ========================================= */
     .site-header {
-      position: fixed; inset-inline: 0; top: 0; height: var(--nav-height); z-index: 1000;
+      position: fixed;
+      inset-inline: 0;
+      top: 0;
+      height: var(--nav-height);
+      z-index: 1000; /* Z-index élevé pour passer au dessus du Hero */
     }
 
     .nav-shell {
-      height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
     }
 
     .nav-inner {
-      width: 100%; max-width: var(--container-max); padding-inline: var(--page-padding-x);
-      display: flex; align-items: center; justify-content: space-between;
-      border-radius: 999px; background: var(--nav-bg); backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.06); margin-block: 3rem; padding-block: 0.6rem;
-      transition: all var(--dur-normal) var(--ease-standard);
-      pointer-events: auto; box-shadow: 0 5px 15px rgba(10, 10, 10, 0.536);
-      position: relative; z-index: 200;
+      width: 100%;
+      max-width: var(--container-max);
+      padding-inline: var(--page-padding-x);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 999px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      margin-block: 3rem;
+      padding-block: 0.6rem;
+      transition:
+        background var(--dur-normal) var(--ease-standard),
+        border-color var(--dur-normal) var(--ease-standard),
+        transform var(--dur-normal) var(--ease-standard);
+      pointer-events: auto;
+      box-shadow: 0 5px 15px rgba(10, 10, 10, 0.536);
+      position: relative;
+      z-index: 200;
+    }
+
+    @media (max-width: 63.99rem) {
+      .nav-inner {
+        padding-inline: 1.2rem;
+        margin-inline: 0.9rem;
+      }
     }
 
     .site-header.scrolled .nav-inner {
-      background: var(--nav-bg-scrolled); border-color: rgba(255, 255, 255, 0.088);
+      background: var(--nav-bg-scrolled);
+      border-color: rgba(255, 255, 255, 0.088);
       transform: translateY(-0.35rem);
     }
 
-    .nav-brand { display: inline-flex; align-items: center; gap: 0.5rem; }
-    .nav-brand-logo { height: 1.4rem; width: auto; }
-
-    .nav-links { display: none; align-items: center; gap: 5rem; font-size: 0.9rem; }
-    .nav-links a { position: relative; padding-block: 0.25rem; color: rgba(255, 255, 255, 0.7); transition: color var(--dur-fast) var(--ease-standard); }
-    .nav-links a:hover, .nav-links a.active { color: white; }
-    .nav-links a::after {
-      content: ''; position: absolute; left: 0; bottom: -0.2rem; width: 0; height: 2px;
-      background: var(--magma-core); transition: width var(--dur-fast) var(--ease-standard);
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      font-size: 0.9rem;
     }
-    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
 
-    .nav-cta { display: none; align-items: center; gap: 0.75rem; margin-left: 1.5rem; }
-    
-    .lang-switch { font-size: 0.8rem; color: rgba(255,255,255,0.5); cursor: pointer; display: inline-flex; align-items: center; gap: 0.1rem; }
+    .nav-brand-logo {
+      height: 2rem;
+      width: auto;
+    }
+
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: 5rem;
+      font-size: 0.9rem;
+    }
+
+    .nav-links a {
+      position: relative;
+      padding-block: 0.25rem;
+      color: rgba(255, 255, 255, 0.7);
+      transition: color var(--dur-fast) var(--ease-standard);
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -0.2rem;
+      width: 0;
+      height: 2px;
+      background: var(--magma-core);
+      transition: width var(--dur-fast) var(--ease-standard);
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-cta {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      margin-left: 1.5rem;
+    }
+
+    .lang-switch {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.1rem;
+    }
     .lang-switch span.active { color: white; opacity: 1; font-weight: 500; }
 
-    /* BOUTON LAUNCH APP (STYLE INDEX) */
+    /* Nouveau Bouton : Fond transparent, Bordure Dégradée */
     .btn-magma-outline {
       position: relative;
+      /* On définit le fond intérieur (noir site) et le fond bordure (dégradé magma) */
       background: linear-gradient(var(--carbon-base), var(--carbon-base)) padding-box,
                   var(--grad-btn-magma) border-box;
-      border: 1px solid transparent; border-radius: var(--radius-pill);
-      color: #fff; padding: 0.5rem 1.1rem; font-size: 0.85rem; font-weight: 600;
-      text-decoration: none; display: inline-flex; align-items: center;
+      border: 1px solid transparent; /* La magie opère ici grâce au background-clip */
+      
+      border-radius: var(--radius-pill);
+      color: #fff;
+      padding: 0.5rem 1.1rem; 
+      font-size: 0.85rem; 
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
       transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
     }
-    .btn-magma-outline:hover { 
-      transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232, 90, 4, 0.15); color: white;
-    }
 
+    .btn-magma-outline:hover { 
+      transform: translateY(-1px); 
+      /* Petite lueur orange au survol pour donner vie */
+      box-shadow: 0 4px 12px rgba(232, 90, 4, 0.15);
+      color: white;
+    }
     /* Burger */
     .nav-toggle {
       border: none; background: none; padding: 0.35rem; border-radius: var(--radius-pill);
@@ -148,16 +235,24 @@
     .nav-toggle span:nth-child(1) { top: 0; }
     .nav-toggle span:nth-child(2) { top: 50%; transform: translateY(-50%); }
     .nav-toggle span:nth-child(3) { bottom: 0; }
+    
     .nav-toggle[aria-expanded='true'] span:nth-child(1) { top: 50%; transform: translateY(-50%) rotate(45deg); }
     .nav-toggle[aria-expanded='true'] span:nth-child(2) { opacity: 0; }
     .nav-toggle[aria-expanded='true'] span:nth-child(3) { bottom: auto; top: 50%; transform: translateY(-50%) rotate(-45deg); }
 
     @media (min-width: 64rem) {
-      .nav-links, .nav-cta { display: flex; }
+      .nav-links {
+        display: flex;
+        /* C'est ici que la magie opère pour le centrage absolu */
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .nav-cta { display: flex; }
       .nav-toggle { display: none; }
     }
 
-    /* Menu Mobile */
+    /* Menu mobile plein écran */
     .nav-menu {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 50;
       opacity: 0; pointer-events: none; background: rgba(3, 7, 12, 0.35);
@@ -173,15 +268,18 @@
     .nav-menu-content {
       position: absolute; top: var(--nav-height); left: 0; right: 0; bottom: 0;
       padding: 1.5rem var(--page-padding-x) 2.5rem;
-      display: flex; flex-direction: column; justify-content: flex-start; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: flex-start;
+      overflow: hidden;
     }
     .nav-menu-content > a {
       display: block; width: 100%; font-size: 1.1rem; font-weight: 500; color: white;
       padding: 1.2rem 0; border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     }
     .nav-menu-content > a:first-of-type { border-top: 2px solid rgba(255, 255, 255, 0.1); }
+    
     .nav-menu-content .nav-menu-secondary {
-      margin-top: 1.8rem; padding-top: 1.2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+      margin-top: 1.8rem; padding-top: 1.2rem; display: flex;
+      justify-content: space-between; align-items: center; gap: 1rem;
     }
     body.menu-open { overflow: hidden; }
     @media (min-width: 64rem) { .nav-menu { display: none !important; } }
@@ -342,13 +440,13 @@
     <div class="nav-shell">
       <div class="nav-inner">
         <a href="index.html" class="nav-brand">
-          <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="nav-brand-logo" />
+          <img src="logo_g12.svg" alt="G12 Labs" class="nav-brand-logo" />
         </a>
 
         <nav class="nav-links" aria-label="Main navigation">
           <a href="strategies.html">Strategies</a>
           <a href="blog.html">Journal</a>
-          <a href="#" class="active" style="color:var(--text-main);">Docs</a>
+          <a href="#" class="active" style="color:var(--text-main);">Lite paper</a>
         </nav>
 
         <div class="nav-cta">
@@ -372,7 +470,7 @@
       <div class="nav-menu-content">
         <a href="strategies.html">Strategies</a>
         <a href="blog.html">Journal</a>
-        <a href="https://github.com/G12-Labs" target="_blank">Docs</a>
+        <a href="docs.html" target="_blank">Lite paper</a>
         <div class="nav-menu-secondary">
           <div class="lang-switch"><span class="active">EN</span><span> / FR</span></div>
           <a href="access.html" class="btn-magma-outline">Launch App</a>
