@@ -1,13 +1,1726 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>G12 Labs — Vitrine (placeholder)</title>
+  <title>G12 Labs — Home</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+  
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    /* =========================================================
+       DESIGN TOKENS (COMBINED MAGMA + INDEX NAVBAR)
+       ========================================================= */
+    :root {
+      /* --- MAGMA PALETTE (Tes couleurs) --- */
+      --magma-core: #E85A04;        
+      --magma-light: #FF9E66;       
+      --magma-dark: #4A1500;        
+      
+      --carbon-base: #05070b;       
+      --carbon-surface: #0e1116;    
+      --carbon-border: #1f2329;     
+
+      --light-bg: #FFFFFF;
+      --light-surface: #F3F4F6;
+      --light-text: #111827;
+
+      /* --- GRADIENTS --- */
+      --grad-text-magma: linear-gradient(135deg, #FFFFFF 10%, #E85A04 60%, #853200 100%);
+      --grad-btn-magma: linear-gradient(135deg, #FF9E66 0%, #E85A04 50%, #B33600 100%);
+
+      /* --- SPACING & TYPO --- */
+      --container-width: 1280px;
+      --container-max: 1280px; /* Alias pour la navbar */
+      --page-padding-x: 1.25rem;
+      --section-spacing: 140px;
+      
+      --radius-sm: 4px;
+      --radius-md: 12px;
+      --radius-lg: 24px;
+      --radius-pill: 999px;
+
+      /* --- VARIABLES NAVBAR (Importées de Index.html) --- */
+      --nav-height: 5rem; 
+      --nav-bg: rgba(5, 7, 11, 0.4); /* Un peu plus transparent pour le thème Magma */
+      --nav-bg-scrolled: rgba(5, 7, 11, 0.85);
+      
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1a1;
+      --accent: var(--magma-core); /* On map l'accent navbar sur ton orange */
+      
+      --dur-fast: 0.16s;
+      --dur-normal: 0.24s;
+      --ease-standard: cubic-bezier(0.2, 0.6, 0.2, 1);
+    }
+
+    /* --- RESET & BASE --- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--carbon-base);
+      color: #ffffff;
+      line-height: 1.6;
+      overflow-x: hidden;
+      opacity: 0; /* Pour le fade-in */
+      transition: opacity 0.25s ease-out;
+    }
+    
+    body.is-loaded {
+      opacity: 1;
+    }
+
+    /* Grain texture overlay */
+    body::before {
+        content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+        opacity: 0.4; mix-blend-mode: overlay;
+    }
+
+    h1, h2, h3 { line-height: 1.1; letter-spacing: -0.03em; font-weight: 700; }
+    a { text-decoration: none; color: inherit; transition: 0.3s; }
+    
+    .container { max-width: var(--container-width); margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* --- UTILS --- */
+    .text-magma {
+        background: var(--grad-text-magma);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        background-clip: text; color: transparent;
+    }
+    
+    .section-kicker {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px; text-transform: uppercase; letter-spacing: 2px;
+        color: var(--magma-core); margin-bottom: 16px; display: block;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .section-kicker::before { content:''; width: 8px; height: 8px; background: var(--magma-core); display: block; }
+
+    /* =========================================
+       NAVBAR STYLES (EXACT COPY FROM INDEX)
+       ========================================= */
+    .site-header {
+      position: fixed;
+      inset-inline: 0;
+      top: 0;
+      height: var(--nav-height);
+      z-index: 1000; /* Z-index élevé pour passer au dessus du Hero */
+    }
+
+    .nav-shell {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .nav-inner {
+      width: 100%;
+      max-width: var(--container-max);
+      padding-inline: var(--page-padding-x);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 999px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      margin-block: 3rem;
+      padding-block: 0.6rem;
+      transition:
+        background var(--dur-normal) var(--ease-standard),
+        border-color var(--dur-normal) var(--ease-standard),
+        transform var(--dur-normal) var(--ease-standard);
+      pointer-events: auto;
+      box-shadow: 0 5px 15px rgba(10, 10, 10, 0.536);
+      position: relative;
+      z-index: 200;
+    }
+
+    @media (max-width: 63.99rem) {
+      .nav-inner {
+        padding-inline: 1.2rem;
+        margin-inline: 0.9rem;
+      }
+    }
+
+    .site-header.scrolled .nav-inner {
+      background: var(--nav-bg-scrolled);
+      border-color: rgba(255, 255, 255, 0.088);
+      transform: translateY(-0.35rem);
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      font-size: 0.9rem;
+    }
+
+    .nav-brand-logo {
+      height: 1.4rem;
+      width: auto;
+    }
+
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: 5rem;
+      font-size: 0.9rem;
+    }
+
+    .nav-links a {
+      position: relative;
+      padding-block: 0.25rem;
+      color: rgba(255, 255, 255, 0.7);
+      transition: color var(--dur-fast) var(--ease-standard);
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -0.2rem;
+      width: 0;
+      height: 2px;
+      background: var(--magma-core);
+      transition: width var(--dur-fast) var(--ease-standard);
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-cta {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      margin-left: 1.5rem;
+    }
+
+    .lang-switch {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.1rem;
+    }
+    .lang-switch span.active { color: white; opacity: 1; font-weight: 500; }
+
+    /* Nouveau Bouton : Fond transparent, Bordure Dégradée */
+    .btn-magma-outline {
+      position: relative;
+      /* On définit le fond intérieur (noir site) et le fond bordure (dégradé magma) */
+      background: linear-gradient(var(--carbon-base), var(--carbon-base)) padding-box,
+                  var(--grad-btn-magma) border-box;
+      border: 1px solid transparent; /* La magie opère ici grâce au background-clip */
+      
+      border-radius: var(--radius-pill);
+      color: #fff;
+      padding: 0.5rem 1.1rem; 
+      font-size: 0.85rem; 
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    }
+
+    .btn-magma-outline:hover { 
+      transform: translateY(-1px); 
+      /* Petite lueur orange au survol pour donner vie */
+      box-shadow: 0 4px 12px rgba(232, 90, 4, 0.15);
+      color: white;
+    }
+    /* Burger */
+    .nav-toggle {
+      border: none; background: none; padding: 0.35rem; border-radius: var(--radius-pill);
+      cursor: pointer; position: relative; width: 1.6rem; height: 1.1rem; display: inline-block;
+    }
+    .nav-toggle span {
+      position: absolute; left: 0; right: 0; height: 2px; border-radius: 999px;
+      background: white; transform-origin: center; transition: all var(--dur-fast) var(--ease-standard);
+    }
+    .nav-toggle span:nth-child(1) { top: 0; }
+    .nav-toggle span:nth-child(2) { top: 50%; transform: translateY(-50%); }
+    .nav-toggle span:nth-child(3) { bottom: 0; }
+    
+    .nav-toggle[aria-expanded='true'] span:nth-child(1) { top: 50%; transform: translateY(-50%) rotate(45deg); }
+    .nav-toggle[aria-expanded='true'] span:nth-child(2) { opacity: 0; }
+    .nav-toggle[aria-expanded='true'] span:nth-child(3) { bottom: auto; top: 50%; transform: translateY(-50%) rotate(-45deg); }
+
+    @media (min-width: 64rem) {
+      .nav-links, .nav-cta { display: flex; }
+      .nav-toggle { display: none; }
+    }
+
+    /* Menu mobile plein écran */
+    .nav-menu {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 50;
+      opacity: 0; pointer-events: none; background: rgba(3, 7, 12, 0.35);
+      backdrop-filter: blur(0px); transition: all 0.33s var(--ease-standard);
+      overflow: hidden; touch-action: none;
+    }
+    .nav-menu::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at top, rgba(68, 83, 80, 0.2), transparent 60%), rgba(21, 23, 26, 0.95);
+    }
+    .nav-menu.open { opacity: 1; pointer-events: auto; backdrop-filter: blur(22px); }
+    
+    .nav-menu-content {
+      position: absolute; top: var(--nav-height); left: 0; right: 0; bottom: 0;
+      padding: 1.5rem var(--page-padding-x) 2.5rem;
+      display: flex; flex-direction: column; justify-content: flex-start;
+      overflow: hidden;
+    }
+    .nav-menu-content > a {
+      display: block; width: 100%; font-size: 1.1rem; font-weight: 500; color: white;
+      padding: 1.2rem 0; border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    .nav-menu-content > a:first-of-type { border-top: 2px solid rgba(255, 255, 255, 0.1); }
+    
+    .nav-menu-content .nav-menu-secondary {
+      margin-top: 1.8rem; padding-top: 1.2rem; display: flex;
+      justify-content: space-between; align-items: center; gap: 1rem;
+    }
+    body.menu-open { overflow: hidden; }
+    @media (min-width: 64rem) { .nav-menu { display: none !important; } }
+
+
+    /* =========================================
+       HERO SECTION (From Test Colour)
+       ========================================= */
+    .hero {
+        padding-top: 180px; padding-bottom: 120px;
+        position: relative; overflow: hidden;
+    }
+    
+    .hero::after {
+        content: ''; position: absolute; top: -20%; right: -10%; width: 800px; height: 800px;
+        background: radial-gradient(circle, rgba(232, 90, 4, 0.12) 0%, transparent 60%);
+        pointer-events: none; z-index: 1;
+    }
+
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; gap: 60px; }
+    @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } }
+
+    .hero-h1 {
+        font-size: clamp(48px, 5vw, 76px); margin-bottom: 24px;
+        background: linear-gradient(180deg, #FFFFFF 20%, #888 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .hero-p { font-size: 18px; color: #888; margin-bottom: 48px; max-width: 500px; }
+
+    /* Bouton "View Strategies" */
+    .btn-primary {
+        padding: 16px 32px; background: var(--grad-btn-magma); color: black;
+        font-weight: 700; border-radius: 4px; display: inline-flex; align-items: center; gap: 10px;
+        box-shadow: 0 10px 30px rgba(232, 90, 4, 0.25);
+        transition: transform 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(232, 90, 4, 0.4); }
+
+    /* --- 3D STRATA ANIMATION --- */
+    .hero-strata {
+        position: relative; width: 100%; height: 500px;
+        display: flex; align-items: center; justify-content: center;
+        perspective: 1200px;
+        z-index: 10; /* Important pour être sous la navbar mais au dessus du fond */
+    }
+
+    .strata-stack {
+        position: relative; width: 300px; height: 300px;
+        transform: rotateX(60deg) rotateZ(-45deg);
+        transform-style: preserve-3d;
+    }
+
+    .layer {
+        position: absolute; inset: 0; border-radius: 32px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(232, 90, 4, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 10px 10px 30px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        transition: transform 0.3s;
+    }
+
+    .layer::after {
+        content: ''; position: absolute; inset: 0; border-radius: 32px;
+        border: 1px solid rgba(255,255,255,0.3); opacity: 0.5;
+    }
+
+    .layer-1 { transform: translateZ(0px); animation: float 6s ease-in-out infinite; }
+    .layer-2 { transform: translateZ(40px); animation: float 6s ease-in-out infinite 0.2s; }
+    .layer-3 { transform: translateZ(80px); animation: float 6s ease-in-out infinite 0.4s; }
+    .layer-4 { 
+        transform: translateZ(120px); animation: float 6s ease-in-out infinite 0.6s; 
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(232, 90, 4, 0.1) 100%);
+        border-color: rgba(232, 90, 4, 0.5);
+    }
+    
+    .layer-core {
+        position: absolute; top: 50%; left: 50%; width: 12px; height: 12px; border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 0 50px 20px rgba(232, 90, 4, 0.8);
+        transform: translate(-50%, -50%) translateZ(140px);
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes float { 0%, 100% { transform: translateZ(var(--z)); } 50% { transform: translateZ(calc(var(--z) + 20px)); } }
+    .layer-1 { --z: 0px; } .layer-2 { --z: 40px; } .layer-3 { --z: 80px; } .layer-4 { --z: 120px; }
+    @keyframes pulse { 0%, 100% { opacity: 0.6; scale: 1; } 50% { opacity: 1; scale: 1.5; } }
+
+    /* Mobile Responsive Strata */
+    @media (max-width: 900px) {
+        .hero-strata { height: 350px; }
+        .strata-stack { transform: rotateX(60deg) rotateZ(-45deg) scale(0.7); }
+    }
+
+    /* =========================================
+       HERO PARTNERS (STATIC & DISCREET)
+       ========================================= */
+    .hero-partners {
+        margin-top: 3rem; /* Espace sous le bouton */
+        /* border-top supprimé pour enlever la ligne grise */
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .partners-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem; /* Un poil plus lisible */
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #666; 
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    .partners-grid {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem; /* Espacement entre les logos */
+        flex-wrap: wrap; 
+    }
+
+    .partners-grid img {
+        height: 24px; /* Taille ajustée */
+        width: auto;
+        
+        /* Monochrome gris par défaut */
+        filter: grayscale(100%) opacity(0.5); 
+        transition: all 0.3s ease;
+    }
+
+    /* Au survol, on les rend visibles */
+    .partners-grid img:hover {
+        filter: grayscale(0%) opacity(1);
+    }
+
+    /* Responsive Mobile */
+    @media (max-width: 900px) {
+        .hero-partners {
+            align-items: center; /* Centré sur mobile */
+            text-align: center;
+            margin-top: 2.5rem;
+        }
+        .partners-grid {
+            justify-content: center;
+            gap: 1.2rem;
+        }
+    }
+
+    /* Section Setup */
+    .section-light {
+        background-color: #F9FAFB;
+        color: #111;
+        padding: 120px 0;
+    }
+
+    /* ZIG-ZAG LAYOUT */
+    .zigzag-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 120px; /* Espace entre chaque ligne */
+    }
+
+    .zigzag-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 80px;
+        align-items: center;
+    }
+
+    /* Inversion pour les lignes paires */
+    .zigzag-row.reverse .zigzag-text { order: 1; }
+    .zigzag-row.reverse .zigzag-visual { order: 2; }
+
+    /* TEXT SIDE */
+    .zigzag-text {
+        max-width: 480px;
+    }
+    
+    .icon-box {
+        width: 48px; height: 48px;
+        background: rgba(232, 90, 4, 0.1);
+        color: var(--magma-core);
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px;
+        margin-bottom: 24px;
+    }
+
+    .zigzag-text h3 {
+        font-size: 32px;
+        color: #111;
+        margin-bottom: 16px;
+    }
+    .zigzag-text p {
+        font-size: 17px;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    /* VISUAL SIDE (TECH CARDS) */
+    .zigzag-visual {
+        display: flex;
+        justify-content: center;
+    }
+
+    .tech-card {
+        width: 100%;
+        max-width: 420px;
+        background: #FFFFFF;
+        border: 1px solid #E5E7EB;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .zigzag-row:hover .tech-card {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 60px -15px rgba(232, 90, 4, 0.15);
+        border-color: rgba(232, 90, 4, 0.3);
+    }
+
+    .tech-header {
+        background: #F3F4F6;
+        padding: 12px 20px;
+        border-bottom: 1px solid #E5E7EB;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .tech-title { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #666; font-weight: 600; }
+    
+    .tech-body { padding: 24px; }
+
+    /* --- STYLE SPECIFIQUE FIG 1: CODE --- */
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+    .red { background: #FF5F57; } .yellow { background: #FFBD2E; } .green { background: #28C840; }
+    
+    .code-style { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #333; line-height: 1.8; }
+    .c-purple { color: #8a2be2; } .c-orange { color: #E85A04; } .c-comment { color: #999; margin-top: 10px; display: block; }
+    .indent { padding-left: 20px; }
+
+    /* --- STYLE SPECIFIQUE FIG 2: RISK --- */
+    .badge-safe { background: #D1FAE5; color: #065F46; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+    .risk-bar-container { margin-bottom: 16px; }
+    .risk-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+    .risk-track { height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
+    .risk-fill { height: 100%; background: #10B981; }
+    .risk-fill.red { background: #EF4444; }
+    .risk-stat { display: flex; justify-content: space-between; border-top: 1px solid #eee; padding-top: 12px; margin-top: 20px; }
+
+    /* --- STYLE SPECIFIQUE FIG 3: GRAPH --- */
+    .graph-bg { position: relative; }
+    .tech-svg { width: 100%; height: 120px; margin-top: 10px; }
+    .scenario-tags { display: flex; gap: 10px; padding: 0 24px 24px; }
+    .scenario-tags span { font-size: 11px; background: #eee; padding: 4px 8px; border-radius: 4px; color: #555; }
+
+    /* --- STYLE SPECIFIQUE FIG 4: TABLE --- */
+    .table-style { padding: 0; }
+    .t-row { display: flex; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+    .t-row:last-child { border-bottom: none; }
+    .t-row.head { background: #f9fafb; font-weight: 600; color: #666; font-size: 12px; text-transform: uppercase; }
+    .c-green { color: #10B981; font-weight: 600; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+        .zigzag-row, .zigzag-row.reverse {
+            grid-template-columns: 1fr;
+            text-align: left;
+            gap: 40px;
+        }
+        /* Sur mobile : L'image d'abord, le texte ensuite */
+        .zigzag-row .zigzag-visual, .zigzag-row.reverse .zigzag-visual { order: 1; }
+        .zigzag-row .zigzag-text, .zigzag-row.reverse .zigzag-text { order: 2; }
+        
+        .zigzag-text { max-width: 100%; }
+        .icon-box { margin-bottom: 16px; }
+    }
+
+    /* Layout Global de la section */
+    .phase-section {
+        background: radial-gradient(circle at 100% 0%, rgba(232, 90, 4, 0.08), transparent 40%), #F9FAFB;
+        border-top: 1px solid #E5E7EB;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .launch-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 80px;
+        align-items: center;
+    }
+
+    /* TYPO GAUCHE */
+    .launch-title {
+        font-size: 42px;
+        line-height: 1.1;
+        color: #111;
+        margin-bottom: 24px;
+    }
+    .launch-lead {
+        font-size: 18px;
+        color: #555;
+        margin-bottom: 40px;
+        line-height: 1.6;
+        max-width: 550px;
+    }
+
+    /* LISTE A PUCES STYLISÉE */
+    .launch-points {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    .launch-points li {
+        position: relative;
+        padding-left: 24px;
+        font-size: 16px;
+        color: #444;
+        line-height: 1.5;
+    }
+    .launch-points li::before {
+        content: '';
+        position: absolute; left: 0; top: 8px;
+        width: 8px; height: 8px;
+        background: var(--magma-core);
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px rgba(232, 90, 4, 0.15);
+    }
+    .launch-points strong {
+        color: #111;
+        font-weight: 600;
+    }
+
+    /* COLONNE DROITE : LA CARTE VIP (CORRIGÉE : DROITE ET STABLE) */
+    .launch-card-container {
+        position: relative;
+    }
+
+    .vip-card {
+        background: #05070b;
+        border: 1px solid #1f2329;
+        border-radius: 24px;
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 30px 60px -10px rgba(0,0,0,0.3);
+        /* Suppression des rotations/transformations */
+        transform: none; 
+        transition: border-color 0.3s ease; /* On anime juste la couleur */
+    }
+    
+    .vip-card:hover {
+        /* Plus de mouvement, juste la bordure qui s'allume */
+        border-color: var(--magma-core);
+    }
+
+    /* Glow Effect */
+    .vip-glow {
+        position: absolute;
+        top: -50px; right: -50px;
+        width: 200px; height: 200px;
+        background: var(--magma-core);
+        filter: blur(80px);
+        opacity: 0.15;
+        pointer-events: none;
+    }
+
+    .vip-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 24px;
+        border-bottom: 1px solid #222;
+        padding-bottom: 20px;
+    }
+    .vip-label {
+        color: var(--magma-core);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    .vip-heading {
+        color: white;
+        font-size: 28px;
+        margin-bottom: 12px;
+    }
+    .vip-desc {
+        color: #999;
+        font-size: 15px;
+        margin-bottom: 32px;
+        line-height: 1.5;
+    }
+
+    /* BENEFIT BOX */
+    .benefit-box {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .benefit-item {
+        display: flex; align-items: center; gap: 12px;
+        color: #ddd;
+        font-weight: 500;
+        font-size: 15px;
+    }
+    .benefit-item i {
+        color: var(--magma-core);
+        font-size: 18px;
+        background: rgba(232, 90, 4, 0.15);
+        padding: 6px;
+        border-radius: 6px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+        .launch-grid {
+            grid-template-columns: 1fr;
+            gap: 50px;
+        }
+        .vip-card {
+            padding: 30px;
+        }
+    }
+
+    /* =========================================
+       SECTION: ROADMAP
+       ========================================= */
+    .roadmap-section { 
+        padding: 100px 0; 
+        background-color: var(--carbon-base); /* Fond sombre pour contraster avec la section précédente */
+        border-top: 1px solid var(--carbon-border); 
+    }
+
+    .roadmap-grid {
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 60px;
+    }
+
+    .roadmap-intro {
+        position: sticky; /* Le titre reste accroché si on scrolle (optionnel) */
+        top: 120px;
+        height: fit-content;
+    }
+
+    .timeline {
+        position: relative; 
+        margin-top: 20px; 
+        padding-left: 40px;
+        border-left: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .timeline-item { 
+        position: relative; 
+        margin-bottom: 60px; 
+    }
+    .timeline-item:last-child { margin-bottom: 0; }
+
+    /* Le point (Dot) - Orange Magma */
+    .t-dot {
+        position: absolute; left: -46px; top: 0;
+        width: 12px; height: 12px; border-radius: 50%;
+        background: var(--carbon-base);
+        border: 2px solid #555;
+        transition: 0.3s;
+    }
+    
+    /* Active State (Points allumés) */
+    .timeline-item.active .t-dot {
+        background: var(--magma-core);
+        border-color: var(--magma-light);
+        box-shadow: 0 0 15px var(--magma-core);
+    }
+
+    .t-phase { 
+        font-family: 'JetBrains Mono'; font-size: 12px; text-transform: uppercase; 
+        color: #666; margin-bottom: 8px; display: block; 
+    }
+    .timeline-item.active .t-phase { color: var(--magma-core); }
+
+    .t-title { font-size: 20px; font-weight: 600; color: white; margin-bottom: 8px; }
+    .t-desc { color: #888; max-width: 600px; font-size: 15px; line-height: 1.5; }
+
+    /* RESPONSIVE ROADMAP */
+    @media (max-width: 900px) {
+        .roadmap-grid {
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+        .roadmap-intro {
+            position: static;
+        }
+    }
+
+    /* =========================================
+       SECTION: NEWSLETTER
+       ========================================= */
+    .newsletter-section {
+        background-color: #F3F4F6; /* Gris très clair (Quartz) */
+        border-top: 1px solid #E5E7EB;
+        padding: 140px 0; /* Grand espacement vertical */
+    }
+
+    .newsletter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr; /* Formulaire un peu plus large */
+        gap: 80px;
+        align-items: center;
+    }
+
+    /* TYPOGRAPHIE */
+    .newsletter-title {
+        font-size: 48px;
+        font-weight: 700;
+        color: #111; /* Noir pur */
+        line-height: 1.1;
+        margin-bottom: 24px;
+        letter-spacing: -1px;
+    }
+
+    .newsletter-desc {
+        font-size: 18px;
+        color: #555; /* Gris moyen */
+        line-height: 1.6;
+        max-width: 450px;
+    }
+
+    /* Kicker Spécifique (Surcharge le style global orange) */
+    .newsletter-content .section-kicker::before {
+        background: #999; /* Carré gris au lieu d'orange */
+    }
+
+    /* FORMULAIRE */
+    .newsletter-form-wrapper {
+        background: #FFFFFF;
+        padding: 40px;
+        border-radius: 16px;
+        border: 1px solid #E5E7EB;
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05);
+    }
+
+    .newsletter-form {
+        display: flex;
+        gap: 16px;
+    }
+
+    /* Input Style "Tech" (Fond sombre, texte clair) */
+    .n-input {
+        flex: 1;
+        background: #0e1116; /* Fond très sombre */
+        border: 1px solid #333;
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-family: 'Inter', sans-serif;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    .n-input::placeholder { color: #666; }
+    .n-input:focus { border-color: var(--magma-core); }
+
+    /* Bouton (Seule touche de couleur) */
+    .n-btn {
+        background: var(--grad-btn-magma);
+        color: #05070b;
+        font-weight: 700;
+        border: none;
+        padding: 0 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        white-space: nowrap; /* Empêche le texte de passer à la ligne */
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .n-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(232, 90, 4, 0.2);
+    }
+
+    /* Consentement */
+    .n-consent {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-top: 20px;
+        font-size: 13px;
+        color: #888;
+        line-height: 1.5;
+    }
+    .n-consent input {
+        margin-top: 3px;
+        accent-color: var(--magma-core); /* Checkbox orange */
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+        .newsletter-grid {
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+        .newsletter-form {
+            flex-direction: column;
+        }
+        .n-btn {
+            width: 100%;
+            padding: 16px;
+        }
+        .newsletter-form-wrapper {
+            padding: 24px;
+        }
+    }
+
+    /* =========================================
+       SECTION: FAQ (DARK)
+       ========================================= */
+    .faq-section {
+        background-color: var(--carbon-base); /* Fond Noir */
+        border-top: 1px solid var(--carbon-border);
+        padding: 120px 0;
+    }
+
+    .faq-header {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto 60px;
+    }
+
+    /* CORRECTION TAILLE TITRE : 42px */
+    .faq-title {
+        font-size: 42px; 
+        color: white;
+        margin-top: 16px;
+        margin-bottom: 24px;
+        line-height: 1.1;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    /* LISTE ACCORDÉON */
+    .faq-list {
+        max-width: 800px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .faq-item {
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* Le Bouton (Question) */
+    .faq-toggle {
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 24px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        text-align: left;
+        transition: color 0.3s;
+    }
+
+    .faq-question {
+        font-size: 20px;
+        font-weight: 500;
+        color: #ddd;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .faq-item.active .faq-question {
+        color: var(--magma-core); /* Devient orange quand ouvert */
+    }
+
+    .faq-icon {
+        color: #666;
+        font-size: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    /* Rotation de l'icône quand ouvert */
+    .faq-item.active .faq-icon {
+        transform: rotate(45deg);
+        color: white;
+    }
+
+    /* Le Contenu (Réponse) - Animation Volet */
+    .faq-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out; /* L'effet volet fluide */
+    }
+
+    .faq-text {
+        padding-bottom: 32px;
+        color: #999;
+        font-size: 16px;
+        line-height: 1.6;
+    }
+    
+    .faq-text p { margin-bottom: 16px; }
+    .faq-text p:last-child { margin-bottom: 0; }
+    
+    /* Responsive Mobile */
+    @media (max-width: 768px) {
+        .faq-title {
+            font-size: 32px; /* Un peu plus petit sur mobile */
+        }
+    }
+
+    /* =========================================
+       FOOTER (ADAPTÉ MAGMA)
+       ========================================= */
+    .site-footer {
+        background-color: #000000; /* Fond noir pur pour finir la page */
+        padding: 80px 0 40px;
+        border-top: 1px solid var(--carbon-border);
+        overflow: hidden; /* Important pour le logo qui dépasse */
+        position: relative;
+    }
+
+    /* COLONNES */
+    .footer-columns {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 40px;
+        margin-bottom: 80px;
+    }
+
+    .footer-heading {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #666;
+        margin-bottom: 20px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .footer-links-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .footer-links-list a {
+        color: #999;
+        font-size: 15px;
+        transition: color 0.2s, transform 0.2s;
+        display: inline-block;
+    }
+
+    .footer-links-list a:hover {
+        color: white;
+        transform: translateX(2px);
+    }
+
+    /* SECTION PRINCIPALE (TAGLINE + GHOST LOGO) */
+    .footer-main {
+        position: relative;
+        padding: 60px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 40px;
+    }
+
+    .footer-tagline-main {
+        font-size: clamp(3rem, 6vw, 5rem); /* Responsive typography */
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        color: white;
+        position: relative;
+        z-index: 2; /* Devant le logo */
+        margin: 0;
+    }
+
+    /* Le logo fantôme en arrière-plan */
+    .footer-main-logo-img {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 200%; /* Très grand */
+        width: auto;
+        opacity: 0.15; /* Discret */
+        filter: grayscale(100%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* BAS DE FOOTER */
+    .footer-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .footer-back-top {
+        color: #888;
+        font-family: 'JetBrains Mono', monospace;
+        transition: color 0.2s;
+    }
+    .footer-back-top:hover { color: var(--magma-core); }
+
+    .footer-bottom-right {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .footer-bottom-right a { color: #888; }
+    .footer-bottom-right a:hover { color: white; }
+    .sep { color: #333; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .footer-columns {
+            grid-template-columns: 1fr; /* 1 seule colonne sur mobile */
+            gap: 40px;
+        }
+        
+        .footer-main-logo-img {
+            height: 100%;
+            right: -20%;
+            opacity: 0.1;
+        }
+        
+        .footer-bottom {
+            flex-direction: column;
+            gap: 20px;
+        }
+    }
+  </style>
 </head>
 <body>
-  <h1>G12 Labs</h1>
-  <p>This is a placeholder index.html for the Vite multi-page build.</p>
-  <p><a href="strategies.html">Strategies</a> • <a href="docs.html">Docs</a> • <a href="access.html">Launch App</a></p>
+
+  <header class="site-header" id="siteHeader">
+    <div class="nav-shell">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-brand">
+          <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" class="nav-brand-logo" />
+        </a>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="strategies.html">Strategies</a>
+          <a href="blog.html">Journal</a>
+          <a href="docs.html" target="_blank">Docs</a>
+        </nav>
+
+        <div class="nav-cta">
+          <div class="lang-switch">
+            <span class="active">EN</span>
+            <span> / FR</span>
+          </div>
+          
+          <a href="access.html" class="btn-magma-outline">
+            Launch App
+          </a>
+        </div>
+
+        <button class="nav-toggle" id="navToggle" aria-label="Open navigation" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="nav-menu" id="navMenu">
+      <div class="nav-menu-content">
+        <a href="strategies.html">Strategies</a>
+        <a href="blog.html">Journal</a>
+        <a href="docs.html" target="_blank">Docs</a>
+        
+        <div class="nav-menu-secondary">
+          <div class="lang-switch">
+            <span class="active">EN</span>
+            <span> / FR</span>
+          </div>
+          <a href="access.html" class="btn-magma-outline">Launch App</a>
+        </div>
+      </div>
+    </div>
+  </header>
+  <section class="hero" id="home">
+    <div class="container">
+      <div class="hero-grid">
+        
+        <div>
+          <span class="section-kicker">SYSTEMATIC DEFI</span>
+          <h1 class="hero-h1">
+            Build Wealth on<br>
+            <span class="text-magma">Solid Ground.</span>
+          </h1>
+          <p class="hero-p">
+            An experimental lab running data-driven strategies. 
+            We replace narrative with arithmetic, ensuring capital preservation through volatility.
+          </p>
+          
+          <div style="display: flex; gap: 16px;">
+            <a href="#vaults" class="btn-primary">
+               View Strategies
+            </a>
+          </div>
+
+          <div class="hero-partners">
+             <p class="partners-label">Powered by industry leaders</p>
+             <div class="partners-grid">
+                <img src="arbitrum.svg" alt="Arbitrum" />
+                <img src="enzyme.svg" alt="Enzyme" />
+                <img src="base.svg" alt="Base" />
+                <img src="supabase.svg" alt="Supabase" />
+             </div>
+          </div>
+
+        </div>
+
+        <div class="hero-strata">
+          <div class="strata-stack">
+            <div class="layer layer-1"></div>
+            <div class="layer layer-2"></div>
+            <div class="layer layer-3"></div>
+            <div class="layer layer-4"></div>
+            <div class="layer-core"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section-light" id="what-we-do">
+    <div class="container">
+      
+      <div style="max-width: 700px; margin: 0 auto 100px; text-align: center;">
+        <span class="section-kicker" style="justify-content: center; color: var(--magma-core)">OUR PROCESS</span>
+        <h2 style="font-size: 42px; line-height: 1.1; color: #111; margin-bottom: 24px;">
+           Replacing narrative<br>with arithmetic.
+        </h2>
+        <p style="font-size: 18px; color: #666;">
+          We treat strategies as industrial products: defined rules, measurable behavior, and rigorous stress-testing.
+        </p>
+      </div>
+
+      <div class="zigzag-wrapper">
+
+        <div class="zigzag-row">
+          
+          <div class="zigzag-visual">
+             <div class="tech-card">
+                <div class="tech-header">
+                  <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                  <span class="tech-title">strategy_core.py</span>
+                </div>
+                <div class="tech-body code-style">
+                   <div class="code-line"><span class="c-purple">if</span> (rsi < 30 <span class="c-purple">and</span> vol > threshold):</div>
+                   <div class="code-line indent">entry_size = calc_kelly(risk)</div>
+                   <div class="code-line indent">execute_order(<span class="c-orange">"BUY"</span>, entry_size)</div>
+                   <div class="code-line"><span class="c-purple">else</span>:</div>
+                   <div class="code-line indent">wait_for_signal()</div>
+                   <div class="code-line c-comment"># Logic over emotion</div>
+                </div>
+             </div>
+          </div>
+
+          <div class="zigzag-text">
+            <div class="icon-box"><i class="ph ph-code"></i></div>
+            <h3>Algorithmic Design</h3>
+            <p>We build rule-based systems driven by data. No gut feelings. We code clear entry, exit, and risk parameters based on historical probabilities.</p>
+          </div>
+        </div>
+
+        <div class="zigzag-row reverse">
+          
+          <div class="zigzag-visual">
+             <div class="tech-card">
+                <div class="tech-header">
+                   <span class="tech-title">Risk Monitor</span>
+                   <span class="badge-safe">SAFE</span>
+                </div>
+                <div class="tech-body">
+                   <div class="risk-bar-container">
+                      <div class="risk-label">Exposure</div>
+                      <div class="risk-track"><div class="risk-fill" style="width: 45%"></div></div>
+                   </div>
+                   <div class="risk-bar-container">
+                      <div class="risk-label">Drawdown Limit</div>
+                      <div class="risk-track"><div class="risk-fill red" style="width: 12%"></div></div>
+                   </div>
+                   <div class="risk-stat">
+                      <span>Max Drawdown</span>
+                      <strong>-4.2%</strong>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          <div class="zigzag-text">
+            <div class="icon-box"><i class="ph ph-shield-check"></i></div>
+            <h3>Risk-Adjusted Execution</h3>
+            <p>Sizing and leverage are constrained by strict risk budgets. Protecting capital is the first design requirement before seeking yield.</p>
+          </div>
+        </div>
+
+        <div class="zigzag-row">
+          
+          <div class="zigzag-visual">
+             <div class="tech-card graph-bg">
+                <div class="tech-header">
+                   <span class="tech-title">Stress Testing</span>
+                </div>
+                <svg viewBox="0 0 200 100" class="tech-svg">
+                   <path d="M0,80 C40,80 50,30 100,50 C150,70 160,20 200,10" stroke="#E85A04" stroke-width="3" fill="none" />
+                   <path d="M0,80 C40,80 50,30 100,50 C150,70 160,20 200,10 V100 H0 Z" fill="rgba(232, 90, 4, 0.1)" />
+                </svg>
+                <div class="scenario-tags">
+                   <span>Bear Market ✅</span>
+                   <span>High Vol ✅</span>
+                </div>
+             </div>
+          </div>
+
+          <div class="zigzag-text">
+            <div class="icon-box"><i class="ph ph-infinity"></i></div>
+            <h3>Continuous Testing</h3>
+            <p>Strategies run live over months, across different volatility environments (Bull, Bear, Crab), before any scale-up is considered.</p>
+          </div>
+        </div>
+
+        <div class="zigzag-row reverse">
+          
+          <div class="zigzag-visual">
+             <div class="tech-card">
+                <div class="tech-header">
+                   <span class="tech-title">Live Reporting</span>
+                   <i class="ph ph-broadcast" style="color:var(--magma-core)"></i>
+                </div>
+                <div class="tech-body table-style">
+                   <div class="t-row head"><span>Metric</span><span>Value</span></div>
+                   <div class="t-row"><span>Total Assets</span><span>$4.2M</span></div>
+                   <div class="t-row"><span>Net APY</span><span class="c-green">+18.4%</span></div>
+                   <div class="t-row"><span>Sharpe</span><span>2.85</span></div>
+                   <div class="t-row"><span>Status</span><span class="c-green">Active</span></div>
+                </div>
+             </div>
+          </div>
+
+          <div class="zigzag-text">
+            <div class="icon-box"><i class="ph ph-eye"></i></div>
+            <h3>Total Transparency</h3>
+            <p>We don't hide losses. Aggregated performance, drawdowns, and live allocations are shared openly on our dashboard.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section-light phase-section" id="live-access">
+    <div class="container">
+      
+      <div class="launch-grid">
+        
+        <div class="launch-text">
+          <span class="section-kicker" style="color: var(--magma-core)">NOW LIVE</span>
+          
+          <h2 class="launch-title">
+            Live Launch of the strategies.
+          </h2>
+          
+          <p class="launch-lead">
+            G12 Labs is now live, offering various strategies that have been validated through our internal process. Everyone can now join this exciting new journey with us.
+          </p>
+
+          <ul class="launch-points">
+            <li>
+              <strong>Capital protection first</strong>, with strict risk budgets and monitored exposure.
+            </li>
+            <li>
+              <strong>Transparent tracking</strong>, with off-chain reporting and aggregated metrics shared on our dashboard.
+            </li>
+            <li>
+              <strong>Continuous improvement</strong>, as strategies are adjusted across different volatility cycles.
+            </li>
+          </ul>
+        </div>
+
+        <div class="launch-card-container">
+           <div class="vip-card">
+              <div class="vip-glow"></div>
+              
+              <div class="vip-header">
+                 <span class="vip-label">FOUNDING MEMBER STATUS</span>
+                 <i class="ph ph-crown-simple" style="color: var(--magma-core); font-size: 24px;"></i>
+              </div>
+
+              <h3 class="vip-heading">Early Joiners Benefits</h3>
+              
+              <p class="vip-desc">
+                Join during the launch phase to lock in preferential terms for the lifetime of your deposit.
+              </p>
+
+              <div class="benefit-box">
+                 <div class="benefit-item">
+                    <i class="ph ph-trend-down"></i>
+                    <span>Reduced Management Fees</span>
+                 </div>
+                 <div class="benefit-item">
+                    <i class="ph ph-percent"></i>
+                    <span>Lower Performance Fees</span>
+                 </div>
+              </div>
+
+              <div style="margin-top: 32px;">
+                <a href="access.html" class="btn-primary" style="width: 100%; justify-content: center;">
+                   Deploy Capital Now
+                </a>
+                <p style="text-align: center; font-size: 12px; color: #666; margin-top: 12px;">
+                  Limited time offer for the first cohort.
+                </p>
+              </div>
+           </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+<section class="roadmap-section" id="roadmap">
+      <div class="container">
+          <div class="roadmap-grid">
+              
+              <div class="roadmap-intro">
+                  <span class="section-kicker">THE PLAN</span>
+                  <h2 style="font-size: 42px; margin-bottom: 24px; color: white;">
+                      Built in phases.<br>
+                      <span class="text-magma">Deliberate constraints.</span>
+                  </h2>
+                  <p style="color: #888; font-size: 16px; line-height: 1.6;">
+                      We don't rush. Each phase validates the risk models before expanding capital limits.
+                  </p>
+              </div>
+
+              <div class="timeline">
+                  
+                  <div class="timeline-item active">
+                      <div class="t-dot"></div>
+                      <span class="t-phase">PHASE 1 — COMPLETED</span>
+                      <h3 class="t-title">Foundations & Research</h3>
+                      <p class="t-desc">Building core structure, risk budgets and early backtesting simulations.</p>
+                  </div>
+                  
+                  <div class="timeline-item active">
+                      <div class="t-dot"></div>
+                      <span class="t-phase">PHASE 2 — COMPLETED</span>
+                      <h3 class="t-title">Infrastructure Build-out</h3>
+                      <p class="t-desc">Developing the strategy suite and execution bots on Arbitrum.</p>
+                  </div>
+                  
+                  <div class="timeline-item active">
+                      <div class="t-dot"></div>
+                      <span class="t-phase" style="color: var(--magma-core);">PHASE 3 — CURRENT</span>
+                      <h3 class="t-title">Private Pilot (Live)</h3>
+                      <p class="t-desc">Running with capped capital from early partners to validate live metrics.</p>
+                  </div>
+                  
+                  <div class="timeline-item">
+                      <div class="t-dot"></div>
+                      <span class="t-phase">PHASE 4 — PLANNED</span>
+                      <h3 class="t-title">Public Scale Up</h3>
+                      <p class="t-desc">Removing capital caps and opening vaults to public liquidity.</p>
+                  </div>
+
+              </div>
+          </div>
+      </div>
+  </section>
+  <section class="newsletter-section">
+      <div class="container">
+          <div class="newsletter-grid">
+              
+              <div class="newsletter-content">
+                  <span class="section-kicker" style="color: #666; border-color: #999;">MONTHLY LAB UPDATE</span>
+                  
+                  <h2 class="newsletter-title">
+                      One email per month.<br>No noise.
+                  </h2>
+                  
+                  <p class="newsletter-desc">
+                      A short recap of pilot results, strategy changes, and operational updates — written for partners and close observers.
+                  </p>
+              </div>
+
+              <div class="newsletter-form-wrapper">
+                  <form class="newsletter-form">
+                      <input type="email" placeholder="you@example.com" class="n-input" required />
+                      
+                      <button type="submit" class="n-btn">
+                          Join the lab update
+                      </button>
+                  </form>
+                  
+                  <div class="n-consent">
+                      <input type="checkbox" id="n-check" required>
+                      <label for="n-check">
+                          I agree to receive information from G12 Labs and confirm that I have read and accepted the terms & conditions.
+                      </label>
+                  </div>
+              </div>
+
+          </div>
+      </div>
+  </section>
+ <section class="faq-section" id="faq">
+      <div class="container">
+          <div class="faq-header">
+              <span class="section-kicker">FAQ</span>
+              <h2 class="faq-title">Frequently Asked Questions.</h2>
+          </div>
+
+          <div class="faq-list">
+              
+              <div class="faq-item">
+                  <button class="faq-toggle">
+                      <span class="faq-question">What exactly is G12 Labs?</span>
+                      <span class="faq-icon"><i class="ph ph-plus"></i></span>
+                  </button>
+                  <div class="faq-content">
+                      <div class="faq-text">
+                          <p>
+                              G12 Labs is an experimental crypto lab executing systematic, data-driven investment strategies. 
+                              Unlike traditional funds driven by human intuition, we use algorithms to manage capital based on defined rules and historical probabilities. 
+                              We offer a controlled environment for partners to deploy liquidity into these strategies, prioritizing capital preservation and transparent tracking.
+                          </p>
+                      </div>
+                  </div>
+              </div>
+
+              <div class="faq-item">
+                  <button class="faq-toggle">
+                      <span class="faq-question">How does the strategy actually generate returns?</span>
+                      <span class="faq-icon"><i class="ph ph-plus"></i></span>
+                  </button>
+                  <div class="faq-content">
+                      <div class="faq-text">
+                          <p>
+                              We run multiple rule-based strategies that focus on repeatable edges: funding-rate capture, directional or market-neutral systems, and liquidity-providing setups.
+                          </p>
+                          <p>
+                              Everything is tracked over time so we can see how they behave across different market regimes. Depending on the market condition, we adapt our strategies to optimize risk-adjusted returns.
+                          </p>
+                      </div>
+                  </div>
+              </div>
+
+              <div class="faq-item">
+                  <button class="faq-toggle">
+                      <span class="faq-question">Is G12 Labs safe? How do you manage risk?</span>
+                      <span class="faq-icon"><i class="ph ph-plus"></i></span>
+                  </button>
+                  <div class="faq-content">
+                      <div class="faq-text">
+                          <p>
+                              All investments carry inherent risks: capital can decrease as well as increase. We mitigate these through defined rules, strict drawdown thresholds, diversification, and a primary focus on capital preservation over performance.
+                          </p>
+                          <p>
+                              Blockchain-specific risks—such as hacks, smart contract vulnerabilities, or exploits—are addressed through robust security measures, including multi-signature wallets, audited code, and cold storage protocols, though no system offers absolute protection.
+                          </p>
+                      </div>
+                  </div>
+              </div>
+
+          </div>
+      </div>
+  </section>
+  <footer class="site-footer">
+    <div class="container">
+      
+      <div class="footer-columns">
+        
+        <div class="footer-column">
+          <h3 class="footer-heading">Platform</h3>
+          <ul class="footer-links-list">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#what-we-do">What we do</a></li>
+            <li><a href="#live-access">Live Launch</a></li>
+            <li><a href="#roadmap">Roadmap</a></li>
+            <li><a href="strategies.html">Strategies</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h3 class="footer-heading">Resources</h3>
+          <ul class="footer-links-list">
+            <li><a href="blog.html">Journal</a></li>
+            <li><a href="access.html">Access</a></li>
+            <li><a href="login.html">Client Login</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="docs.html" target="_blank">Documentation</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h3 class="footer-heading">Contact</h3>
+          <ul class="footer-links-list">
+            <li><a href="mailto:info@g12labs.com">info@g12labs.com</a></li>
+            <li><a href="#">Twitter / X</a></li>
+            <li><a href="#">Discord</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-main">
+        <h2 class="footer-tagline-main">
+          Become Inevitable.
+        </h2>
+        <img src="fulllogo_transparent_nobuffer.png" alt="" class="footer-main-logo-img" />
+      </div>
+
+      <div class="footer-bottom">
+        <a href="#home" class="footer-back-top">
+          <span>↑ Back to top</span>
+        </a>
+
+        <div class="footer-bottom-right">
+          <span>© 2025 G12 Labs</span>
+          <span class="sep">·</span>
+          <a href="legal.html">Terms</a>
+          <span class="sep">·</span>
+          <a href="privacy.html">Privacy</a>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+  <script>
+    (function () {
+      // Fade-in
+      window.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('is-loaded');
+      });
+
+      // Navbar Logic
+      const header = document.getElementById('siteHeader');
+      const navToggle = document.getElementById('navToggle');
+      const navMenu = document.getElementById('navMenu');
+
+      function onScroll() {
+        if (window.scrollY > 8) {
+          header.classList.add('scrolled');
+        } else {
+          header.classList.remove('scrolled');
+        }
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      function closeMenu() {
+        navToggle.setAttribute('aria-expanded', 'false');
+        navMenu.classList.remove('open');
+        document.body.classList.remove('menu-open');
+      }
+
+      function openMenu() {
+        navToggle.setAttribute('aria-expanded', 'true');
+        navMenu.classList.add('open');
+        document.body.classList.add('menu-open');
+      }
+
+      navToggle.addEventListener('click', () => {
+        const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+        if (expanded) closeMenu();
+        else openMenu();
+      });
+
+      // Close menu on link click
+      navMenu.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', closeMenu);
+      });
+
+      // Close menu on resize
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) closeMenu();
+      });
+    })();
+
+    // FAQ ACCORDION LOGIC
+    document.querySelectorAll('.faq-toggle').forEach(button => {
+        button.addEventListener('click', () => {
+            const faqItem = button.parentElement;
+            const content = faqItem.querySelector('.faq-content');
+            
+            // Fermer les autres (optionnel, si tu veux qu'un seul soit ouvert à la fois)
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if (item !== faqItem) {
+                    item.classList.remove('active');
+                    item.querySelector('.faq-content').style.maxHeight = null;
+                }
+            });
+
+            // Toggle celui cliqué
+            faqItem.classList.toggle('active');
+            
+            if (faqItem.classList.contains('active')) {
+                // On définit la hauteur max sur la hauteur réelle du contenu (scrollHeight)
+                content.style.maxHeight = content.scrollHeight + "px";
+            } else {
+                content.style.maxHeight = null;
+            }
+        });
+    });
+  </script>
+
 </body>
 </html>
