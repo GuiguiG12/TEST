@@ -3,1447 +3,284 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <title>G12 Labs — Access</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>G12 Labs — Access Terminal</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  
-  <!-- Ethers.js v6 for blockchain interactions -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
 
   <style>
     /* =========================================================
-       DESIGN TOKENS
+       DESIGN TOKENS (IDENTIQUE A INDEX/STRATEGIES/DOCS)
        ========================================================= */
     :root {
-      --bg-app: #050505;
-      --bg-card: #0a0a0a;
-      --bg-card-hover: #0f0f0f;
-      --bg-input: #111111;
-      --border-color: #1a1a1a;
-      --border-highlight: #2a2a2a;
+      --magma-core: #E85A04;        
+      --magma-light: #FF9E66;       
+      
+      --carbon-base: #05070b;       
+      --carbon-surface: #0e1116;    
+      --carbon-border: #1f2329;     
       
       --text-main: #ffffff;
-      --text-muted: #a1a1a1;
-      --text-soft: #525252;
+      --text-muted: #9aa4b2;
+      --text-soft: #666;
+
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --container-max: 1280px;
+      --page-padding-x: 1.25rem;
       
-      --accent: #4ee5c1;
-      --accent-secondary: #a8ffc8;
-      --accent-dim: rgba(78, 229, 193, 0.1);
+      /* Navbar vars */
+      --nav-height: 5rem; 
+      --nav-bg: rgba(5, 7, 11, 0.8); 
+      --nav-bg-scrolled: rgba(5, 7, 11, 0.95);
       
-      --magma: #E85A04;
-      --base-blue: #0052FF;
+      --grad-btn-magma: linear-gradient(135deg, #FF9E66 0%, #E85A04 50%, #B33600 100%);
       
-      --success: #22c55e;
-      --error: #ef4444;
-      --warning: #f59e0b;
-      
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
+      --radius-pill: 999px;
+      --dur-normal: 0.24s;
+      --ease-standard: cubic-bezier(0.2, 0.6, 0.2, 1);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     
     body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg-app);
+      font-family: var(--font-sans);
+      background-color: var(--carbon-base);
       color: var(--text-main);
-      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+      opacity: 0; transition: opacity 0.25s ease-out;
+      display: flex; flex-direction: column; min-height: 100vh;
+    }
+    
+    body.is-loaded { opacity: 1; }
+
+    /* Grain Texture */
+    body::before {
+        content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+        opacity: 0.4; mix-blend-mode: overlay;
     }
 
-    /* =========================================================
-       HEADER
-       ========================================================= */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 40px;
-      border-bottom: 1px solid var(--border-color);
-      background: rgba(10, 10, 10, 0.8);
-      backdrop-filter: blur(20px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+    a { text-decoration: none; color: inherit; transition: 0.3s; }
+    .mono { font-family: var(--font-mono); }
+
+    /* =========================================
+       NAVBAR (Copie stricte)
+       ========================================= */
+    .site-header { position: fixed; inset-inline: 0; top: 0; height: var(--nav-height); z-index: 1000; }
+    .nav-shell { height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    
+    .nav-inner {
+      width: 100%; max-width: var(--container-max); padding-inline: var(--page-padding-x);
+      display: flex; align-items: center; justify-content: space-between;
+      border-radius: 999px; background: var(--nav-bg); backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.06); margin-block: 3rem; padding-block: 0.6rem;
+      pointer-events: auto; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+      transition: all var(--dur-normal) var(--ease-standard);
+      position: relative;
+    }
+    
+    .site-header.scrolled .nav-inner { 
+      background: var(--nav-bg-scrolled); transform: translateY(-0.35rem); 
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-brand-logo { height: 1.4rem; width: auto; filter: brightness(0) invert(1); }
+    
+    .nav-links { display: none; align-items: center; gap: 5rem; font-size: 0.9rem; }
+    .nav-links a { color: var(--text-muted); position: relative; padding: 0.25rem 0; }
+    .nav-links a:hover, .nav-links a.active { color: var(--text-main); }
+    .nav-links a::after { content:''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px; background: var(--magma-core); transition: width 0.2s; }
+    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+
+    .nav-cta { display: none; align-items: center; gap: 1.5rem; margin-left: 1.5rem; }
+    .lang-switch { font-size: 0.8rem; color: var(--text-soft); cursor: pointer; }
+    .lang-switch .active { color: var(--text-main); font-weight: 500; }
+
+    .btn-magma-outline {
+      position: relative;
+      background: linear-gradient(var(--carbon-base), var(--carbon-base)) padding-box, var(--grad-btn-magma) border-box;
+      border: 1px solid transparent; border-radius: var(--radius-pill);
+      color: #fff; padding: 0.5rem 1.1rem; font-size: 0.85rem; font-weight: 600;
+      display: inline-flex; align-items: center; transition: 0.2s;
+    }
+    .btn-magma-outline:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232, 90, 4, 0.15); color: white; }
+
+    .nav-toggle { display: inline-block; border: none; background: none; width: 1.6rem; height: 1.1rem; position: relative; cursor: pointer; }
+    .nav-toggle span { position: absolute; left: 0; right: 0; height: 2px; background: var(--text-main); transition: 0.2s; }
+    .nav-toggle span:nth-child(1) { top: 0; } .nav-toggle span:nth-child(2) { top: 50%; transform: translateY(-50%); } .nav-toggle span:nth-child(3) { bottom: 0; }
+
+    @media (min-width: 64rem) {
+      .nav-links { display: flex; position: absolute; left: 50%; transform: translateX(-50%); }
+      .nav-cta { display: flex; } .nav-toggle { display: none; }
     }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 20px;
-      font-weight: 700;
-      text-decoration: none;
-      color: var(--text-main);
+    /* =========================================
+       MAIN CONTENT : CONSTRUCTION
+       ========================================= */
+    main {
+        flex: 1;
+        display: flex; align-items: center; justify-content: center;
+        position: relative;
+        padding-top: 100px; padding-bottom: 60px;
     }
 
-    .logo img { height: 32px; }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
+    .construction-wrapper {
+        text-align: center;
+        max-width: 600px;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
     }
 
-    .back-link {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.2s;
-    }
-    .back-link:hover { color: var(--text-main); }
-
-    /* =========================================================
-       LOGIN VIEW
-       ========================================================= */
-    .login-view {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: calc(100vh - 80px);
-      padding: 2rem;
+    /* ANIMATION : SYSTEM SCAN (Le truc cool) */
+    .scan-container {
+        position: relative;
+        width: 120px; height: 120px;
+        margin: 0 auto 40px;
+        display: flex; align-items: center; justify-content: center;
     }
 
-    .login-card {
-      background: var(--bg-card);
-      width: 100%;
-      max-width: 440px;
-      padding: 3rem;
-      border-radius: var(--radius-xl);
-      border: 1px solid var(--border-color);
-      text-align: center;
+    /* Cercle externe */
+    .scan-ring {
+        position: absolute; inset: 0;
+        border: 2px solid rgba(232, 90, 4, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--magma-core);
+        animation: spin 3s linear infinite;
     }
-
-    .login-logo { margin-bottom: 2rem; }
-    .login-logo img { width: 180px; }
-
-    .login-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
+    /* Cercle interne */
+    .scan-ring-inner {
+        position: absolute; inset: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        border-bottom-color: rgba(255,255,255,0.5);
+        animation: spin 2s linear infinite reverse;
     }
-
-    .login-subtitle {
-      font-size: 0.95rem;
-      color: var(--text-muted);
-      margin-bottom: 2rem;
-      line-height: 1.5;
-    }
-
-    .login-features {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-top: 1.5rem;
-      padding: 1.25rem;
-      background: var(--accent-dim);
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(78, 229, 193, 0.15);
-      text-align: left;
-    }
-
-    .feature-item {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-    .feature-item i { color: var(--accent); font-size: 1rem; }
-
-    .login-footer {
-      margin-top: 2rem;
-      font-size: 0.85rem;
-      color: var(--text-soft);
-    }
-    .login-footer a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-    .login-footer a:hover { text-decoration: underline; }
-
-    /* AppKit button styling */
-    .connect-btn-wrapper {
-      display: flex;
-      justify-content: center;
-      margin: 1.5rem 0;
-    }
-
-    /* =========================================================
-       DASHBOARD VIEW
-       ========================================================= */
-    .dashboard-view {
-      display: none;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 24px;
-    }
-
-    /* Welcome Section */
-    .welcome {
-      margin-bottom: 40px;
-    }
-
-    .welcome h1 {
-      font-size: 28px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .welcome p {
-      color: var(--text-muted);
-      font-size: 15px;
-    }
-
-    .wallet-address {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      font-size: 13px;
-      color: var(--accent);
-      margin-top: 12px;
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      margin-bottom: 40px;
-    }
-
-    .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      transition: all 0.2s;
-    }
-
-    .stat-card:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--border-highlight);
-    }
-
-    .stat-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    .stat-label i { font-size: 16px; color: var(--accent); }
-
-    .stat-value {
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .stat-value.positive { color: var(--success); }
-    .stat-value.negative { color: var(--error); }
-
-    .stat-sub {
-      font-size: 12px;
-      color: var(--text-soft);
-      margin-top: 4px;
-    }
-
-    /* Section Title */
-    .section-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-title i { color: var(--accent); }
-
-    /* Vault Cards */
-    .vaults-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    .vault-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      transition: all 0.2s;
-    }
-
-    .vault-card:hover {
-      border-color: var(--border-highlight);
-      transform: translateY(-2px);
-    }
-
-    .vault-card.arbitrum .vault-header { border-left: 3px solid var(--magma); }
-    .vault-card.base .vault-header { border-left: 3px solid var(--base-blue); }
-
-    .vault-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      border-bottom: 1px solid var(--border-color);
-      background: rgba(255,255,255,0.02);
-    }
-
-    .vault-name {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 600;
-      font-size: 15px;
-    }
-
-    .vault-name img { width: 24px; height: 24px; border-radius: 50%; }
-
-    .vault-network {
-      font-size: 11px;
-      padding: 4px 10px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 20px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .vault-body { padding: 20px; }
-
-    .vault-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .vault-stat-label {
-      font-size: 12px;
-      color: var(--text-soft);
-      margin-bottom: 4px;
-    }
-
-    .vault-stat-value {
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .vault-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    /* Buttons */
-    .btn {
-      padding: 12px 20px;
-      border-radius: var(--radius-md);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      border: none;
-      text-decoration: none;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
-      color: #000;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(78, 229, 193, 0.25);
-    }
-
-    .btn-secondary {
-      background: rgba(255,255,255,0.05);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255,255,255,0.08);
-      border-color: var(--border-highlight);
-    }
-
-    .btn-disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-
-    /* Timelock indicator */
-    .timelock-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: var(--warning);
-      margin-top: 8px;
-    }
-
-    .timelock-badge i { font-size: 14px; }
-
-    /* Transactions Table */
-    .transactions-section {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-    }
-
-    .transactions-header {
-      padding: 20px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .transactions-header h3 {
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .transactions-header h3 i { color: var(--accent); }
-
-    .empty-state {
-      padding: 60px 20px;
-      text-align: center;
-      color: var(--text-soft);
-    }
-
-    .empty-state i {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.3;
-    }
-
-    /* =========================================================
-       MODAL
-       ========================================================= */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 20px;
-    }
-
-    .modal-overlay.active { display: flex; }
-
-    .modal {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-xl);
-      width: 100%;
-      max-width: 440px;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 24px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .modal-title {
-      font-size: 18px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 24px;
-      padding: 4px;
-      transition: color 0.2s;
-    }
-
-    .modal-close:hover { color: var(--text-main); }
-
-    .modal-body { padding: 24px; }
-
-    .input-group { margin-bottom: 20px; }
-
-    .input-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .input-label button {
-      background: none;
-      border: none;
-      color: var(--accent);
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .input-label button:hover { text-decoration: underline; }
-
-    .input-wrapper {
-      display: flex;
-      background: var(--bg-input);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      transition: border-color 0.2s;
-    }
-
-    .input-wrapper:focus-within { border-color: var(--accent); }
-
-    .input-wrapper input {
-      flex: 1;
-      padding: 14px 16px;
-      background: transparent;
-      border: none;
-      color: var(--text-main);
-      font-size: 16px;
-      font-family: inherit;
-      outline: none;
-    }
-
-    .input-wrapper input::placeholder { color: var(--text-soft); }
-
-    .input-suffix {
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-      color: var(--text-muted);
-      font-size: 14px;
-      font-weight: 500;
-      background: rgba(255,255,255,0.02);
-      border-left: 1px solid var(--border-color);
-    }
-
-    .modal-info {
-      background: var(--accent-dim);
-      border: 1px solid rgba(78, 229, 193, 0.15);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-
-    .modal-info p {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .modal-info strong { color: var(--accent); }
-
-    .message {
-      padding: 12px 16px;
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .message.show { display: block; }
-    .message.info { background: var(--accent-dim); color: var(--accent); }
-    .message.success { background: rgba(34, 197, 94, 0.1); color: var(--success); }
-    .message.error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
-
-    .modal-footer {
-      padding: 0 24px 24px;
-    }
-
-    .modal-footer .btn { width: 100%; }
-
-    /* Loader */
-    .loader {
-      width: 16px;
-      height: 16px;
-      border: 2px solid transparent;
-      border-top-color: currentColor;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
+    /* Icone cadenas au centre */
+    .scan-icon {
+        font-size: 32px; color: white;
+        animation: pulse-icon 2s ease-in-out infinite;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse-icon { 0%, 100% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }
 
-    /* =========================================================
-       RESPONSIVE
-       ========================================================= */
-    @media (max-width: 768px) {
-      .header { padding: 16px 20px; }
-      .container { padding: 24px 16px; }
-      .vaults-grid { grid-template-columns: 1fr; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .vault-actions { grid-template-columns: 1fr; }
+    /* TEXTES */
+    .status-badge {
+        display: inline-block;
+        font-family: var(--font-mono); font-size: 11px;
+        color: var(--magma-core); border: 1px solid rgba(232, 90, 4, 0.3);
+        padding: 4px 12px; border-radius: 99px;
+        margin-bottom: 24px; background: rgba(232, 90, 4, 0.05);
+        letter-spacing: 1px;
     }
 
-    /* =========================================================
-       UTILITIES
-       ========================================================= */
-    .hidden { display: none !important; }
+    h1 {
+        font-size: clamp(32px, 5vw, 48px); font-weight: 700;
+        margin-bottom: 16px; line-height: 1.1;
+        background: linear-gradient(180deg, #fff, #888);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+        color: var(--text-muted); font-size: 16px; line-height: 1.6;
+        margin-bottom: 40px;
+    }
+
+    /* Actions */
+    .action-row {
+        display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+        padding: 12px 24px; border-radius: 99px; font-size: 14px; font-weight: 600;
+        background: rgba(255,255,255,0.05); color: #fff;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: 0.2s; cursor: pointer;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: white; }
+
+    /* =========================================
+       FOOTER
+       ========================================= */
+    .site-footer {
+        background-color: #000000; padding: 40px 0;
+        border-top: 1px solid var(--carbon-border);
+        text-align: center; font-size: 13px; color: #555;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ===================== HEADER ===================== -->
-  <header class="header">
-    <a href="index.html" class="logo">
-      <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" />
-    </a>
-    
-    <div class="header-right">
-      <a href="strategies.html" class="back-link">
-        <i class="ph ph-arrow-left"></i>
-        Back to Strategies
-      </a>
-      
-      <!-- AppKit button (header) -->
-      <div id="headerWallet" class="hidden">
-        <appkit-button balance="hide"></appkit-button>
+  <header class="site-header" id="siteHeader">
+    <div class="nav-shell">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-brand">
+          <img src="logo_g12.svg" alt="G12 Labs" class="nav-brand-logo" />
+        </a>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="strategies.html">Strategies</a>
+          <a href="blog.html">Journal</a>
+          <a href="docs.html">Docs</a>
+        </nav>
+
+        <div class="nav-cta">
+          <div class="lang-switch">
+            <span class="active">EN</span>
+            <span> / FR</span>
+          </div>
+          <a href="index.html" class="btn-magma-outline" style="opacity:0.5; pointer-events:none;">
+            Launch App
+          </a>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- ===================== LOGIN VIEW ===================== -->
-  <div id="loginView" class="login-view">
-    <div class="login-card">
-      <div class="login-logo">
-        <img src="fulllogo_transparent_nobuffer.png" alt="G12 Labs" />
-      </div>
-      
-      <h1 class="login-title">Welcome to G12 Labs</h1>
-      <p class="login-subtitle">
-        Connect your wallet to access your investment dashboard, 
-        deposit funds, and track your portfolio performance.
-      </p>
-
-      <div class="connect-btn-wrapper">
-        <appkit-button></appkit-button>
-      </div>
-
-      <div class="login-features">
-        <div class="feature-item">
-          <i class="ph ph-check-circle"></i>
-          <span>Google, Apple, Discord login</span>
-        </div>
-        <div class="feature-item">
-          <i class="ph ph-check-circle"></i>
-          <span>Email login (no wallet needed)</span>
-        </div>
-        <div class="feature-item">
-          <i class="ph ph-check-circle"></i>
-          <span>MetaMask, Rabby, 600+ wallets</span>
-        </div>
-        <div class="feature-item">
-          <i class="ph ph-check-circle"></i>
-          <span>Buy crypto directly with card</span>
-        </div>
-      </div>
-
-      <div class="login-footer">
-        New to DeFi? <a href="docs.html">Read our documentation</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== DASHBOARD VIEW ===================== -->
-  <div id="dashboardView" class="dashboard-view">
-    <div class="container">
-      
-      <!-- Welcome -->
-      <div class="welcome">
-        <h1>Your Portfolio</h1>
-        <p>Track your investments and manage your positions across all G12 vaults.</p>
-        <div class="wallet-address">
-          <i class="ph ph-wallet"></i>
-          <span id="walletDisplay">0x...</span>
-        </div>
-      </div>
-
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">
-            <i class="ph ph-chart-pie"></i>
-            Total Value
-          </div>
-          <div class="stat-value" id="totalValue">$0.00</div>
-          <div class="stat-sub">Across all vaults</div>
-        </div>
+  <main>
+    <div class="construction-wrapper">
         
-        <div class="stat-card">
-          <div class="stat-label">
-            <i class="ph ph-trend-up"></i>
-            Total Profit/Loss
-          </div>
-          <div class="stat-value" id="totalPnl">$0.00</div>
-          <div class="stat-sub" id="totalPnlPercent">+0.00%</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-label">
-            <i class="ph ph-coins"></i>
-            USDC Balance
-          </div>
-          <div class="stat-value" id="usdcBalance">0.00</div>
-          <div class="stat-sub">Available to deposit</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-label">
-            <i class="ph ph-clock-countdown"></i>
-            Pending Withdrawals
-          </div>
-          <div class="stat-value" id="pendingWithdrawals">$0.00</div>
-          <div class="stat-sub" id="pendingCount">0 requests</div>
-        </div>
-      </div>
-
-      <!-- Vaults Section -->
-      <h2 class="section-title">
-        <i class="ph ph-vault"></i>
-        Your Positions
-      </h2>
-      
-      <div class="vaults-grid">
-        
-        <!-- Arbitrum Vault -->
-        <div class="vault-card arbitrum">
-          <div class="vault-header">
-            <div class="vault-name">
-              <img src="favicon_arbitrum.svg" alt="Arbitrum" />
-              G12 DeFi Yield
-            </div>
-            <span class="vault-network">Arbitrum</span>
-          </div>
-          <div class="vault-body">
-            <div class="vault-stats">
-              <div>
-                <div class="vault-stat-label">Your Shares</div>
-                <div class="vault-stat-value" id="arbShares">0.0000</div>
-              </div>
-              <div>
-                <div class="vault-stat-label">Value (USD)</div>
-                <div class="vault-stat-value" id="arbValue">$0.00</div>
-              </div>
-              <div>
-                <div class="vault-stat-label">Share Price</div>
-                <div class="vault-stat-value" id="arbSharePrice">$1.00</div>
-              </div>
-              <div>
-                <div class="vault-stat-label">Monthly Return</div>
-                <div class="vault-stat-value" id="arbMonthly" style="color: var(--success)">+0.00%</div>
-              </div>
-            </div>
-            <div class="vault-actions">
-              <button class="btn btn-primary" onclick="openDepositModal('arbitrum')">
-                <i class="ph ph-arrow-down"></i> Deposit
-              </button>
-              <button class="btn btn-secondary" onclick="openRedeemModal('arbitrum')" id="arbRedeemBtn">
-                <i class="ph ph-arrow-up"></i> Redeem
-              </button>
-            </div>
-            <div class="timelock-badge hidden" id="arbTimelock">
-              <i class="ph ph-hourglass-medium"></i>
-              <span>Withdrawal unlocks in <strong id="arbTimelockCountdown">--:--:--</strong></span>
-            </div>
-          </div>
+        <div class="scan-container">
+            <div class="scan-ring"></div>
+            <div class="scan-ring-inner"></div>
+            <i class="ph-fill ph-lock-key scan-icon"></i>
         </div>
 
-        <!-- Base Vault -->
-        <div class="vault-card base">
-          <div class="vault-header">
-            <div class="vault-name">
-              <img src="favicon_base.jpeg" alt="Base" />
-              G12 Stable Yield
-            </div>
-            <span class="vault-network">Base</span>
-          </div>
-          <div class="vault-body">
-            <div class="vault-stats">
-              <div>
-                <div class="vault-stat-label">Your Shares</div>
-                <div class="vault-stat-value" id="baseShares">0.0000</div>
-              </div>
-              <div>
-                <div class="vault-stat-label">Value (USD)</div>
-                <div class="vault-stat-value" id="baseValue">$0.00</div>
-              </div>
-              <div>
-                <div class="vault-stat-label">Share Price</div>
-                <div class="vault-stat-value" id="baseSharePrice">$1.00</div>
-              </div>
-              <div>
-                <div class="vault-stat-label">Monthly Return</div>
-                <div class="vault-stat-value" id="baseMonthly" style="color: var(--success)">+0.00%</div>
-              </div>
-            </div>
-            <div class="vault-actions">
-              <button class="btn btn-primary" onclick="openDepositModal('base')">
-                <i class="ph ph-arrow-down"></i> Deposit
-              </button>
-              <button class="btn btn-secondary" onclick="openRedeemModal('base')" id="baseRedeemBtn">
-                <i class="ph ph-arrow-up"></i> Redeem
-              </button>
-            </div>
-            <div class="timelock-badge hidden" id="baseTimelock">
-              <i class="ph ph-hourglass-medium"></i>
-              <span>Withdrawal unlocks in <strong id="baseTimelockCountdown">--:--:--</strong></span>
-            </div>
-          </div>
-        </div>
-      </div>
+        <span class="status-badge">● TERMINAL OFFLINE</span>
 
-      <!-- Transactions -->
-      <div class="transactions-section">
-        <div class="transactions-header">
-          <h3>
-            <i class="ph ph-clock-counter-clockwise"></i>
-            Transaction History
-          </h3>
-        </div>
+        <h1>Deployment in Progress</h1>
         
-        <div id="transactionsContent">
-          <div class="empty-state">
-            <i class="ph ph-receipt"></i>
-            <p>No transactions yet.<br>Deposit to get started!</p>
-          </div>
+        <p class="subtitle">
+            We are running final security checks to ensure maximum safety for your capital.
+        </p>
+
+        <div class="action-row">
+            <a href="index.html" class="btn-secondary">
+                Return to Home
+            </a>
+            <a href="strategies.html" class="btn-secondary">
+                View Strategies
+            </a>
         </div>
-      </div>
 
     </div>
-  </div>
+  </main>
 
-  <!-- ===================== DEPOSIT MODAL ===================== -->
-  <div class="modal-overlay" id="depositModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 class="modal-title">
-          <i class="ph ph-arrow-down"></i>
-          Deposit USDC
-        </h2>
-        <button class="modal-close" onclick="closeModal('depositModal')">
-          <i class="ph ph-x"></i>
-        </button>
-      </div>
-      
-      <div class="modal-body">
-        <div class="modal-info">
-          <p>
-            Depositing into <strong id="depositVaultName">G12 DeFi Yield</strong> on 
-            <strong id="depositVaultNetwork">Arbitrum</strong>.
-          </p>
-        </div>
-
-        <div class="input-group">
-          <div class="input-label">
-            <span>Amount</span>
-            <button onclick="setMaxDeposit()">MAX</button>
-          </div>
-          <div class="input-wrapper">
-            <input type="number" id="depositAmount" placeholder="0.00" step="0.01" />
-            <div class="input-suffix">USDC</div>
-          </div>
-        </div>
-
-        <div id="depositMessage" class="message"></div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" id="depositBtn" onclick="executeDeposit()">
-          <i class="ph ph-arrow-down"></i>
-          Deposit
-        </button>
-      </div>
+  <footer class="site-footer">
+    <div style="max-width:1280px; margin:0 auto; padding:0 24px;">
+        <p>© 2026 G12 Labs. All systems operational.</p>
     </div>
-  </div>
-
-  <!-- ===================== REDEEM MODAL ===================== -->
-  <div class="modal-overlay" id="redeemModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 class="modal-title">
-          <i class="ph ph-arrow-up"></i>
-          Request Withdrawal
-        </h2>
-        <button class="modal-close" onclick="closeModal('redeemModal')">
-          <i class="ph ph-x"></i>
-        </button>
-      </div>
-      
-      <div class="modal-body">
-        <div class="modal-info">
-          <p>
-            Withdrawing from <strong id="redeemVaultName">G12 DeFi Yield</strong>.<br><br>
-            <i class="ph ph-warning"></i> <strong>72-hour timelock:</strong> After requesting, 
-            your withdrawal will be available to claim after 72 hours.
-          </p>
-        </div>
-
-        <div class="input-group">
-          <div class="input-label">
-            <span>Shares to redeem</span>
-            <button onclick="setMaxRedeem()">MAX</button>
-          </div>
-          <div class="input-wrapper">
-            <input type="number" id="redeemAmount" placeholder="0.00" step="0.0001" />
-            <div class="input-suffix">Shares</div>
-          </div>
-        </div>
-
-        <div id="redeemMessage" class="message"></div>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-primary" id="redeemBtn" onclick="executeRedeem()">
-          <i class="ph ph-clock"></i>
-          Request Withdrawal
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== REOWN APPKIT CDN ===================== -->
-  <script type="module">
-    // Import AppKit from CDN (version 1.8.x)
-    import { createAppKit } from 'https://cdn.jsdelivr.net/npm/@reown/appkit@1.8.15/+esm'
-    import { EthersAdapter } from 'https://cdn.jsdelivr.net/npm/@reown/appkit-adapter-ethers@1.8.15/+esm'
-
-    // ============================================
-    // CONFIG
-    // ============================================
-    const CONFIG = {
-      projectId: '5f9c4ad6a6cadf402f5815fa8f07308c',
-      
-      supabaseApi: 'https://ucrvaqztvfnphhoqcbpo.supabase.co/functions/v1/FIRECRAWL_DATA',
-      
-      vaults: {
-        arbitrum: {
-          name: 'G12 DeFi Yield',
-          network: 'Arbitrum',
-          chainId: 42161,
-          rpc: 'https://arb1.arbitrum.io/rpc',
-          vaultProxy: '0xc9e50e08739a4aec211f2e8e95f1ab45b923cc20',
-          comptrollerProxy: '0xAc7e68A0c3Ecae1b8D889ca030863eCab63B587A',
-          usdc: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-          explorer: 'https://arbiscan.io'
-        },
-        base: {
-          name: 'G12 Stable Yield',
-          network: 'Base',
-          chainId: 8453,
-          rpc: 'https://mainnet.base.org',
-          vaultProxy: '0xbfa811e1f065c9b66b02d8ae408d4d9b9be70a22',
-          comptrollerProxy: '0xEcd52026399297F65db08B65F2fF466DdF5a20eE',
-          usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-          explorer: 'https://basescan.org'
-        }
-      }
-    }
-
-    // Networks configuration for AppKit
-    const arbitrum = {
-      id: 42161,
-      name: 'Arbitrum One',
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpcUrls: {
-        default: { http: ['https://arb1.arbitrum.io/rpc'] }
-      },
-      blockExplorers: {
-        default: { name: 'Arbiscan', url: 'https://arbiscan.io' }
-      }
-    }
-
-    const base = {
-      id: 8453,
-      name: 'Base',
-      nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-      rpcUrls: {
-        default: { http: ['https://mainnet.base.org'] }
-      },
-      blockExplorers: {
-        default: { name: 'Basescan', url: 'https://basescan.org' }
-      }
-    }
-
-    // ABIs
-    const VAULT_ABI = [
-      'function balanceOf(address) view returns (uint256)',
-      'function totalSupply() view returns (uint256)'
-    ]
-    
-    const ERC20_ABI = [
-      'function balanceOf(address) view returns (uint256)',
-      'function allowance(address owner, address spender) view returns (uint256)',
-      'function approve(address spender, uint256 amount) returns (bool)'
-    ]
-    
-    const COMPTROLLER_ABI = [
-      'function buyShares(uint256 investmentAmount, uint256 minSharesQuantity) returns (uint256)',
-      'function redeemSharesForSpecificAssets(address recipient, uint256 sharesQuantity, address[] payoutAssets, uint256[] payoutAssetPercentages) returns (uint256[])'
-    ]
-
-    // ============================================
-    // APPKIT INIT
-    // ============================================
-    const metadata = {
-      name: 'G12 Labs',
-      description: 'DeFi Investment Platform',
-      url: window.location.origin || 'https://guiguig12.github.io',
-      icons: ['https://guiguig12.github.io/TEST/fulllogo_transparent_nobuffer.png']
-    }
-
-    const ethersAdapter = new EthersAdapter()
-
-    const modal = createAppKit({
-      adapters: [ethersAdapter],
-      networks: [arbitrum, base],
-      projectId: CONFIG.projectId,
-      metadata,
-      features: {
-        analytics: true,
-        email: true,
-        socials: ['google', 'apple', 'discord'],
-        onramp: true,
-        swaps: true
-      },
-      themeMode: 'dark',
-      themeVariables: {
-        '--w3m-accent': '#4ee5c1'
-      }
-    })
-
-    console.log('✅ AppKit initialized')
-
-    // ============================================
-    // GLOBAL STATE
-    // ============================================
-    window.G12 = {
-      modal,
-      userAddress: null,
-      currentVault: 'arbitrum',
-      balances: {
-        arbitrum: { shares: 0, usdc: 0 },
-        base: { shares: 0, usdc: 0 }
-      },
-      vaultData: {
-        arbitrum: { sharePrice: 1, monthlyReturn: 0 },
-        base: { sharePrice: 1, monthlyReturn: 0 }
-      }
-    }
-
-    // ============================================
-    // VIEW SWITCHING
-    // ============================================
-    function showLoginView() {
-      document.getElementById('loginView').style.display = 'flex'
-      document.getElementById('dashboardView').style.display = 'none'
-      document.getElementById('headerWallet').classList.add('hidden')
-    }
-
-    function showDashboardView() {
-      document.getElementById('loginView').style.display = 'none'
-      document.getElementById('dashboardView').style.display = 'block'
-      document.getElementById('headerWallet').classList.remove('hidden')
-    }
-
-    // ============================================
-    // DATA LOADING
-    // ============================================
-    async function loadVaultData(network) {
-      try {
-        const res = await fetch(`${CONFIG.supabaseApi}?action=get&network=${network}`)
-        const data = await res.json()
-        
-        if (data && data.share_price) {
-          window.G12.vaultData[network] = {
-            sharePrice: data.share_price || 1,
-            monthlyReturn: data.monthly_return || 0,
-            aum: data.aum || 0
-          }
-        }
-      } catch (e) {
-        console.error(`Error loading ${network} vault data:`, e)
-      }
-    }
-
-    async function loadUserBalances() {
-      if (!window.G12.userAddress) return
-
-      for (const [network, cfg] of Object.entries(CONFIG.vaults)) {
-        try {
-          const rpcProvider = new ethers.JsonRpcProvider(cfg.rpc)
-          const vault = new ethers.Contract(cfg.vaultProxy, VAULT_ABI, rpcProvider)
-          const usdc = new ethers.Contract(cfg.usdc, ERC20_ABI, rpcProvider)
-
-          const [shares, usdcBal] = await Promise.all([
-            vault.balanceOf(window.G12.userAddress),
-            usdc.balanceOf(window.G12.userAddress)
-          ])
-
-          window.G12.balances[network] = {
-            shares: parseFloat(ethers.formatUnits(shares, 18)),
-            usdc: parseFloat(ethers.formatUnits(usdcBal, 6))
-          }
-        } catch (e) {
-          console.error(`Error loading ${network} balances:`, e)
-        }
-      }
-
-      updateUI()
-    }
-
-    // ============================================
-    // UI UPDATE
-    // ============================================
-    function updateUI() {
-      // Wallet display
-      if (window.G12.userAddress) {
-        const addr = window.G12.userAddress
-        document.getElementById('walletDisplay').textContent = 
-          `${addr.slice(0, 6)}...${addr.slice(-4)}`
-      }
-
-      // Calculate totals
-      let totalValue = 0
-      let totalUsdc = 0
-
-      for (const [network, bal] of Object.entries(window.G12.balances)) {
-        const vd = window.G12.vaultData[network]
-        const value = bal.shares * (vd?.sharePrice || 1)
-        totalValue += value
-        totalUsdc += bal.usdc
-
-        // Update vault cards
-        const prefix = network === 'arbitrum' ? 'arb' : 'base'
-        document.getElementById(`${prefix}Shares`).textContent = bal.shares.toFixed(4)
-        document.getElementById(`${prefix}Value`).textContent = `$${value.toFixed(2)}`
-        document.getElementById(`${prefix}SharePrice`).textContent = `$${(vd?.sharePrice || 1).toFixed(4)}`
-        
-        const monthlyEl = document.getElementById(`${prefix}Monthly`)
-        const monthly = vd?.monthlyReturn || 0
-        monthlyEl.textContent = `${monthly >= 0 ? '+' : ''}${monthly.toFixed(2)}%`
-        monthlyEl.style.color = monthly >= 0 ? 'var(--success)' : 'var(--error)'
-      }
-
-      // Update stats
-      document.getElementById('totalValue').textContent = `$${totalValue.toFixed(2)}`
-      document.getElementById('usdcBalance').textContent = totalUsdc.toFixed(2)
-      document.getElementById('totalPnl').textContent = '$0.00'
-      document.getElementById('totalPnlPercent').textContent = '+0.00%'
-    }
-
-    // ============================================
-    // MODAL FUNCTIONS
-    // ============================================
-    window.openDepositModal = function(network) {
-      window.G12.currentVault = network
-      const cfg = CONFIG.vaults[network]
-      
-      document.getElementById('depositVaultName').textContent = cfg.name
-      document.getElementById('depositVaultNetwork').textContent = cfg.network
-      document.getElementById('depositAmount').value = ''
-      document.getElementById('depositMessage').className = 'message'
-      
-      document.getElementById('depositModal').classList.add('active')
-    }
-
-    window.openRedeemModal = function(network) {
-      window.G12.currentVault = network
-      const cfg = CONFIG.vaults[network]
-      
-      document.getElementById('redeemVaultName').textContent = cfg.name
-      document.getElementById('redeemAmount').value = ''
-      document.getElementById('redeemMessage').className = 'message'
-      
-      document.getElementById('redeemModal').classList.add('active')
-    }
-
-    window.closeModal = function(modalId) {
-      document.getElementById(modalId).classList.remove('active')
-    }
-
-    window.setMaxDeposit = function() {
-      const network = window.G12.currentVault
-      const usdc = window.G12.balances[network]?.usdc || 0
-      document.getElementById('depositAmount').value = usdc.toFixed(2)
-    }
-
-    window.setMaxRedeem = function() {
-      const network = window.G12.currentVault
-      const shares = window.G12.balances[network]?.shares || 0
-      document.getElementById('redeemAmount').value = shares.toFixed(6)
-    }
-
-    // ============================================
-    // HELPER FUNCTIONS
-    // ============================================
-    function showMessage(elementId, message, type = 'info') {
-      const el = document.getElementById(elementId)
-      el.textContent = message
-      el.className = `message show ${type}`
-    }
-
-    function setButtonLoading(btnId, loading, text = '') {
-      const btn = document.getElementById(btnId)
-      if (loading) {
-        btn.disabled = true
-        btn.innerHTML = `<span class="loader"></span> ${text}`
-      } else {
-        btn.disabled = false
-        if (btnId === 'depositBtn') {
-          btn.innerHTML = '<i class="ph ph-arrow-down"></i> Deposit'
-        } else {
-          btn.innerHTML = '<i class="ph ph-clock"></i> Request Withdrawal'
-        }
-      }
-    }
-
-    // ============================================
-    // DEPOSIT EXECUTION
-    // ============================================
-    window.executeDeposit = async function() {
-      const network = window.G12.currentVault
-      const cfg = CONFIG.vaults[network]
-      const amountStr = document.getElementById('depositAmount').value
-
-      if (!amountStr || parseFloat(amountStr) <= 0) {
-        showMessage('depositMessage', 'Please enter a valid amount', 'error')
-        return
-      }
-
-      const amount = parseFloat(amountStr)
-      if (amount > window.G12.balances[network].usdc) {
-        showMessage('depositMessage', 'Insufficient USDC balance', 'error')
-        return
-      }
-
-      setButtonLoading('depositBtn', true, 'Preparing...')
-
-      try {
-        // Get provider from AppKit
-        const provider = modal.getWalletProvider()
-        if (!provider) throw new Error('Wallet not connected')
-
-        const ethersProvider = new ethers.BrowserProvider(provider)
-        const signer = await ethersProvider.getSigner()
-
-        const usdc = new ethers.Contract(cfg.usdc, ERC20_ABI, signer)
-        const comptroller = new ethers.Contract(cfg.comptrollerProxy, COMPTROLLER_ABI, signer)
-
-        const depositAmount = ethers.parseUnits(amountStr, 6)
-
-        // Check allowance
-        setButtonLoading('depositBtn', true, 'Checking allowance...')
-        const allowance = await usdc.allowance(window.G12.userAddress, cfg.comptrollerProxy)
-
-        // Approve if needed
-        if (allowance < depositAmount) {
-          setButtonLoading('depositBtn', true, 'Approving USDC...')
-          showMessage('depositMessage', 'Please approve USDC spending in your wallet...', 'info')
-
-          const approveTx = await usdc.approve(cfg.comptrollerProxy, ethers.MaxUint256)
-          await approveTx.wait()
-        }
-
-        // Buy shares
-        setButtonLoading('depositBtn', true, 'Depositing...')
-        showMessage('depositMessage', 'Please confirm the deposit in your wallet...', 'info')
-
-        const minShares = (depositAmount * 975n) / 1000n // 2.5% slippage
-        const tx = await comptroller.buyShares(depositAmount, minShares, { gasLimit: 500000n })
-        
-        setButtonLoading('depositBtn', true, 'Confirming...')
-        await tx.wait()
-
-        showMessage('depositMessage', `✅ Deposit successful!`, 'success')
-        document.getElementById('depositAmount').value = ''
-
-        // Reload data
-        await loadUserBalances()
-
-        // Close modal after 2s
-        setTimeout(() => closeModal('depositModal'), 2000)
-
-      } catch (e) {
-        console.error('Deposit error:', e)
-        showMessage('depositMessage', e.reason || e.message || 'Transaction failed', 'error')
-      }
-
-      setButtonLoading('depositBtn', false)
-    }
-
-    // ============================================
-    // REDEEM EXECUTION
-    // ============================================
-    window.executeRedeem = async function() {
-      const network = window.G12.currentVault
-      const cfg = CONFIG.vaults[network]
-      const amountStr = document.getElementById('redeemAmount').value
-
-      if (!amountStr || parseFloat(amountStr) <= 0) {
-        showMessage('redeemMessage', 'Please enter a valid amount', 'error')
-        return
-      }
-
-      const amount = parseFloat(amountStr)
-      if (amount > window.G12.balances[network].shares) {
-        showMessage('redeemMessage', 'Insufficient shares balance', 'error')
-        return
-      }
-
-      setButtonLoading('redeemBtn', true, 'Preparing...')
-
-      try {
-        const provider = modal.getWalletProvider()
-        if (!provider) throw new Error('Wallet not connected')
-
-        const ethersProvider = new ethers.BrowserProvider(provider)
-        const signer = await ethersProvider.getSigner()
-
-        const comptroller = new ethers.Contract(cfg.comptrollerProxy, COMPTROLLER_ABI, signer)
-
-        const sharesAmount = ethers.parseUnits(amountStr, 18)
-
-        // Redeem shares
-        setButtonLoading('redeemBtn', true, 'Redeeming...')
-        showMessage('redeemMessage', 'Please confirm the redemption in your wallet...', 'info')
-
-        const tx = await comptroller.redeemSharesForSpecificAssets(
-          window.G12.userAddress,
-          sharesAmount,
-          [cfg.usdc],
-          [10000n], // 100%
-          { gasLimit: 600000n }
-        )
-
-        setButtonLoading('redeemBtn', true, 'Confirming...')
-        await tx.wait()
-
-        showMessage('redeemMessage', `✅ Redemption successful!`, 'success')
-        document.getElementById('redeemAmount').value = ''
-
-        // Reload data
-        await loadUserBalances()
-
-        // Close modal after 2s
-        setTimeout(() => closeModal('redeemModal'), 2000)
-
-      } catch (e) {
-        console.error('Redeem error:', e)
-        showMessage('redeemMessage', e.reason || e.message || 'Transaction failed', 'error')
-      }
-
-      setButtonLoading('redeemBtn', false)
-    }
-
-    // ============================================
-    // DEEP LINKING
-    // ============================================
-    function handleDeepLink() {
-      const params = new URLSearchParams(window.location.search)
-      const vault = params.get('vault')
-
-      if (vault === 'defi' || vault === 'arbitrum') {
-        window.G12.pendingDeposit = 'arbitrum'
-      } else if (vault === 'stable' || vault === 'base') {
-        window.G12.pendingDeposit = 'base'
-      }
-    }
-
-    // ============================================
-    // ACCOUNT SUBSCRIPTION
-    // ============================================
-    modal.subscribeProvider(async ({ address, isConnected }) => {
-      console.log('Provider changed:', { address, isConnected })
-
-      if (isConnected && address) {
-        window.G12.userAddress = address
-        showDashboardView()
-
-        // Load data
-        await Promise.all([
-          loadVaultData('arbitrum'),
-          loadVaultData('base'),
-          loadUserBalances()
-        ])
-
-        // Handle deep link
-        if (window.G12.pendingDeposit) {
-          setTimeout(() => {
-            openDepositModal(window.G12.pendingDeposit)
-            window.G12.pendingDeposit = null
-          }, 500)
-        }
-      } else {
-        window.G12.userAddress = null
-        showLoginView()
-      }
-    })
-
-    // ============================================
-    // INIT
-    // ============================================
-    handleDeepLink()
-
-    // Load vault data even before connection (for display)
-    loadVaultData('arbitrum')
-    loadVaultData('base')
-
-    // Check if already connected
-    const initialAddress = modal.getAddress()
-    if (initialAddress) {
-      window.G12.userAddress = initialAddress
-      showDashboardView()
-      loadUserBalances()
-    } else {
-      showLoginView()
-    }
-
-    console.log('🚀 G12 Access initialized')
+  </footer>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('is-loaded');
+    });
   </script>
 
 </body>
