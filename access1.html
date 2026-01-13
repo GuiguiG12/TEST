@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Access Terminal — G12 Labs</title>
-  <meta name="description" content="Manage your G12 Labs positions. Institutional-grade dashboard for DeFi yield.">
-  <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <title>G12 Terminal Access</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   
@@ -15,710 +13,539 @@
 
   <style>
     /* =========================================================
-       1. DESIGN TOKENS (COPIÉ DEPUIS INDEX.HTML)
+       1. CORE DESIGN TOKENS
        ========================================================= */
     :root {
-      /* BRAND COLORS */
+      /* Brand */
       --magma-core: #E85A04;
-      --magma-light: #FF9E66;
-      --magma-dark: #4A1500;
       --magma-dim: rgba(232, 90, 4, 0.1);
+      --magma-glow: rgba(232, 90, 4, 0.3);
 
-      /* NETWORK COLORS */
-      --base-blue: #0052FF;
-      --base-dim: rgba(0, 82, 255, 0.1);
+      /* UI Surfaces */
+      --bg-root: #050505;       /* Noir profond */
+      --bg-panel: #0a0a0a;      /* Panneau légèrement plus clair */
+      --bg-card: #0F1115;       /* Cartes */
       
-      /* STATUS COLORS */
+      /* Borders */
+      --border-light: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      
+      /* Text */
+      --text-main: #FFFFFF;
+      --text-muted: #888888;
+      
+      /* Status */
       --success: #10B981;
-      --success-dim: rgba(16, 185, 129, 0.1);
-      --error: #EF4444;
-      --warning: #F59E0B;
-
-      /* CARBON THEME (DARK) */
-      --carbon-base: #05070b;       /* Fond Principal */
-      --carbon-surface: #0e1116;    /* Fond Cartes */
-      --carbon-border: #1f2329;     /* Bordures */
-      --text-main: #ffffff;
-      --text-muted: #9aa4b2;
-      --text-soft: #525252;
-
-      /* UTILS */
-      --container-max: 1280px;
-      --nav-height: 5rem;
-      --radius-md: 12px;
-      --radius-lg: 16px;
       
-      /* GRADIENTS */
-      --grad-btn-magma: linear-gradient(135deg, #FF9E66 0%, #E85A04 50%, #B33600 100%);
+      /* Layout */
+      --sidebar-width: 480px;
     }
 
-    /* =========================================================
-       2. RESET & BASE
-       ========================================================= */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
       font-family: 'Inter', sans-serif;
-      background-color: var(--carbon-base);
+      background-color: var(--bg-root);
       color: var(--text-main);
-      line-height: 1.6;
-      overflow-x: hidden;
-      min-height: 100vh;
-      opacity: 0; transition: opacity 0.3s ease-out;
+      height: 100vh;
+      overflow: hidden; /* On gère le scroll dans les panneaux */
+      opacity: 0; transition: opacity 0.5s ease;
     }
     body.is-loaded { opacity: 1; }
 
-    /* Grain Texture */
+    /* Grain Overlay (Subtil) */
     body::before {
         content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-        opacity: 0.4; mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
     }
 
-    a { text-decoration: none; color: inherit; transition: 0.3s; }
-    ul { list-style: none; }
-    
+    /* TYPO UTILS */
     .mono { font-family: 'JetBrains Mono', monospace; }
-    .container { max-width: var(--container-max); margin: 0 auto; padding: 0 24px; }
-    
-    /* UTILS CLASSES */
-    .hidden { display: none !important; }
     .text-magma { color: var(--magma-core); }
     .text-success { color: var(--success); }
-    .badge-net {
-        font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase;
-        padding: 4px 8px; border-radius: 4px; letter-spacing: 0.5px;
-    }
-    .badge-arb { background: rgba(45, 55, 75, 0.3); color: #9aa4b2; border: 1px solid #2D374B; }
-    .badge-base { background: var(--base-dim); color: #60a5fa; border: 1px solid var(--base-blue); }
 
     /* =========================================================
-       3. NAVBAR (ADAPTÉE ACCESS)
+       2. LAYOUT : SPLIT SCREEN
        ========================================================= */
-    .site-header {
-      position: fixed; inset-inline: 0; top: 0; height: var(--nav-height);
-      z-index: 1000;
-    }
-    .nav-inner {
-      width: 100%; max-width: var(--container-max); margin: 1rem auto;
-      padding: 0.4rem 1.25rem;
-      display: flex; align-items: center; justify-content: space-between;
-      border-radius: 999px;
-      background: rgba(5, 7, 11, 0.8); backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    .nav-brand img { height: 2rem; width: auto; }
-    
-    .nav-links { display: flex; gap: 2rem; font-size: 0.9rem; }
-    .nav-links a { color: var(--text-muted); position: relative; }
-    .nav-links a:hover { color: white; }
-    
-    /* Le conteneur du bouton wallet dans la navbar */
-    .wallet-connect-wrapper {
-        transform: scale(0.9); /* Ajustement taille pour la navbar */
+    .app-layout {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
     }
 
-    @media (max-width: 900px) {
-        .nav-links { display: none; }
+    /* --- GAUCHE : VISUAL SIDEBAR --- */
+    .left-panel {
+        width: var(--sidebar-width);
+        background: var(--bg-panel);
+        border-right: 1px solid var(--border-light);
+        display: flex; flex-direction: column; justify-content: space-between;
+        padding: 40px;
+        position: relative;
+        z-index: 10;
+        /* Ombre portée subtile vers la droite */
+        box-shadow: 20px 0 50px rgba(0,0,0,0.5);
     }
 
-    /* =========================================================
-       4. LOGIN VIEW (STYLE TERMINAL)
-       ========================================================= */
-    .login-view {
-        min-height: 100vh;
+    .brand-area { display: flex; align-items: center; gap: 12px; }
+    .brand-logo { height: 28px; width: auto; }
+
+    /* La Carte Visuelle "Tech" */
+    .visual-container {
+        flex: 1;
         display: flex; align-items: center; justify-content: center;
-        padding-top: 80px;
+        perspective: 1000px;
     }
-    
-    .login-card {
-        background: var(--carbon-surface);
-        border: 1px solid var(--carbon-border);
-        border-radius: 24px;
-        padding: 60px 40px;
-        text-align: center;
-        max-width: 480px;
+
+    .tech-card {
+        background: var(--bg-root);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: 24px;
         width: 100%;
+        max-width: 380px;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 40px 80px -20px rgba(0,0,0,0.5);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        /* Petit tilt 3D */
+        transform: rotateY(5deg) rotateX(2deg);
+        transition: transform 0.5s ease;
+    }
+    .visual-container:hover .tech-card { transform: rotateY(0deg) rotateX(0deg); }
+
+    /* Header de la carte tech */
+    .tc-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 20px; border-bottom: 1px solid var(--border-light); padding-bottom: 12px;
+    }
+    .tc-title { font-size: 11px; text-transform: uppercase; color: #666; letter-spacing: 1px; }
+    .tc-status { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--success); }
+    .tc-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); animation: pulse 2s infinite; }
+
+    /* Code Lines inside card */
+    .code-block { font-size: 12px; line-height: 1.6; color: #888; }
+    .cl-row { display: flex; gap: 12px; }
+    .cl-num { color: #333; select-none: none; }
+    .cl-content { color: #aaa; }
+    .kw { color: #E85A04; } /* Keyword */
+    .str { color: #10B981; } /* String */
+    .fn { color: #60A5FA; } /* Function */
+
+    .footer-quote { font-size: 12px; color: #444; line-height: 1.5; max-width: 300px; }
+    .footer-quote strong { color: #666; display: block; margin-bottom: 4px; }
+
+    /* --- DROITE : INTERACTION AREA --- */
+    .right-panel {
+        flex: 1;
+        background: var(--bg-root);
+        display: flex; flex-direction: column;
+        position: relative;
+        overflow-y: auto; /* Scrollable si besoin */
     }
 
-    /* Effet Scan Radar */
-    .scan-line {
-        position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-        background: var(--magma-core);
-        box-shadow: 0 0 15px var(--magma-core);
-        animation: scan 3s linear infinite;
-        opacity: 0.5;
+    /* Top Bar (Navigation légère) */
+    .top-bar {
+        height: 80px;
+        padding: 0 40px;
+        display: flex; align-items: center; justify-content: space-between;
+        border-bottom: 1px solid transparent; /* invisible par défaut */
+        position: sticky; top: 0; z-index: 20;
+        background: rgba(5,5,5,0.8); backdrop-filter: blur(10px);
     }
-    @keyframes scan { 0% { top: 0; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-
-    .login-icon {
-        width: 80px; height: 80px; margin: 0 auto 30px;
-        background: rgba(255,255,255,0.03); border: 1px solid var(--carbon-border);
-        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    
+    .back-link {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; color: #666; font-weight: 500;
+        transition: color 0.2s;
     }
-    .login-icon i { font-size: 32px; color: var(--magma-core); }
+    .back-link:hover { color: white; }
 
-    .login-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
-    .login-desc { color: var(--text-muted); margin-bottom: 40px; font-size: 15px; }
+    /* AppKit Custom Wrapper pour le rendre visible */
+    .wallet-wrapper {
+        position: relative; z-index: 50;
+    }
 
-    /* Liste des features Login */
-    .login-features { text-align: left; margin-bottom: 40px; border-top: 1px solid var(--carbon-border); padding-top: 20px; }
-    .feat-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; color: var(--text-muted); font-size: 14px; }
-    .feat-item i { color: var(--success); }
+    /* Content Area */
+    .content-area {
+        flex: 1;
+        display: flex; flex-direction: column;
+        padding: 40px;
+        max-width: 1000px; margin: 0 auto; width: 100%;
+    }
 
     /* =========================================================
-       5. DASHBOARD VIEW
+       3. STATES (LOGIN vs DASHBOARD)
        ========================================================= */
-    .dashboard-view { padding-top: 140px; padding-bottom: 80px; display: none; }
-
-    /* Summary Section */
-    .summary-grid {
-        display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 60px;
-    }
-    .stat-card {
-        background: var(--carbon-surface); border: 1px solid var(--carbon-border);
-        border-radius: 12px; padding: 24px; position: relative; overflow: hidden;
-    }
-    /* Petite barre colorée en haut */
-    .stat-card::after {
-        content:''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-        background: linear-gradient(90deg, var(--magma-core), transparent); opacity: 0.5;
-    }
-
-    .stat-label { font-size: 12px; text-transform: uppercase; color: #666; letter-spacing: 1px; margin-bottom: 8px; }
-    .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; color: white; }
-    .stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-    /* Vaults Grid */
-    .section-title { font-size: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
-    .vaults-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 60px; }
-
-    .vault-card {
-        background: var(--carbon-surface); border: 1px solid var(--carbon-border);
-        border-radius: 16px; overflow: hidden; transition: transform 0.2s;
-    }
-    .vault-card:hover { border-color: #333; transform: translateY(-2px); }
-
-    .vc-header {
-        padding: 20px 24px; border-bottom: 1px solid var(--carbon-border);
-        display: flex; justify-content: space-between; align-items: center;
-        background: rgba(255,255,255,0.02);
-    }
-    .vc-title { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; }
-    .vc-title img { width: 24px; height: 24px; }
-
-    .vc-body { padding: 24px; }
     
-    .vc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-    .vc-stat-item label { display: block; font-size: 11px; color: #666; margin-bottom: 4px; text-transform: uppercase; }
-    .vc-stat-item span { font-family: 'JetBrains Mono'; font-size: 16px; font-weight: 600; color: white; }
+    /* --- LOGIN STATE --- */
+    #loginState {
+        display: flex; flex-direction: column; justify-content: center; height: 100%;
+        animation: fadeIn 0.6s ease-out;
+    }
 
-    .vc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    
-    .btn {
-        padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none;
-        display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
-    }
-    .btn-primary { background: var(--grad-btn-magma); color: #05070b; }
-    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-    
-    .btn-secondary { background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--carbon-border); }
-    .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: #555; }
-    
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .login-hero h1 { font-size: 42px; font-weight: 700; margin-bottom: 16px; letter-spacing: -1px; }
+    .login-hero p { font-size: 16px; color: var(--text-muted); max-width: 480px; line-height: 1.6; margin-bottom: 40px; }
 
-    /* Transaction Table */
-    .tx-table-wrapper {
-        background: var(--carbon-surface); border: 1px solid var(--carbon-border);
-        border-radius: 16px; overflow: hidden;
+    .login-features {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        border-top: 1px solid var(--border-light); padding-top: 30px;
     }
-    .tx-row {
-        display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
-        padding: 16px 24px; border-bottom: 1px solid var(--carbon-border);
-        font-size: 14px; color: var(--text-muted);
+    .lf-item { display: flex; align-items: flex-start; gap: 12px; }
+    .lf-icon { 
+        width: 32px; height: 32px; background: rgba(255,255,255,0.05); 
+        border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+        color: var(--text-main); font-size: 16px;
     }
-    .tx-row.head {
-        background: rgba(255,255,255,0.02);
-        font-family: 'JetBrains Mono'; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #666;
+    .lf-text h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .lf-text p { font-size: 12px; color: #666; }
+
+    /* --- DASHBOARD STATE --- */
+    #dashboardState { display: none; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    .dash-header { margin-bottom: 40px; }
+    .dash-welcome { font-size: 12px; color: var(--magma-core); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .dash-title { font-size: 32px; font-weight: 700; }
+    .dash-wallet { font-family: 'JetBrains Mono'; color: #666; font-size: 14px; margin-top: 8px; }
+
+    /* Stats Grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 50px; }
+    
+    .kpi-card {
+        background: var(--bg-card); border: 1px solid var(--border-light);
+        border-radius: 12px; padding: 24px;
+        position: relative; transition: border-color 0.2s;
     }
-    .tx-row:last-child { border-bottom: none; }
-    .tx-hash { font-family: 'JetBrains Mono'; color: var(--magma-core); }
+    .kpi-card:hover { border-color: var(--border-hover); }
+    .kpi-label { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 8px; }
+    .kpi-value { font-size: 28px; font-weight: 600; font-family: 'JetBrains Mono'; letter-spacing: -1px; }
+    .kpi-sub { font-size: 12px; color: #444; margin-top: 4px; }
+
+    /* Vault List */
+    .vault-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .vl-title { font-size: 18px; font-weight: 600; }
+
+    .vault-row {
+        background: var(--bg-card); border: 1px solid var(--border-light);
+        border-radius: 12px; padding: 20px; margin-bottom: 16px;
+        display: flex; align-items: center; justify-content: space-between;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .vault-row:hover { transform: translateX(5px); border-color: var(--magma-core); }
+
+    .vr-info { display: flex; align-items: center; gap: 16px; min-width: 200px; }
+    .vr-icon { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .vr-name { font-weight: 600; font-size: 15px; display: block; }
+    .vr-net { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .vr-data { text-align: right; }
+    .vr-label { font-size: 10px; color: #555; display: block; margin-bottom: 2px; text-transform: uppercase; }
+    .vr-val { font-family: 'JetBrains Mono'; font-size: 14px; }
+
+    .vr-actions { display: flex; gap: 10px; }
+    .btn-action {
+        background: transparent; border: 1px solid var(--border-light); color: white;
+        width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .btn-action:hover { background: white; color: black; }
+    .btn-deposit { border-color: var(--magma-core); color: var(--magma-core); }
+    .btn-deposit:hover { background: var(--magma-core); color: white; }
 
     /* =========================================================
-       6. MODALS (TERMINAL STYLE)
+       4. ANIMATIONS & RESPONSIVE
        ========================================================= */
-    .modal-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-        z-index: 2000; display: none; align-items: center; justify-content: center;
-        opacity: 0; transition: opacity 0.2s;
-    }
-    .modal-overlay.active { display: flex; opacity: 1; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 
-    .modal-card {
-        background: #0e1116; border: 1px solid #333; border-radius: 16px;
-        width: 100%; max-width: 420px; box-shadow: 0 0 40px rgba(0,0,0,0.8);
-        transform: scale(0.95); transition: transform 0.2s;
-    }
-    .modal-overlay.active .modal-card { transform: scale(1); }
-
-    .modal-header {
-        padding: 20px; border-bottom: 1px solid #333;
-        display: flex; justify-content: space-between; align-items: center;
-        background: #161b22; border-radius: 16px 16px 0 0;
-    }
-    .modal-title { font-family: 'JetBrains Mono'; font-size: 14px; color: white; display: flex; align-items: center; gap: 8px; }
-    .modal-close { background: none; border: none; color: #666; cursor: pointer; font-size: 18px; }
-    .modal-close:hover { color: white; }
-
-    .modal-body { padding: 24px; }
-
-    .input-box {
-        background: #05070b; border: 1px solid #333; border-radius: 8px;
-        padding: 16px; display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 20px;
-    }
-    .input-box:focus-within { border-color: var(--magma-core); }
-    
-    .input-box input {
-        background: transparent; border: none; outline: none;
-        color: white; font-size: 24px; font-family: 'JetBrains Mono'; width: 70%;
-    }
-    .max-btn {
-        background: rgba(232, 90, 4, 0.1); color: var(--magma-core);
-        border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;
-        font-weight: 700;
-    }
-
-    .modal-info {
-        background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px;
-        font-size: 12px; color: #888; margin-bottom: 20px; border: 1px solid #222;
-    }
-
-    /* Message toast dans la modale */
-    .modal-msg {
-        margin-top: 12px; padding: 10px; border-radius: 6px; font-size: 12px; display: none;
-    }
-    .modal-msg.error { background: rgba(239, 68, 68, 0.1); color: var(--error); border: 1px solid rgba(239, 68, 68, 0.2); }
-    .modal-msg.success { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
-    .modal-msg.info { background: rgba(232, 90, 4, 0.1); color: var(--magma-core); }
-
-    /* RESPONSIVE */
+    /* MOBILE: Stack Layout */
     @media (max-width: 900px) {
-        .summary-grid { grid-template-columns: 1fr 1fr; }
-        .vaults-grid { grid-template-columns: 1fr; }
-        .tx-row { grid-template-columns: 1fr 1fr; }
-        .tx-row span:nth-child(3), .tx-row span:nth-child(4) { display: none; } /* Cache infos moins importantes sur mobile */
+        .app-layout { flex-direction: column; overflow-y: auto; height: auto; }
+        .left-panel { width: 100%; height: auto; padding: 30px 20px; border-right: none; border-bottom: 1px solid var(--border-light); }
+        .tech-card { display: none; } /* On cache la carte visuelle sur mobile pour gagner de la place */
+        .footer-quote { display: none; }
+        .right-panel { width: 100%; height: auto; overflow: visible; }
+        .content-area { padding: 20px; }
+        .login-features { grid-template-columns: 1fr; }
+        .kpi-grid { grid-template-columns: 1fr; }
+        .vault-row { flex-direction: column; align-items: flex-start; gap: 16px; }
+        .vr-actions { width: 100%; justify-content: flex-end; }
+        .vr-data { text-align: left; }
     }
+
+    /* =========================================================
+       5. MODALS (Minimalist)
+       ========================================================= */
+    .modal-backdrop {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+        z-index: 100; display: none; align-items: center; justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; animation: fadeIn 0.2s; }
+
+    .modal-window {
+        background: #0E0E0E; border: 1px solid #222; width: 100%; max-width: 400px;
+        border-radius: 16px; padding: 30px; position: relative;
+        box-shadow: 0 20px 50px black;
+    }
+    .mw-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .mw-input-group { background: #050505; border: 1px solid #222; border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .mw-input-group input { background: transparent; border: none; font-size: 20px; color: white; width: 60%; font-family: 'JetBrains Mono'; outline: none; }
+    .mw-btn { width: 100%; padding: 14px; border-radius: 8px; border: none; background: white; color: black; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .mw-btn:hover { background: #ddd; }
+    .close-modal { position: absolute; top: 20px; right: 20px; background: none; border: none; color: #555; cursor: pointer; font-size: 20px; }
   </style>
 </head>
 <body>
 
-  <header class="site-header">
-    <div class="nav-inner">
-      <a href="/" class="nav-brand">
-        <img src="/logo_g12.svg" alt="G12 Labs" />
-      </a>
-      
-      <nav class="nav-links">
-        <a href="/">Home</a>
-        <a href="/strategies">Strategies</a>
-        <a href="/docs" target="_blank">Documentation</a>
-      </nav>
-
-      <div class="wallet-connect-wrapper">
-         <appkit-button label="Connect Wallet" balance="show"></appkit-button>
-      </div>
-    </div>
-  </header>
-
-  <div id="loginView" class="login-view">
-     <div class="login-card">
-        <div class="scan-line"></div>
-        <div class="login-icon">
-           <i class="ph ph-shield-check"></i>
+  <div class="app-layout">
+    
+    <aside class="left-panel">
+        <div class="brand-area">
+            <img src="logo_g12.svg" alt="G12 Labs" class="brand-logo">
         </div>
+
+        <div class="visual-container">
+            <div class="tech-card">
+                <div class="tc-header">
+                    <span class="tc-title">System Monitor</span>
+                    <div class="tc-status">
+                        <div class="tc-dot"></div> ONLINE
+                    </div>
+                </div>
+                <div class="code-block mono">
+                    <div class="cl-row"><span class="cl-num">01</span> <span class="cl-content"><span class="kw">import</span> risk_engine</span></div>
+                    <div class="cl-row"><span class="cl-num">02</span> <span class="cl-content"><span class="kw">class</span> <span class="fn">VaultController</span>:</span></div>
+                    <div class="cl-row"><span class="cl-num">03</span> <span class="cl-content">&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">check_solvency</span>(self):</span></div>
+                    <div class="cl-row"><span class="cl-num">04</span> <span class="cl-content">&nbsp;&nbsp;&nbsp;&nbsp;nav = <span class="fn">get_onchain_nav</span>()</span></div>
+                    <div class="cl-row"><span class="cl-num">05</span> <span class="cl-content">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> nav > hurdle_rate:</span></div>
+                    <div class="cl-row"><span class="cl-num">06</span> <span class="cl-content">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">rebalance_positions</span>()</span></div>
+                    <div class="cl-row"><span class="cl-num">07</span> <span class="cl-content">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="str">"SECURE"</span></span></div>
+                    <div class="cl-row"><span class="cl-num">08</span> <span class="cl-content"></span></div>
+                    <div class="cl-row"><span class="cl-num">09</span> <span class="cl-content" style="color:#444;"># Last update: 24ms ago</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-quote">
+            <strong>Institutional-Grade Infrastructure</strong>
+            Non-custodial vaults executing systematic strategies with strict risk parameters.
+        </div>
+    </aside>
+
+    <main class="right-panel">
         
-        <h1 class="login-title">G12 Access Terminal</h1>
-        <p class="login-desc">Connect your wallet to manage your positions across our systematic vaults.</p>
-
-        <div class="login-features">
-           <div class="feat-item"><i class="ph ph-check"></i> Non-custodial & Transparent</div>
-           <div class="feat-item"><i class="ph ph-check"></i> Institutional-grade Security</div>
-           <div class="feat-item"><i class="ph ph-check"></i> Real-time Performance Tracking</div>
+        <div class="top-bar">
+            <a href="index.html" class="back-link">
+                <i class="ph ph-arrow-left"></i> Return Home
+            </a>
+            
+            <div class="wallet-wrapper">
+                <appkit-button label="Connect Wallet" balance="show"></appkit-button>
+            </div>
         </div>
 
-        <div style="font-size: 13px; color: #666;">
-           Use the button in the top right corner to connect.
-        </div>
-     </div>
+        <div class="content-area">
+            
+            <div id="loginState">
+                <div class="login-hero">
+                    <h1>Access your<br>Capital.</h1>
+                    <p>
+                        Secure access to G12 Labs vaults. 
+                        Connect your wallet to view real-time performance, manage deposits, and track your yield.
+                    </p>
+                </div>
+                
+                <div class="login-features">
+                    <div class="lf-item">
+                        <div class="lf-icon"><i class="ph ph-shield-check"></i></div>
+                        <div class="lf-text">
+                            <h3>Audited Contracts</h3>
+                            <p>Built on Enzyme Finance infrastructure.</p>
+                        </div>
+                    </div>
+                    <div class="lf-item">
+                        <div class="lf-icon"><i class="ph ph-chart-line-up"></i></div>
+                        <div class="lf-text">
+                            <h3>Real-time NAV</h3>
+                            <p>Live on-chain valuation of assets.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dashboardState">
+                
+                <div class="dash-header">
+                    <div class="dash-welcome">Welcome Back</div>
+                    <div class="dash-title">Portfolio Overview</div>
+                    <div class="dash-wallet" id="userAddressDisplay">0x...</div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Invested</div>
+                        <div class="kpi-value" id="totalValue">$0.00</div>
+                        <div class="kpi-sub">Across 2 vaults</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Net Earnings</div>
+                        <div class="kpi-value" style="color:var(--magma-core);">--</div>
+                        <div class="kpi-sub">Realized + Unrealized</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Wallet Balance</div>
+                        <div class="kpi-value" id="usdcBalance">0.00</div>
+                        <div class="kpi-sub">USDC available</div>
+                    </div>
+                </div>
+
+                <div class="vault-list-header">
+                    <div class="vl-title">Active Positions</div>
+                </div>
+
+                <div class="vault-row">
+                    <div class="vr-info">
+                        <img src="favicon_arbitrum.svg" class="vr-icon" alt="Arb">
+                        <div>
+                            <span class="vr-name">DeFi Yield</span>
+                            <span class="vr-net">Arbitrum One</span>
+                        </div>
+                    </div>
+                    <div class="vr-data">
+                        <span class="vr-label">Your Share</span>
+                        <span class="vr-val" id="arbShares">0.00 G12</span>
+                    </div>
+                    <div class="vr-data">
+                        <span class="vr-label">Value</span>
+                        <span class="vr-val" id="arbValue">$0.00</span>
+                    </div>
+                    <div class="vr-actions">
+                        <button class="btn-action btn-deposit" onclick="openModal('deposit', 'Arbitrum')"><i class="ph ph-plus"></i></button>
+                        <button class="btn-action" onclick="openModal('withdraw', 'Arbitrum')"><i class="ph ph-minus"></i></button>
+                    </div>
+                </div>
+
+                <div class="vault-row">
+                    <div class="vr-info">
+                        <img src="favicon_base.jpeg" class="vr-icon" alt="Base">
+                        <div>
+                            <span class="vr-name">Stable Yield</span>
+                            <span class="vr-net">Base Network</span>
+                        </div>
+                    </div>
+                    <div class="vr-data">
+                        <span class="vr-label">Your Share</span>
+                        <span class="vr-val" id="baseShares">0.00 xG12</span>
+                    </div>
+                    <div class="vr-data">
+                        <span class="vr-label">Value</span>
+                        <span class="vr-val" id="baseValue">$0.00</span>
+                    </div>
+                    <div class="vr-actions">
+                        <button class="btn-action btn-deposit" onclick="openModal('deposit', 'Base')"><i class="ph ph-plus"></i></button>
+                        <button class="btn-action" onclick="openModal('withdraw', 'Base')"><i class="ph ph-minus"></i></button>
+                    </div>
+                </div>
+
+            </div> </div>
+    </main>
+
   </div>
 
-  <div id="dashboardView" class="dashboard-view">
-     <div class="container">
-        
-        <h2 class="section-title"><i class="ph ph-chart-pie-slice"></i> Portfolio Overview</h2>
-        <div class="summary-grid">
-           <div class="stat-card">
-              <div class="stat-label">Total Balance</div>
-              <div class="stat-value" id="totalValue">$0.00</div>
-              <div class="stat-sub">Across all networks</div>
-           </div>
-           <div class="stat-card">
-              <div class="stat-label">Net PnL</div>
-              <div class="stat-value" id="totalPnl" style="color: var(--text-muted)">—</div>
-              <div class="stat-sub">All time</div>
-           </div>
-           <div class="stat-card">
-              <div class="stat-label">Wallet USDC</div>
-              <div class="stat-value" id="usdcBalance">0.00</div>
-              <div class="stat-sub">Available to deploy</div>
-           </div>
-           <div class="stat-card">
-              <div class="stat-label">Active Vaults</div>
-              <div class="stat-value">2</div>
-              <div class="stat-sub">Arbitrum & Base</div>
-           </div>
-        </div>
+  <div class="modal-backdrop" id="txModal">
+      <div class="modal-window">
+          <button class="close-modal" onclick="closeModal()"><i class="ph ph-x"></i></button>
+          <div class="mw-title">
+              <span id="modalActionIcon"><i class="ph ph-arrows-left-right"></i></span>
+              <span id="modalTitle">Transaction</span>
+          </div>
+          
+          <div style="font-size:12px; color:#666; margin-bottom:10px;">AMOUNT (USDC)</div>
+          <div class="mw-input-group">
+              <input type="number" placeholder="0.00" id="txAmount">
+              <span style="font-size:12px; color:var(--magma-core); font-weight:700; cursor:pointer;">MAX</span>
+          </div>
 
-        <h2 class="section-title"><i class="ph ph-vault"></i> Active Positions</h2>
-        <div class="vaults-grid">
-           
-           <div class="vault-card">
-              <div class="vc-header">
-                 <div class="vc-title">
-                    <img src="/favicon_arbitrum.svg" alt="Arbitrum">
-                    G12 DeFi Yield
-                 </div>
-                 <span class="badge-net badge-arb">ARBITRUM</span>
-              </div>
-              <div class="vc-body">
-                 <div class="vc-stats">
-                    <div class="vc-stat-item">
-                       <label>My Deposit</label>
-                       <span id="arbShares">0.0000</span> <span style="font-size:12px; color:#666;">G12</span>
-                    </div>
-                    <div class="vc-stat-item">
-                       <label>Value (USD)</label>
-                       <span id="arbValue" class="text-magma">$0.00</span>
-                    </div>
-                    <div class="vc-stat-item">
-                       <label>Share Price</label>
-                       <span id="arbSharePrice">$1.00</span>
-                    </div>
-                    <div class="vc-stat-item">
-                       <label>Monthly Return</label>
-                       <span id="arbMonthly" class="text-success">+0.00%</span>
-                    </div>
-                 </div>
-                 <div class="vc-actions">
-                    <button class="btn btn-primary" onclick="openDepositModal('arbitrum')">
-                       <i class="ph ph-arrow-down"></i> Deposit
-                    </button>
-                    <button class="btn btn-secondary" onclick="openRedeemModal('arbitrum')">
-                       <i class="ph ph-arrow-up"></i> Withdraw
-                    </button>
-                 </div>
-              </div>
-           </div>
+          <div style="font-size:11px; color:#444; margin-bottom:20px; text-align:center;">
+              Network: <span id="modalNetwork" style="color:#888;">--</span>
+          </div>
 
-           <div class="vault-card">
-              <div class="vc-header">
-                 <div class="vc-title">
-                    <img src="/favicon_base.jpeg" alt="Base">
-                    G12 Stable Yield
-                 </div>
-                 <span class="badge-net badge-base">BASE</span>
-              </div>
-              <div class="vc-body">
-                 <div class="vc-stats">
-                    <div class="vc-stat-item">
-                       <label>My Deposit</label>
-                       <span id="baseShares">0.0000</span> <span style="font-size:12px; color:#666;">xG12</span>
-                    </div>
-                    <div class="vc-stat-item">
-                       <label>Value (USD)</label>
-                       <span id="baseValue" style="color:#60a5fa">$0.00</span>
-                    </div>
-                    <div class="vc-stat-item">
-                       <label>Share Price</label>
-                       <span id="baseSharePrice">$1.00</span>
-                    </div>
-                    <div class="vc-stat-item">
-                       <label>Monthly Return</label>
-                       <span id="baseMonthly" class="text-success">+0.00%</span>
-                    </div>
-                 </div>
-                 <div class="vc-actions">
-                    <button class="btn btn-primary" onclick="openDepositModal('base')" style="background: linear-gradient(135deg, #60a5fa, #3b82f6); color:white;">
-                       <i class="ph ph-arrow-down"></i> Deposit
-                    </button>
-                    <button class="btn btn-secondary" onclick="openRedeemModal('base')">
-                       <i class="ph ph-arrow-up"></i> Withdraw
-                    </button>
-                 </div>
-              </div>
-           </div>
-
-        </div>
-
-        <h2 class="section-title"><i class="ph ph-clock-counter-clockwise"></i> Recent History</h2>
-        <div class="tx-table-wrapper">
-           <div class="tx-row head">
-              <span>Type</span>
-              <span>Amount</span>
-              <span>Vault</span>
-              <span>Date</span>
-           </div>
-           <div id="transactionsContent">
-              <div style="padding: 40px; text-align: center; color: #666;">
-                 <i class="ph ph-ghost" style="font-size: 32px; margin-bottom: 10px; display:block;"></i>
-                 No transactions found.
-              </div>
-           </div>
-        </div>
-
-     </div>
-  </div>
-
-  <div class="modal-overlay" id="depositModal">
-     <div class="modal-card">
-        <div class="modal-header">
-           <div class="modal-title"><i class="ph ph-arrow-down"></i> DEPOSIT USDC</div>
-           <button class="modal-close" onclick="closeModal('depositModal')"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="modal-body">
-           <div class="modal-info">
-              Network: <strong id="depositNetwork" class="text-magma">ARBITRUM</strong><br>
-              Asset: <strong>USDC</strong>
-           </div>
-           
-           <div class="input-box">
-              <input type="number" id="depositAmount" placeholder="0.00">
-              <button class="max-btn" onclick="setMaxDeposit()">MAX</button>
-           </div>
-           
-           <button class="btn btn-primary" id="depositBtn" style="width: 100%;" onclick="executeDeposit()">
-              CONFIRM DEPOSIT
-           </button>
-           
-           <div id="depositMessage" class="modal-msg"></div>
-        </div>
-     </div>
-  </div>
-
-  <div class="modal-overlay" id="redeemModal">
-     <div class="modal-card">
-        <div class="modal-header">
-           <div class="modal-title"><i class="ph ph-arrow-up"></i> WITHDRAW</div>
-           <button class="modal-close" onclick="closeModal('redeemModal')"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="modal-body">
-           <div class="modal-info">
-              <i class="ph ph-warning"></i> <strong>72h Timelock</strong> applies.<br>
-              Funds will be available to claim after cooldown.
-           </div>
-           
-           <div class="input-box">
-              <input type="number" id="redeemAmount" placeholder="0.00">
-              <button class="max-btn" onclick="setMaxRedeem()">MAX</button>
-           </div>
-           
-           <button class="btn btn-primary" id="redeemBtn" style="width: 100%;" onclick="executeRedeem()">
-              REQUEST WITHDRAWAL
-           </button>
-           
-           <div id="redeemMessage" class="modal-msg"></div>
-        </div>
-     </div>
-  </div>
-
-  <footer style="padding: 40px 0; border-top: 1px solid var(--carbon-border); background: black; text-align: center; color: #555; font-size: 12px;">
-      <div class="container">
-          <p>© 2026 G12 Labs. All rights reserved.</p>
+          <button class="mw-btn" id="modalBtnAction">CONFIRM</button>
       </div>
-  </footer>
+  </div>
 
   <script type="module">
     import { createAppKit } from 'https://cdn.jsdelivr.net/npm/@reown/appkit@1.8.15/+esm'
     import { EthersAdapter } from 'https://cdn.jsdelivr.net/npm/@reown/appkit-adapter-ethers@1.8.15/+esm'
 
-    // CONFIGURATION
-    const CONFIG = {
-      projectId: '5f9c4ad6a6cadf402f5815fa8f07308c', // Ton Project ID
-      supabaseApi: 'https://ucrvaqztvfnphhoqcbpo.supabase.co/functions/v1/FIRECRAWL_DATA',
-      vaults: {
-        arbitrum: {
-          name: 'G12 DeFi Yield', network: 'Arbitrum', chainId: 42161,
-          rpc: 'https://arb1.arbitrum.io/rpc',
-          vaultProxy: '0xc9e50e08739a4aec211f2e8e95f1ab45b923cc20',
-          comptrollerProxy: '0xAc7e68A0c3Ecae1b8D889ca030863eCab63B587A',
-          usdc: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
-        },
-        base: {
-          name: 'G12 Stable Yield', network: 'Base', chainId: 8453,
-          rpc: 'https://mainnet.base.org',
-          vaultProxy: '0xbfa811e1f065c9b66b02d8ae408d4d9b9be70a22',
-          comptrollerProxy: '0xEcd52026399297F65db08B65F2fF466DdF5a20eE',
-          usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
-        }
-      }
-    }
-
-    // NETWORKS
+    // --- CONFIG ---
+    const projectId = '5f9c4ad6a6cadf402f5815fa8f07308c';
     const networks = [
-      {
-        id: 42161, name: 'Arbitrum One', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-        rpcUrls: { default: { http: ['https://arb1.arbitrum.io/rpc'] } },
-        blockExplorers: { default: { name: 'Arbiscan', url: 'https://arbiscan.io' } }
-      },
-      {
-        id: 8453, name: 'Base', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-        rpcUrls: { default: { http: ['https://mainnet.base.org'] } },
-        blockExplorers: { default: { name: 'Basescan', url: 'https://basescan.org' } }
-      }
-    ]
+      { id: 42161, name: 'Arbitrum One', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: ['https://arb1.arbitrum.io/rpc'] } } },
+      { id: 8453, name: 'Base', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: ['https://mainnet.base.org'] } } }
+    ];
 
-    // INIT APPKIT
+    // --- INIT APPKIT ---
     const modal = createAppKit({
       adapters: [new EthersAdapter()],
       networks,
-      projectId: CONFIG.projectId,
-      metadata: {
-        name: 'G12 Labs Access',
-        description: 'Institutional DeFi Vaults',
-        url: window.location.origin,
-        icons: ['https://g12labs.com/favicon.jpg']
-      },
+      projectId,
       themeMode: 'dark',
       themeVariables: {
-        '--w3m-accent': '#E85A04', // Orange Magma pour le bouton
-        '--w3m-border-radius-master': '1px'
+        '--w3m-accent': '#E85A04', 
+        '--w3m-border-radius-master': '2px',
+        '--w3m-font-family': 'Inter, sans-serif'
       }
-    })
+    });
 
-    // GLOBAL STATE
-    window.G12 = {
-      modal,
-      userAddress: null,
-      currentVault: 'arbitrum',
-      balances: { arbitrum: { shares: 0, usdc: 0 }, base: { shares: 0, usdc: 0 } },
-      vaultData: { arbitrum: { sharePrice: 1, monthlyReturn: 0 }, base: { sharePrice: 1, monthlyReturn: 0 } }
-    }
+    // --- LOGIC ---
+    const loginState = document.getElementById('loginState');
+    const dashboardState = document.getElementById('dashboardState');
+    const userAddressDisplay = document.getElementById('userAddressDisplay');
 
-    // VIEW LOGIC
-    modal.subscribeProvider(async ({ address, isConnected }) => {
-       if (isConnected && address) {
-          window.G12.userAddress = address
-          document.getElementById('loginView').style.display = 'none'
-          document.getElementById('dashboardView').style.display = 'block'
-          await loadData()
-       } else {
-          window.G12.userAddress = null
-          document.getElementById('loginView').style.display = 'flex'
-          document.getElementById('dashboardView').style.display = 'none'
-       }
-    })
+    modal.subscribeProvider(({ address, isConnected }) => {
+        if (isConnected && address) {
+            // SHOW DASHBOARD
+            loginState.style.display = 'none';
+            dashboardState.style.display = 'block';
+            userAddressDisplay.textContent = address.slice(0,6) + '...' + address.slice(-4);
+            
+            // Here you would trigger data loading (balances, API...)
+            console.log("Connected:", address);
+        } else {
+            // SHOW LOGIN
+            loginState.style.display = 'flex';
+            dashboardState.style.display = 'none';
+        }
+    });
 
-    // LOAD DATA
-    async function loadData() {
-       // 1. Load Vault Stats (API)
-       for (const net of ['arbitrum', 'base']) {
-          try {
-             const res = await fetch(`${CONFIG.supabaseApi}?action=get&network=${net}`)
-             const data = await res.json()
-             if (data) {
-                window.G12.vaultData[net].sharePrice = data.share_price || 1
-                window.G12.vaultData[net].monthlyReturn = data.monthly_return || 0
-             }
-          } catch(e) { console.error(e) }
-       }
-
-       // 2. Load User Balances (Blockchain)
-       if(window.G12.userAddress) {
-          // Note: Simplified logic here. In production, use standard ethers provider calls
-          // mocking balances for UI demo if RPC fails
-          window.G12.balances.arbitrum.shares = 0 
-          window.G12.balances.base.shares = 0
-       }
-       updateUI()
-    }
-
-    function updateUI() {
-       // Update Arbitrum Card
-       const arbData = window.G12.vaultData.arbitrum
-       document.getElementById('arbSharePrice').textContent = `$${arbData.sharePrice.toFixed(4)}`
-       document.getElementById('arbMonthly').textContent = `${arbData.monthlyReturn >= 0 ? '+' : ''}${arbData.monthlyReturn.toFixed(2)}%`
-       
-       // Update Base Card
-       const baseData = window.G12.vaultData.base
-       document.getElementById('baseSharePrice').textContent = `$${baseData.sharePrice.toFixed(4)}`
-       document.getElementById('baseMonthly').textContent = `${baseData.monthlyReturn >= 0 ? '+' : ''}${baseData.monthlyReturn.toFixed(2)}%`
-    }
-
-    // INITIAL LOAD
-    document.body.classList.add('is-loaded')
-    loadData() // Load public data anyway
-  </script>
-
-  <script>
-    // ABIs
-    const ERC20_ABI = [
-      "function allowance(address, address) view returns (uint256)",
-      "function approve(address, uint256) returns (bool)"
-    ];
-    const COMPTROLLER_ABI = [
-      "function buyShares(uint256, uint256) returns (uint256)",
-      "function redeemSharesForSpecificAssets(address, uint256, address[], uint256[]) returns (uint256[])"
-    ];
-
-    // MODAL HANDLERS
-    window.openDepositModal = function(net) {
-       window.G12.currentVault = net
-       document.getElementById('depositNetwork').textContent = net.toUpperCase()
-       document.getElementById('depositModal').classList.add('active')
-    }
-    window.openRedeemModal = function(net) {
-       window.G12.currentVault = net
-       document.getElementById('redeemModal').classList.add('active')
-    }
-    window.closeModal = function(id) {
-       document.getElementById(id).classList.remove('active')
-       document.querySelector(`#${id} .modal-msg`).style.display = 'none'
-    }
-
-    // EXECUTE DEPOSIT (MOCKUP LOGIC FOR UI - NEEDS REAL PROVIDER)
-    window.executeDeposit = async function() {
-       const btn = document.getElementById('depositBtn')
-       const msg = document.querySelector('#depositModal .modal-msg')
-       
-       btn.disabled = true; btn.textContent = "Processing..."
-       
-       // Simulation (Replace with ethers logic using window.G12.modal.getWalletProvider())
-       setTimeout(() => {
-          btn.disabled = false; btn.textContent = "CONFIRM DEPOSIT"
-          msg.textContent = "Please confirm transaction in your wallet..."
-          msg.className = "modal-msg info"; msg.style.display = "block"
-       }, 1000)
-    }
-
-    // EXECUTE REDEEM
-    window.executeRedeem = async function() {
-       const btn = document.getElementById('redeemBtn')
-       btn.disabled = true; btn.textContent = "Processing..."
-       setTimeout(() => {
-          btn.disabled = false; btn.textContent = "REQUEST WITHDRAWAL"
-       }, 1000)
-    }
-  </script>
-  <script>
+    // Fade In Body
     window.addEventListener('DOMContentLoaded', () => {
-      document.body.classList.add('is-loaded');
+        document.body.classList.add('is-loaded');
     });
   </script>
-</body>
-</html>
+
+  <script>
+      const modalBackdrop = document.getElementById('txModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalNetwork = document.getElementById('modalNetwork');
+      const modalBtn = document.getElementById('modalBtnAction');
+
+      window.openModal = function(action, network) {
+          modalBackdrop.classList.add('open');
+          modalNetwork.textContent = network.toUpperCase();
+          if(action === 'deposit') {
+              modalTitle.textContent = "Deposit USDC";
+              modalBtn.textContent = "CONFIRM DEPOSIT";
+          } else {
+              modalTitle.textContent = "Withdraw Funds";
+              modalBtn.textContent = "REQUEST WITHDRAWAL";
+          }
+      }
+
+      window.closeModal = function() {
+          modalBackdrop.classList.remove('open');
+      }
+  </script>
+
 </body>
 </html>
