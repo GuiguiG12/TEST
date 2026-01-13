@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Access G12 Labs</title>
+  <title>Access Terminal — G12 Labs</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
@@ -14,14 +14,13 @@
        1. CORE TOKENS
        ========================================= */
     :root {
-      --bg-root: #030303; /* Fond très profond */
-      --bg-card: #0A0A0A; /* Fond de la carte */
-      --border-color: rgba(255, 255, 255, 0.08);
-      --accent: #E85A04; /* Orange Magma */
-      --accent-glow: rgba(232, 90, 4, 0.15);
+      --bg-root: #050505;
+      --bg-panel: #0A0A0A;
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #E85A04; /* Magma */
+      --accent-dim: rgba(232, 90, 4, 0.1);
       --text-main: #FFFFFF;
-      --text-dim: #888888;
-      --radius-lg: 24px;
+      --text-muted: #888888;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,183 +30,255 @@
       color: var(--text-main);
       font-family: 'Inter', sans-serif;
       height: 100vh;
-      display: flex; align-items: center; justify-content: center;
       overflow: hidden;
-      position: relative;
-    }
-
-    /* Fond subtil avec un léger dégradé radial pour donner de la profondeur */
-    body::before {
-        content: ""; position: absolute; inset: 0; z-index: -1;
-        background: radial-gradient(circle at center, rgba(232,90,4,0.03) 0%, transparent 60%);
-    }
-    /* Grain Texture Subtile */
-    body::after {
-        content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
     }
 
     /* =========================================
-       2. ACCESS CARD (CENTERED)
+       2. LOGIN SPLIT LAYOUT
        ========================================= */
-    .access-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        padding: 48px 40px;
-        width: 100%; max-width: 440px;
-        text-align: center;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 
-                    0 0 0 1px rgba(232, 90, 4, 0.05); /* Subtil contour orange */
+    #login-view {
+        position: absolute; inset: 0; z-index: 50;
+        display: flex;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    #login-view.hidden {
+        opacity: 0; pointer-events: none; transform: scale(1.02);
+    }
+
+    /* --- LEFT PANEL (ACTION) --- */
+    .split-left {
+        width: 40%; min-width: 480px;
+        background: var(--bg-root);
+        border-right: 1px solid var(--border);
+        display: flex; flex-direction: column; justify-content: center;
+        padding: 60px 80px;
         position: relative;
+        z-index: 2;
+    }
+
+    .brand-logo { margin-bottom: 40px; }
+    .brand-logo img { height: 32px; }
+
+    .hero-text h1 {
+        font-size: 48px; font-weight: 600; letter-spacing: -1.5px;
+        line-height: 1.1; margin-bottom: 24px;
+    }
+    .hero-text p {
+        font-size: 16px; color: var(--text-muted); line-height: 1.6;
+        margin-bottom: 48px; max-width: 400px;
+    }
+
+    .trust-badges {
+        margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--border);
+        display: flex; gap: 24px; opacity: 0.6;
+    }
+    .badge-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #666; font-family: 'JetBrains Mono'; text-transform: uppercase; }
+
+    /* --- RIGHT PANEL (VISUAL) --- */
+    .split-right {
+        flex: 1;
+        background: radial-gradient(circle at center, #111 0%, #000 100%);
+        position: relative;
+        display: flex; align-items: center; justify-content: center;
         overflow: hidden;
-        transition: opacity 0.5s ease, transform 0.5s ease;
+        perspective: 2000px; /* Pour la 3D */
+    }
+
+    /* Grille technique en fond */
+    .grid-bg {
+        position: absolute; inset: 0;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+    }
+
+    /* La Carte "Dashboard Preview" Flottante */
+    .floating-dashboard {
+        width: 600px; height: 400px;
+        background: rgba(15, 15, 15, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        box-shadow: 
+            0 50px 100px -20px rgba(0,0,0,0.8),
+            0 0 0 1px rgba(255,255,255,0.05);
+        padding: 30px;
+        display: flex; flex-direction: column;
+        
+        /* 3D Transform Initiale */
+        transform: rotateY(-12deg) rotateX(6deg);
+        transition: transform 0.4s ease-out;
     }
     
-    /* Effet de "glow" supérieur sur la carte */
-    .access-card::before {
-        content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-        background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+    /* Effet interactif au survol de la zone de droite */
+    .split-right:hover .floating-dashboard {
+        transform: rotateY(-5deg) rotateX(2deg); /* Se redresse un peu */
     }
 
-    /* États de transition pour l'apparition/disparition */
-    .access-card.fade-in { opacity: 0; transform: translateY(20px); }
-    .access-card.visible { opacity: 1; transform: translateY(0); }
-    .access-card.fade-out { opacity: 0; transform: scale(0.95); pointer-events: none; }
+    /* Contenu de la fausse carte */
+    .fd-header { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
+    .fd-nav { display: flex; gap: 10px; }
+    .fd-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; }
+    .fd-dot.active { background: var(--accent); }
+    
+    .fd-stat-row { display: flex; gap: 20px; margin-bottom: 30px; }
+    .fd-stat { flex: 1; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+    .fd-label { font-size: 10px; text-transform: uppercase; color: #666; margin-bottom: 5px; }
+    .fd-val { font-family: 'JetBrains Mono'; font-size: 20px; color: white; }
 
-    /* Contenu de la carte */
-    .logo-spacer { margin-bottom: 32px; display: inline-block; }
-    .logo-spacer img { height: 40px; width: auto; display: block; }
-
-    .card-title {
-        font-size: 28px; font-weight: 600; margin-bottom: 12px;
-        letter-spacing: -0.5px; color: var(--text-main);
+    .fd-graph {
+        flex: 1; border-radius: 12px;
+        background: linear-gradient(180deg, rgba(232,90,4,0.1) 0%, transparent 100%);
+        border-top: 2px solid var(--accent);
+        position: relative; overflow: hidden;
     }
-    .card-desc {
-        font-size: 15px; color: var(--text-dim); line-height: 1.5;
-        margin-bottom: 40px; padding: 0 20px;
+    /* Ligne animée CSS */
+    .fd-line {
+        position: absolute; bottom: 0; left: 0; right: 0; top: 0;
+        background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cGF0aCBkPSJNMCAxMDAgQzMwIDgwIDcwIDkwIDEwMCAyMCIgc3Ryb2tlPSIjRTg1QTA0IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiIC8+PC9zdmc+');
+        background-size: 100% 100%;
+        opacity: 0.8;
     }
-
-    /* Conteneur pour le bouton Thirdweb */
-    #connect-button-container {
-        margin-bottom: 32px;
-    }
-
-    /* Footer Légal */
-    .card-footer {
-        font-size: 12px; color: #555; line-height: 1.5;
-        padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);
-    }
-    .card-footer a { color: #777; text-decoration: none; transition: 0.2s; }
-    .card-footer a:hover { color: var(--accent); }
 
 
     /* =========================================
-       3. REAL DASHBOARD (Hidden Initially)
+       3. REAL APP (DASHBOARD)
        ========================================= */
-    #app-screen {
-        position: fixed; inset: 0; z-index: 100;
-        height: 100%; display: flex;
-        opacity: 0; pointer-events: none; background: var(--bg-root);
-        transition: opacity 0.8s ease 0.2s;
+    #app-view {
+        position: absolute; inset: 0; z-index: 10;
+        display: flex; opacity: 0; pointer-events: none;
+        transition: opacity 0.8s ease 0.3s; /* Delay pour laisser le login partir */
     }
-    #app-screen.visible { opacity: 1; pointer-events: all; }
+    #app-view.visible { opacity: 1; pointer-events: all; }
 
-    /* Sidebar Dashboard */
-    .sidebar {
-        width: 260px; background: var(--bg-card); border-right: 1px solid var(--border-color);
-        padding: 24px; display: flex; flex-direction: column; justify-content: space-between;
+    .app-sidebar {
+        width: 280px; background: var(--bg-panel); border-right: 1px solid var(--border);
+        padding: 30px; display: flex; flex-direction: column; justify-content: space-between;
     }
-    .nav-link {
-        padding: 12px; margin-bottom: 4px; border-radius: 8px; color: var(--text-dim);
+    .app-content { flex: 1; background: var(--bg-root); padding: 40px; overflow-y: auto; }
+
+    /* Nav Links */
+    .nav-item {
+        padding: 12px; margin-bottom: 4px; border-radius: 8px; color: var(--text-muted);
         display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; font-size: 14px;
     }
-    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.05); color: white; }
-    .nav-link.active { color: var(--accent); }
-
-    .main-view { flex: 1; padding: 40px; overflow-y: auto; }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.05); color: white; }
+    .nav-item.active { color: var(--accent); }
 
     /* Responsive */
-    @media (max-width: 480px) {
-        .access-card { padding: 40px 24px; max-width: 90%; }
-        .card-title { font-size: 24px; }
+    @media (max-width: 1000px) {
+        .split-right { display: none; }
+        .split-left { width: 100%; padding: 40px; }
     }
   </style>
 </head>
 <body>
 
-  <div id="login-card" class="access-card fade-in">
-      <div class="logo-spacer">
-          <img src="logo_g12.svg" alt="G12 Labs">
-      </div>
+  <div id="login-view">
       
-      <h1 class="card-title">Connect to G12 Labs</h1>
-      <p class="card-desc">
-          Access institutional-grade DeFi yields. Sign in securely with your wallet or email to view your dashboard.
-      </p>
+      <div class="split-left">
+          <div class="brand-logo">
+              <img src="logo_g12.svg" alt="G12 Labs">
+          </div>
 
-      <div id="connect-button-container"></div>
+          <div class="hero-text">
+              <h1>Systematic DeFi.<br>Zero Friction.</h1>
+              <p>Connect your wallet or sign in with email to access our institutional-grade yield strategies on Arbitrum & Base.</p>
+          </div>
 
-      <div class="card-footer">
-          By connecting, you agree to our <br>
-          <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+          <div id="connect-button-container" style="max-width: 320px;"></div>
+
+          <div class="trust-badges">
+              <div class="badge-item"><i class="ph ph-shield-check"></i> AUDITED</div>
+              <div class="badge-item"><i class="ph ph-lock-key"></i> NON-CUSTODIAL</div>
+              <div class="badge-item"><i class="ph ph-lightning"></i> AUTOMATED</div>
+          </div>
+      </div>
+
+      <div class="split-right">
+          <div class="grid-bg"></div>
+          
+          <div class="floating-dashboard">
+              <div class="fd-header">
+                  <div class="fd-nav">
+                      <div class="fd-dot active"></div>
+                      <div class="fd-dot"></div>
+                  </div>
+                  <div style="font-size: 10px; color: #666; font-family: 'JetBrains Mono';">LIVE MONITOR</div>
+              </div>
+
+              <div class="fd-stat-row">
+                  <div class="fd-stat">
+                      <div class="fd-label">Total Value Locked</div>
+                      <div class="fd-val">$1,245,050</div>
+                  </div>
+                  <div class="fd-stat">
+                      <div class="fd-label">Net APY</div>
+                      <div class="fd-val" style="color: var(--accent);">+14.2%</div>
+                  </div>
+              </div>
+
+              <div class="fd-graph">
+                  <div class="fd-line"></div>
+              </div>
+          </div>
       </div>
   </div>
 
 
-  <div id="app-screen">
-      <aside class="sidebar">
+  <div id="app-view">
+      <aside class="app-sidebar">
           <div>
               <div style="margin-bottom: 40px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
                   <img src="logo_g12.svg" height="24"> G12 LABS
               </div>
               <nav>
-                  <div class="nav-link active"><i class="ph ph-squares-four"></i> Overview</div>
-                  <div class="nav-link" onclick="window.location.href='strategies.html'"><i class="ph ph-chart-line-up"></i> Strategies</div>
-                  <div class="nav-link" onclick="window.location.href='docs.html'"><i class="ph ph-book"></i> Documentation</div>
+                  <div class="nav-item active"><i class="ph ph-squares-four"></i> Overview</div>
+                  <div class="nav-item" onclick="window.location.href='strategies.html'"><i class="ph ph-chart-line-up"></i> Strategies</div>
+                  <div class="nav-item" onclick="window.location.href='docs.html'"><i class="ph ph-book"></i> Documentation</div>
               </nav>
           </div>
-          <div class="nav-link" onclick="window.location.href='index.html'">
+          <div class="nav-item" onclick="window.location.href='index.html'">
               <i class="ph ph-sign-out"></i> Disconnect
           </div>
       </aside>
 
-      <main class="main-view">
+      <main class="app-content">
           <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
-              <h1>Portfolio Overview</h1>
-              <div style="font-family: 'JetBrains Mono'; font-size: 12px; color: #666; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 20px; background: var(--bg-card);">
+              <h1 style="font-size: 24px;">Portfolio Overview</h1>
+              <div style="font-family: 'JetBrains Mono'; font-size: 12px; color: #888; border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px;">
                   <span style="color: var(--accent);">●</span> <span id="userAddress">0x...</span>
               </div>
           </header>
 
-          <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+          <div style="background: var(--bg-panel); border: 1px solid var(--border); padding: 24px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
               <div>
-                  <h3 style="font-size: 14px; margin-bottom: 4px;">Need funds?</h3>
-                  <p style="font-size: 12px; color: var(--text-dim);">Purchase USDC directly via bank transfer (Low Fees).</p>
+                  <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Zero Funds?</h3>
+                  <p style="font-size: 14px; color: var(--text-muted);">Purchase USDC directly via bank transfer (Low Fees).</p>
               </div>
               <a href="https://widget.mtpelerin.com/?type=web&lang=fr&tab=buy&bdc=USDC&net=ARBITRUM&amt=500&cur=EUR" 
                  target="_blank" 
-                 style="background: white; color: black; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 12px; transition: 0.2s;">
+                 style="background: white; color: black; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: 0.2s;">
                  Buy USDC
               </a>
           </div>
 
-          <div style="text-align: center; color: var(--text-dim); margin-top: 100px;">
-              <i class="ph ph-wallet" style="font-size: 48px; margin-bottom: 20px; color: #333;"></i>
-              <p>Wallet connected successfully.<br>Synchronizing data...</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+             <div style="background: var(--bg-panel); height: 200px; border-radius: 16px; border: 1px solid var(--border); padding: 20px;">
+                <div style="color: #666; font-size: 12px; text-transform: uppercase;">Allocation</div>
+             </div>
+             <div style="background: var(--bg-panel); height: 200px; border-radius: 16px; border: 1px solid var(--border); padding: 20px;">
+                <div style="color: #666; font-size: 12px; text-transform: uppercase;">Performance</div>
+             </div>
           </div>
       </main>
   </div>
 
 
   <script type="module">
-    // Animation d'entrée de la carte
-    window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            document.getElementById('login-card').classList.add('visible');
-        }, 100);
-    });
-
     import React from "https://esm.sh/react@18.2.0";
     import ReactDOM from "https://esm.sh/react-dom@18.2.0/client";
     import { ThirdwebProvider, ConnectButton, darkTheme } from "https://esm.sh/thirdweb@5.14.0/react";
@@ -215,7 +286,7 @@
     import { createWallet, inAppWallet } from "https://esm.sh/thirdweb@5.14.0/wallets";
     import { arbitrum, base } from "https://esm.sh/thirdweb@5.14.0/chains";
 
-    // 🔴 REMPLACE CECI PAR TON CLIENT ID THIRDWEB 🔴
+    // 🔴 REMPLACE CECI PAR TON CLIENT ID 🔴
     const CLIENT_ID = "YOUR_CLIENT_ID"; 
 
     const client = createThirdwebClient({ clientId: CLIENT_ID });
@@ -227,15 +298,13 @@
         createWallet("me.rainbow"),
     ];
 
-    // Thème personnalisé pour le bouton et la modale Thirdweb
     const customTheme = darkTheme({
         colors: {
             accentText: "#E85A04",
-            accentButtonBg: "#E85A04", // Couleur du bouton principal
-            primaryButtonBg: "#E85A04", // Bouton "Launch App" en orange
-            primaryButtonText: "#FFFFFF", // Texte blanc sur fond orange
+            accentButtonBg: "#E85A04",
+            primaryButtonBg: "#E85A04",
+            primaryButtonText: "#FFFFFF",
             modalBg: "#0A0A0A",
-            borderColor: "#1A1A1A",
         }
     });
 
@@ -247,31 +316,22 @@
                 theme: customTheme,
                 chains: [arbitrum, base],
                 connectButton: {
-                    label: "Launch App", // Le texte exact de ton exemple
+                    label: "Launch App",
                     style: {
                         width: "100%",
                         padding: "16px",
                         fontWeight: "600",
                         fontSize: "16px",
-                        borderRadius: "8px", // Bouton un peu plus carré comme l'exemple
+                        borderRadius: "8px",
                     }
-                },
-                connectModal: {
-                    size: "compact",
-                    title: "Sign in to G12",
                 },
                 onConnect: (wallet) => {
                     const address = wallet.getAccount().address;
                     document.getElementById('userAddress').innerText = address.slice(0,6) + "..." + address.slice(-4);
                     
-                    // TRANSITION: Hide Login Card, Show Dashboard
-                    const loginCard = document.getElementById('login-card');
-                    loginCard.classList.remove('visible');
-                    loginCard.classList.add('fade-out');
-                    
-                    setTimeout(() => {
-                        document.getElementById('app-screen').classList.add('visible');
-                    }, 300); // Petit délai pour laisser la carte disparaître
+                    // TRANSITION
+                    document.getElementById('login-view').classList.add('hidden');
+                    document.getElementById('app-view').classList.add('visible');
                 }
             })
         );
