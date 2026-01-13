@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>G12 Access Terminal</title>
+  <title>Access G12 Labs</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
@@ -14,13 +14,14 @@
        1. CORE TOKENS
        ========================================= */
     :root {
-      --bg-root: #050505;
-      --bg-surface: #0A0A0A;
-      --border: #1A1A1A;
-      --accent: #E85A04; /* Magma */
-      --accent-glow: rgba(232, 90, 4, 0.4);
+      --bg-root: #030303; /* Fond très profond */
+      --bg-card: #0A0A0A; /* Fond de la carte */
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent: #E85A04; /* Orange Magma */
+      --accent-glow: rgba(232, 90, 4, 0.15);
       --text-main: #FFFFFF;
       --text-dim: #888888;
+      --radius-lg: 24px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,124 +31,91 @@
       color: var(--text-main);
       font-family: 'Inter', sans-serif;
       height: 100vh;
+      display: flex; align-items: center; justify-content: center;
       overflow: hidden;
+      position: relative;
     }
 
-    /* Grain Texture Subtile */
+    /* Fond subtil avec un léger dégradé radial pour donner de la profondeur */
     body::before {
+        content: ""; position: absolute; inset: 0; z-index: -1;
+        background: radial-gradient(circle at center, rgba(232,90,4,0.03) 0%, transparent 60%);
+    }
+    /* Grain Texture Subtile */
+    body::after {
         content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
     }
 
     /* =========================================
-       2. LOGIN SCREEN (SPLIT LAYOUT)
+       2. ACCESS CARD (CENTERED)
        ========================================= */
-    #login-screen {
-        position: absolute; inset: 0; z-index: 100;
-        display: grid; grid-template-columns: 1fr 1fr;
-        background: var(--bg-root);
-        transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-    #login-screen.hidden {
-        opacity: 0; pointer-events: none; transform: scale(1.05);
-    }
-
-    /* --- COLONNE GAUCHE (Action) --- */
-    .ls-left {
-        display: flex; flex-direction: column; justify-content: center;
-        padding: 60px 80px;
-        border-right: 1px solid var(--border);
+    .access-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 48px 40px;
+        width: 100%; max-width: 440px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 
+                    0 0 0 1px rgba(232, 90, 4, 0.05); /* Subtil contour orange */
         position: relative;
+        overflow: hidden;
+        transition: opacity 0.5s ease, transform 0.5s ease;
     }
     
-    .ls-brand { margin-bottom: 40px; }
-    .ls-brand img { height: 32px; }
-
-    .ls-content h1 {
-        font-size: 42px; font-weight: 600; line-height: 1.1; margin-bottom: 16px; letter-spacing: -1px;
-    }
-    .ls-content p {
-        font-size: 16px; color: var(--text-dim); line-height: 1.6; margin-bottom: 40px; max-width: 440px;
+    /* Effet de "glow" supérieur sur la carte */
+    .access-card::before {
+        content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
     }
 
-    .feature-list { margin-bottom: 40px; display: flex; flex-direction: column; gap: 12px; }
-    .f-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #ccc; }
-    .f-item i { color: var(--accent); }
+    /* États de transition pour l'apparition/disparition */
+    .access-card.fade-in { opacity: 0; transform: translateY(20px); }
+    .access-card.visible { opacity: 1; transform: translateY(0); }
+    .access-card.fade-out { opacity: 0; transform: scale(0.95); pointer-events: none; }
 
-    /* --- COLONNE DROITE (Visuel Animé) --- */
-    .ls-right {
-        background: radial-gradient(circle at center, #111 0%, #050505 100%);
-        display: flex; align-items: center; justify-content: center;
-        position: relative; overflow: hidden;
+    /* Contenu de la carte */
+    .logo-spacer { margin-bottom: 32px; display: inline-block; }
+    .logo-spacer img { height: 40px; width: auto; display: block; }
+
+    .card-title {
+        font-size: 28px; font-weight: 600; margin-bottom: 12px;
+        letter-spacing: -0.5px; color: var(--text-main);
     }
-    
-    /* Grille de fond */
-    .grid-bg {
-        position: absolute; inset: 0;
-        background-size: 40px 40px;
-        background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
-                          linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
-        mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+    .card-desc {
+        font-size: 15px; color: var(--text-dim); line-height: 1.5;
+        margin-bottom: 40px; padding: 0 20px;
     }
 
-    /* La Carte "Fake Dashboard" */
-    .preview-card {
-        width: 420px; height: 300px;
-        background: rgba(20, 20, 20, 0.6);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 16px;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        padding: 24px;
-        display: flex; flex-direction: column;
-        transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
-        transition: transform 0.5s ease;
-    }
-    .ls-right:hover .preview-card { transform: perspective(1000px) rotateY(0deg) rotateX(0deg); }
-
-    /* Le Graphique Animé (SVG) */
-    .chart-container {
-        flex: 1; display: flex; align-items: flex-end; position: relative;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        margin-top: 20px;
-    }
-    svg.chart-line {
-        width: 100%; height: 100%;
-        overflow: visible;
-    }
-    path.line {
-        fill: none; stroke: var(--accent); stroke-width: 2;
-        stroke-dasharray: 1000; stroke-dashoffset: 1000;
-        animation: drawLine 2.5s ease-out forwards;
-        filter: drop-shadow(0 0 8px var(--accent-glow));
-    }
-    path.area {
-        fill: url(#gradientArea); stroke: none;
-        opacity: 0; animation: fadeInArea 1s ease-out 1.5s forwards;
+    /* Conteneur pour le bouton Thirdweb */
+    #connect-button-container {
+        margin-bottom: 32px;
     }
 
-    @keyframes drawLine { to { stroke-dashoffset: 0; } }
-    @keyframes fadeInArea { to { opacity: 0.3; } }
+    /* Footer Légal */
+    .card-footer {
+        font-size: 12px; color: #555; line-height: 1.5;
+        padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .card-footer a { color: #777; text-decoration: none; transition: 0.2s; }
+    .card-footer a:hover { color: var(--accent); }
 
-    /* Les Chiffres qui comptent */
-    .pc-header { display: flex; justify-content: space-between; align-items: flex-start; }
-    .pc-label { font-size: 11px; text-transform: uppercase; color: #666; letter-spacing: 1px; margin-bottom: 4px; }
-    .pc-val { font-family: 'JetBrains Mono'; font-size: 28px; font-weight: 600; color: white; }
-    
-    .anim-num { display: inline-block; }
 
     /* =========================================
        3. REAL DASHBOARD (Hidden Initially)
        ========================================= */
     #app-screen {
-        height: 100%; display: flex; opacity: 0; pointer-events: none;
-        transition: opacity 1s ease 0.5s;
+        position: fixed; inset: 0; z-index: 100;
+        height: 100%; display: flex;
+        opacity: 0; pointer-events: none; background: var(--bg-root);
+        transition: opacity 0.8s ease 0.2s;
     }
     #app-screen.visible { opacity: 1; pointer-events: all; }
 
     /* Sidebar Dashboard */
     .sidebar {
-        width: 260px; background: var(--bg-surface); border-right: 1px solid var(--border);
+        width: 260px; background: var(--bg-card); border-right: 1px solid var(--border-color);
         padding: 24px; display: flex; flex-direction: column; justify-content: space-between;
     }
     .nav-link {
@@ -159,71 +127,33 @@
 
     .main-view { flex: 1; padding: 40px; overflow-y: auto; }
 
-    /* Mobile Responsive */
-    @media (max-width: 900px) {
-        #login-screen { grid-template-columns: 1fr; }
-        .ls-right { display: none; } /* On cache le visuel sur mobile pour la clarté */
-        .ls-left { padding: 40px 24px; }
+    /* Responsive */
+    @media (max-width: 480px) {
+        .access-card { padding: 40px 24px; max-width: 90%; }
+        .card-title { font-size: 24px; }
     }
   </style>
 </head>
 <body>
 
-  <div id="login-screen">
-      
-      <div class="ls-left">
-          <div class="ls-brand">
-              <img src="logo_g12.svg" alt="G12 Labs">
-          </div>
-          
-          <div class="ls-content">
-              <h1>Systematic Yield.<br>Institutional Grade.</h1>
-              <p>Access our automated DeFi strategies on Arbitrum & Base. Non-custodial, transparent, and built for capital preservation.</p>
-              
-              <div class="feature-list">
-                  <div class="f-item"><i class="ph ph-check-circle"></i> Audited Smart Contracts</div>
-                  <div class="f-item"><i class="ph ph-check-circle"></i> Real-time Risk Management</div>
-                  <div class="f-item"><i class="ph ph-check-circle"></i> No lock-up periods</div>
-              </div>
-
-              <div id="thirdweb-login-btn"></div>
-          </div>
+  <div id="login-card" class="access-card fade-in">
+      <div class="logo-spacer">
+          <img src="logo_g12.svg" alt="G12 Labs">
       </div>
+      
+      <h1 class="card-title">Connect to G12 Labs</h1>
+      <p class="card-desc">
+          Access institutional-grade DeFi yields. Sign in securely with your wallet or email to view your dashboard.
+      </p>
 
-      <div class="ls-right">
-          <div class="grid-bg"></div>
-          
-          <div class="preview-card">
-              <div class="pc-header">
-                  <div>
-                      <div class="pc-label">Total Value Locked</div>
-                      <div class="pc-val">$<span id="counter">0.00</span></div>
-                  </div>
-                  <div style="font-size: 12px; color: var(--accent); background: rgba(232,90,4,0.1); padding: 4px 8px; border-radius: 4px;">
-                      +12.4%
-                  </div>
-              </div>
+      <div id="connect-button-container"></div>
 
-              <div class="chart-container">
-                  <svg class="chart-line" viewBox="0 0 300 100" preserveAspectRatio="none">
-                      <defs>
-                          <linearGradient id="gradientArea" x1="0" x2="0" y1="0" y2="1">
-                              <stop offset="0%" stop-color="#E85A04" stop-opacity="0.2"/>
-                              <stop offset="100%" stop-color="#E85A04" stop-opacity="0"/>
-                          </linearGradient>
-                      </defs>
-                      <path class="area" d="M0,100 L0,80 L50,75 L100,50 L150,60 L200,30 L250,40 L300,10 L300,100 Z" />
-                      <path class="line" d="M0,80 L50,75 L100,50 L150,60 L200,30 L250,40 L300,10" vector-effect="non-scaling-stroke" />
-                  </svg>
-              </div>
-
-              <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                  <div style="height: 8px; width: 60%; background: rgba(255,255,255,0.1); border-radius: 4px;"></div>
-                  <div style="height: 8px; width: 40%; background: rgba(255,255,255,0.05); border-radius: 4px;"></div>
-              </div>
-          </div>
+      <div class="card-footer">
+          By connecting, you agree to our <br>
+          <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
       </div>
   </div>
+
 
   <div id="app-screen">
       <aside class="sidebar">
@@ -245,53 +175,39 @@
       <main class="main-view">
           <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
               <h1>Portfolio Overview</h1>
-              <div style="font-family: 'JetBrains Mono'; font-size: 12px; color: #666; border: 1px solid #222; padding: 8px 16px; border-radius: 20px;">
+              <div style="font-family: 'JetBrains Mono'; font-size: 12px; color: #666; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 20px; background: var(--bg-card);">
                   <span style="color: var(--accent);">●</span> <span id="userAddress">0x...</span>
               </div>
           </header>
 
-          <div style="background: #0A0A0A; border: 1px solid #222; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
               <div>
                   <h3 style="font-size: 14px; margin-bottom: 4px;">Need funds?</h3>
-                  <p style="font-size: 12px; color: #666;">Purchase USDC directly via bank transfer (Low Fees).</p>
+                  <p style="font-size: 12px; color: var(--text-dim);">Purchase USDC directly via bank transfer (Low Fees).</p>
               </div>
               <a href="https://widget.mtpelerin.com/?type=web&lang=fr&tab=buy&bdc=USDC&net=ARBITRUM&amt=500&cur=EUR" 
                  target="_blank" 
-                 style="background: white; color: black; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 12px;">
+                 style="background: white; color: black; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 12px; transition: 0.2s;">
                  Buy USDC
               </a>
           </div>
 
-          <div style="text-align: center; color: #444; margin-top: 100px;">
-              <i class="ph ph-wallet" style="font-size: 48px; margin-bottom: 20px;"></i>
-              <p>Wallet connected successfully.<br>Loading positions...</p>
+          <div style="text-align: center; color: var(--text-dim); margin-top: 100px;">
+              <i class="ph ph-wallet" style="font-size: 48px; margin-bottom: 20px; color: #333;"></i>
+              <p>Wallet connected successfully.<br>Synchronizing data...</p>
           </div>
       </main>
   </div>
 
-  <script>
-      // Petit script pour animer le compteur de 0 à 1.2M
-      function animateValue(obj, start, end, duration) {
-          let startTimestamp = null;
-          const step = (timestamp) => {
-              if (!startTimestamp) startTimestamp = timestamp;
-              const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-              // Format monétaire
-              const val = Math.floor(progress * (end - start) + start);
-              obj.innerHTML = val.toLocaleString('en-US') + ".00";
-              if (progress < 1) {
-                  window.requestAnimationFrame(step);
-              }
-          };
-          window.requestAnimationFrame(step);
-      }
-      
-      // Lancer l'anim au chargement
-      const obj = document.getElementById("counter");
-      animateValue(obj, 0, 1245050, 2000); // Monte à 1,245,050 en 2 sec
-  </script>
 
   <script type="module">
+    // Animation d'entrée de la carte
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            document.getElementById('login-card').classList.add('visible');
+        }, 100);
+    });
+
     import React from "https://esm.sh/react@18.2.0";
     import ReactDOM from "https://esm.sh/react-dom@18.2.0/client";
     import { ThirdwebProvider, ConnectButton, darkTheme } from "https://esm.sh/thirdweb@5.14.0/react";
@@ -299,7 +215,7 @@
     import { createWallet, inAppWallet } from "https://esm.sh/thirdweb@5.14.0/wallets";
     import { arbitrum, base } from "https://esm.sh/thirdweb@5.14.0/chains";
 
-    // 🔴 REMPLACE CECI PAR TON CLIENT ID 🔴
+    // 🔴 REMPLACE CECI PAR TON CLIENT ID THIRDWEB 🔴
     const CLIENT_ID = "YOUR_CLIENT_ID"; 
 
     const client = createThirdwebClient({ clientId: CLIENT_ID });
@@ -311,12 +227,15 @@
         createWallet("me.rainbow"),
     ];
 
+    // Thème personnalisé pour le bouton et la modale Thirdweb
     const customTheme = darkTheme({
         colors: {
             accentText: "#E85A04",
-            accentButtonBg: "#E85A04",
-            primaryButtonBg: "#E85A04", // Bouton Orange Magma
-            primaryButtonText: "#FFFFFF",
+            accentButtonBg: "#E85A04", // Couleur du bouton principal
+            primaryButtonBg: "#E85A04", // Bouton "Launch App" en orange
+            primaryButtonText: "#FFFFFF", // Texte blanc sur fond orange
+            modalBg: "#0A0A0A",
+            borderColor: "#1A1A1A",
         }
     });
 
@@ -328,27 +247,37 @@
                 theme: customTheme,
                 chains: [arbitrum, base],
                 connectButton: {
-                    label: "Launch App", // Le texte du bouton
+                    label: "Launch App", // Le texte exact de ton exemple
                     style: {
                         width: "100%",
                         padding: "16px",
                         fontWeight: "600",
-                        fontSize: "16px"
+                        fontSize: "16px",
+                        borderRadius: "8px", // Bouton un peu plus carré comme l'exemple
                     }
+                },
+                connectModal: {
+                    size: "compact",
+                    title: "Sign in to G12",
                 },
                 onConnect: (wallet) => {
                     const address = wallet.getAccount().address;
                     document.getElementById('userAddress').innerText = address.slice(0,6) + "..." + address.slice(-4);
                     
-                    // TRANSITION: Hide Login, Show App
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-screen').classList.add('visible');
+                    // TRANSITION: Hide Login Card, Show Dashboard
+                    const loginCard = document.getElementById('login-card');
+                    loginCard.classList.remove('visible');
+                    loginCard.classList.add('fade-out');
+                    
+                    setTimeout(() => {
+                        document.getElementById('app-screen').classList.add('visible');
+                    }, 300); // Petit délai pour laisser la carte disparaître
                 }
             })
         );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById("thirdweb-login-btn"));
+    const root = ReactDOM.createRoot(document.getElementById("connect-button-container"));
     root.render(React.createElement(App));
   </script>
 
