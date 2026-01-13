@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Journal & Updates — G12 Labs</title>
+<meta name="description" content="Read the latest insights from G12 Labs. Monthly updates on strategy performance, market analysis, and operational news.">
+<link rel="icon" type="image/jpeg" href="/favicon.jpg" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    /* =========================================================
+       DESIGN TOKENS
+       ========================================================= */
+    :root {
+      /* =========================================
+         1. BRAND COLORS (L'ADN G12)
+         ========================================= */
+      --magma-core: #E85A04;        /* Orange Principal */
+      --magma-light: #FF9E66;       /* Orange Clair (Highlights) */
+      --magma-dark: #4A1500;        /* Orange Sombre (Ombres) */
+      --magma-dim: rgba(232, 90, 4, 0.1); /* Fond Orange Transparent (Badges) */
+
+      /* =========================================
+         2. NETWORK & DATA COLORS (Tes demandes)
+         ========================================= */
+      --base-blue: #0052FF;         /* Le Bleu "Base" officiel */
+      --base-dim: rgba(0, 82, 255, 0.1); /* Fond Bleu Transparent */
+      
+      --arb-blue: #2D374B;          /* Bleu Gris "Arbitrum" (Optionnel) */
+      
+      /* Couleurs Financières (Exactement celles de strategies.html) */
+      --success: #10B981;           /* VERT Performance / Profit */
+      --success-dim: rgba(16, 185, 129, 0.1);
+      
+      --error: #EF4444;             /* ROUGE Perte / Erreur */
+      --error-dim: rgba(239, 68, 68, 0.1);
+      
+      --warning: #F59E0B;           /* JAUNE Attention / Timelock */
+      --neutral: #6B7280;           /* GRIS Neutre / Secondaire */
+
+      /* =========================================
+         3. DARK THEME PALETTE (Index, Access, Docs)
+         ========================================= */
+      --carbon-base: #05070b;       /* Fond : Noir Profond */
+      --carbon-surface: #0e1116;    /* Fond : Carte Sombre */
+      --carbon-border: #1f2329;     /* Bordure Sombre */
+      --carbon-text-main: #ffffff;
+      --carbon-text-muted: #9aa4b2;
+
+      /* =========================================
+         4. LIGHT THEME PALETTE (Strategies)
+         ========================================= */
+      --light-bg: #F9FAFB;          /* Fond : Gris très clair */
+      --light-card-bg: #FFFFFF;     /* Fond : Blanc pur */
+      --light-border: #E5E7EB;      /* Bordure Claire */
+      --light-text-main: #111827;   /* Texte : Noir Encre */
+      --light-text-muted: #6B7280;  /* Texte : Gris Moyen */
+
+      /* =========================================
+         5. COMPATIBILITÉ UNIFIÉE (Le "Bridge")
+         ========================================= */
+      /* Alias pour que 'access.html' utilise le thème Magma sans tout casser */
+      --accent: var(--magma-core);
+      --accent-secondary: var(--magma-light);
+      --accent-dim: var(--magma-dim);
+      
+      /* Valeurs par défaut (Mode Dark) - Surchargées localement si besoin */
+      --bg-app: var(--carbon-base);
+      --bg-card: var(--carbon-surface);
+      --bg-input: #0a0d12;
+      --border-color: var(--carbon-border);
+      --border-highlight: #2d333b;
+      --text-main: var(--carbon-text-main);
+      --text-muted: var(--carbon-text-muted);
+
+      /* =========================================
+         6. GRADIENTS & EFFECTS
+         ========================================= */
+      --grad-text-magma: linear-gradient(135deg, #FFFFFF 10%, #E85A04 60%, #853200 100%);
+      --grad-btn-magma: linear-gradient(135deg, #FF9E66 0%, #E85A04 50%, #B33600 100%);
+      --grad-glow: radial-gradient(circle, rgba(232, 90, 4, 0.15) 0%, transparent 70%);
+
+      /* =========================================
+         7. LAYOUT & SPACING (Anti-Saut)
+         ========================================= */
+      --container-max: 1280px;      /* Largeur Max Standard */
+      --container-width: 1280px;    /* Alias */
+      --page-padding-x: 1.25rem;
+      
+      /* NAVBAR HARMONISÉE */
+      --nav-height: 5rem;           /* 80px FIXE POUR TOUT LE MONDE */
+      --nav-bg: rgba(5, 7, 11, 0.8);
+      --nav-bg-scrolled: rgba(36, 36, 37, 0.811);
+
+      /* =========================================
+         8. COMPONENT SPECS
+         ========================================= */
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 24px;
+      --radius-pill: 999px;
+      
+      --dur-fast: 0.15s;
+      --dur-normal: 0.25s;
+      --ease-standard: cubic-bezier(0.2, 0.6, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--light-bg);
+      color: var(--light-text-main);
+      line-height: 1.6;
+      opacity: 0; transition: opacity 0.25s ease-out;
+    }
+    
+    body.is-loaded { opacity: 1; }
+
+    /* Grain texture */
+    body::before {
+        content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.02'/%3E%3C/svg%3E");
+        opacity: 0.6; mix-blend-mode: multiply;
+    }
+
+    a { text-decoration: none; color: inherit; transition: 0.3s; }
+    .container { max-width: var(--container-max); margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* =========================================
+       NAVBAR STYLES (EXACT COPY FROM INDEX)
+       ========================================= */
+    .site-header {
+      position: fixed;
+      inset-inline: 0;
+      top: 0;
+      height: var(--nav-height);
+      z-index: 1000; /* Z-index élevé pour passer au dessus du Hero */
+    }
+
+    .nav-shell {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .nav-inner {
+      width: 100%;
+      max-width: var(--container-max);
+      padding-inline: var(--page-padding-x);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 999px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      margin-block: 1.8rem;
+      padding-block: 0.4rem;
+      transition:
+        background var(--dur-normal) var(--ease-standard),
+        border-color var(--dur-normal) var(--ease-standard),
+        transform var(--dur-normal) var(--ease-standard);
+      pointer-events: auto;
+      box-shadow: 0 5px 15px rgba(10, 10, 10, 0.536);
+      position: relative;
+      z-index: 200;
+    }
+
+    @media (max-width: 63.99rem) {
+      .nav-inner {
+        padding-inline: 1.2rem;
+        margin-inline: 0.9rem;
+      }
+    }
+
+    .site-header.scrolled .nav-inner {
+      background: var(--nav-bg-scrolled);
+      border-color: rgba(255, 255, 255, 0.088);
+      transform: translateY(-0.35rem);
+    }
+
+    .nav-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      font-size: 0.9rem;
+    }
+
+    .nav-brand-logo {
+      height: 2rem;
+      width: auto;
+    }
+
+    .nav-links {
+      display: none;
+      align-items: center;
+      gap: 5rem;
+      font-size: 0.9rem;
+    }
+
+    .nav-links a {
+      position: relative;
+      padding-block: 0.25rem;
+      color: rgba(255, 255, 255, 0.907);
+      transition: color var(--dur-fast) var(--ease-standard);
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -0.2rem;
+      width: 0;
+      height: 2px;
+      background: var(--magma-core);
+      transition: width var(--dur-fast) var(--ease-standard);
+    }
+
+    .nav-links a:hover {
+      color: white;
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    .nav-cta {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      margin-left: 1.5rem;
+    }
+
+    .lang-switch {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.1rem;
+    }
+    .lang-switch span.active { color: white; opacity: 1; font-weight: 500; }
+
+    /* Nouveau Bouton : Fond transparent, Bordure Dégradée */
+    .btn-magma-outline {
+      position: relative;
+      background: transparent;
+      border: 1px solid var(--magma-core); /* Bordure simple orange */
+      border-radius: var(--radius-pill);
+      color: #fff;
+      padding: 0.5rem 1.1rem; 
+      font-size: 0.85rem; 
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex; align-items: center; justify-content: center;
+      overflow: hidden; /* Important pour l'effet de slide */
+      transition: all 0.3s ease;
+      z-index: 1;
+    }
+
+    /* L'élément qui va glisser (le fond caché) */
+    .btn-magma-outline::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--grad-btn-magma);
+      z-index: -1;
+      transform: scaleX(0); /* Caché par défaut (largeur 0) */
+      transform-origin: left;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-magma-outline:hover {
+      border-color: transparent;
+      color: #05070b; /* Texte noir au survol */
+      box-shadow: 0 4px 15px rgba(232, 90, 4, 0.3);
+    }
+
+    .btn-magma-outline:hover::before {
+      transform: scaleX(1); /* Remplissage complet */
+    }
+    /* Burger */
+    .nav-toggle {
+      border: none; background: none; padding: 0.35rem; border-radius: var(--radius-pill);
+      cursor: pointer; position: relative; width: 1.6rem; height: 1.1rem; display: inline-block;
+    }
+    .nav-toggle span {
+      position: absolute; left: 0; right: 0; height: 2px; border-radius: 999px;
+      background: white; transform-origin: center; transition: all var(--dur-fast) var(--ease-standard);
+    }
+    .nav-toggle span:nth-child(1) { top: 0; }
+    .nav-toggle span:nth-child(2) { top: 50%; transform: translateY(-50%); }
+    .nav-toggle span:nth-child(3) { bottom: 0; }
+    
+    .nav-toggle[aria-expanded='true'] span:nth-child(1) { top: 50%; transform: translateY(-50%) rotate(45deg); }
+    .nav-toggle[aria-expanded='true'] span:nth-child(2) { opacity: 0; }
+    .nav-toggle[aria-expanded='true'] span:nth-child(3) { bottom: auto; top: 50%; transform: translateY(-50%) rotate(-45deg); }
+
+    @media (min-width: 64rem) {
+      .nav-links {
+        display: flex;
+        /* C'est ici que la magie opère pour le centrage absolu */
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .nav-cta { display: flex; }
+      .nav-toggle { display: none; }
+    }
+
+    /* Menu mobile plein écran */
+    .nav-menu {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 50;
+      opacity: 0; pointer-events: none; background: rgba(3, 7, 12, 0.35);
+      backdrop-filter: blur(0px); transition: all 0.33s var(--ease-standard);
+      overflow: hidden; touch-action: none;
+    }
+    .nav-menu::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at top, rgba(68, 83, 80, 0.2), transparent 60%), rgba(21, 23, 26, 0.95);
+    }
+    .nav-menu.open { opacity: 1; pointer-events: auto; backdrop-filter: blur(22px); }
+    
+    .nav-menu-content {
+      position: absolute; top: var(--nav-height); left: 0; right: 0; bottom: 0;
+      padding: 1.5rem var(--page-padding-x) 2.5rem;
+      display: flex; flex-direction: column; justify-content: flex-start;
+      overflow: hidden;
+    }
+    .nav-menu-content > a {
+      display: block; width: 100%; font-size: 1.1rem; font-weight: 500; color: white;
+      padding: 1.2rem 0; border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    .nav-menu-content > a:first-of-type { border-top: 2px solid rgba(255, 255, 255, 0.1); }
+    
+    .nav-menu-content .nav-menu-secondary {
+      margin-top: 1.8rem; padding-top: 1.2rem; display: flex;
+      justify-content: space-between; align-items: center; gap: 1rem;
+    }
+    body.menu-open { overflow: hidden; }
+    @media (min-width: 64rem) { .nav-menu { display: none !important; } }
+    /* =========================================
+       MAIN CONTENT : CONSTRUCTION
+       ========================================= */
+    main {
+        flex: 1;
+        display: flex; align-items: center; justify-content: center;
+        position: relative;
+        padding-top: 100px; padding-bottom: 60px;
+    }
+
+    .construction-wrapper {
+        text-align: center;
+        max-width: 600px;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ANIMATION : SYSTEM SCAN */
+    .scan-container {
+        position: relative;
+        width: 120px; height: 120px;
+        margin: 0 auto 40px;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Cercle externe */
+    .scan-ring {
+        position: absolute; inset: 0;
+        border: 2px solid rgba(232, 90, 4, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--magma-core);
+        animation: spin 3s linear infinite;
+    }
+    /* Cercle interne */
+    .scan-ring-inner {
+        position: absolute; inset: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        border-bottom-color: rgba(11, 11, 11, 0.8);
+        animation: spin 2s linear infinite reverse;
+    }
+    /* Icone CONE au centre */
+    .scan-icon {
+        font-size: 32px; color: #4A1500;
+        animation: pulse-icon 2s ease-in-out infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse-icon { 0%, 100% { opacity: 0.5; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }
+
+    /* TEXTES */
+    .status-badge {
+        display: inline-block;
+        font-family: var(--font-mono); font-size: 11px;
+        color: var(--magma-core); border: 1px solid rgba(232, 90, 4, 0.3);
+        padding: 4px 12px; border-radius: 99px;
+        margin-bottom: 24px; background: rgba(232, 90, 4, 0.05);
+        letter-spacing: 1px;
+    }
+
+    h1 {
+        font-size: clamp(32px, 5vw, 48px); font-weight: 700;
+        margin-bottom: 16px; line-height: 1.1;
+        background: linear-gradient(180deg, #050505 , #3f3f3f);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+        color: var(--text-muted); font-size: 16px; line-height: 1.6;
+        margin-bottom: 40px;
+    }
+
+    /* Actions */
+    .action-row {
+        display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+        padding: 12px 24px; border-radius: 99px; font-size: 14px; font-weight: 600;
+        background: rgba(255,255,255,0.05); color: #fff;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: 0.2s; cursor: pointer;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: white; }
+
+    /* =========================================
+       FOOTER (ADAPTÉ MAGMA)
+       ========================================= */
+    .site-footer {
+        background-color: #000000; /* Fond noir pur pour finir la page */
+        padding: 80px 0 40px;
+        border-top: 1px solid var(--carbon-border);
+        overflow: hidden; /* Important pour le logo qui dépasse */
+        position: relative;
+    }
+
+    /* COLONNES */
+    .footer-columns {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 40px;
+        margin-bottom: 80px;
+    }
+
+    .footer-heading {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #666;
+        margin-bottom: 20px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .footer-links-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .footer-links-list a {
+        color: #999;
+        font-size: 15px;
+        transition: color 0.2s, transform 0.2s;
+        display: inline-block;
+    }
+
+    .footer-links-list a:hover {
+        color: white;
+        transform: translateX(2px);
+    }
+
+    /* SECTION PRINCIPALE (TAGLINE + GHOST LOGO) */
+    .footer-main {
+        position: relative;
+        padding: 60px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 40px;
+    }
+
+    .footer-tagline-main {
+        font-size: clamp(3rem, 6vw, 5rem); /* Responsive typography */
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        color: white;
+        position: relative;
+        z-index: 2; /* Devant le logo */
+        margin: 0;
+    }
+
+    /* Le logo fantôme en arrière-plan */
+    .footer-main-logo-img {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 200%; /* Très grand */
+        width: auto;
+        opacity: 0.15; /* Discret */
+        filter: grayscale(100%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* BAS DE FOOTER */
+    .footer-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .footer-back-top {
+        color: #888;
+        font-family: 'JetBrains Mono', monospace;
+        transition: color 0.2s;
+    }
+    .footer-back-top:hover { color: var(--magma-core); }
+
+    .footer-bottom-right {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .footer-bottom-right a { color: #888; }
+    .footer-bottom-right a:hover { color: white; }
+    .sep { color: #333; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .footer-columns {
+            grid-template-columns: 1fr; /* 1 seule colonne sur mobile */
+            gap: 40px;
+        }
+        
+        .footer-main-logo-img {
+            height: 100%;
+            right: -20%;
+            opacity: 0.1;
+        }
+        
+        .footer-bottom {
+            flex-direction: column;
+            gap: 20px;
+        }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" id="siteHeader">
+    <div class="nav-shell">
+      <div class="nav-inner">
+        <a href="/" class="nav-brand">
+          <img src="/logo_g12.svg" alt="G12 Labs" class="nav-brand-logo" />
+        </a>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="/strategies">Strategies</a>
+          <a href="/blog">Blog</a>
+          <a href="/docs" target="_blank">Lite paper</a>
+        </nav>
+
+        <div class="nav-cta">
+          <a href="/access" class="btn-magma-outline">
+            Launch App
+          </a>
+        </div>
+
+        <button class="nav-toggle" id="navToggle" aria-label="Open navigation" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+
+      </div> </div> <div class="nav-menu" id="navMenu">
+      <div class="nav-menu-content">
+        <a href="/strategies">Strategies</a>
+        <a href="/blog">Blog</a>
+        <a href="/docs" target="_blank">Lite paper</a>
+        <div style="margin-top: 20px;">
+           <a href="/access" class="btn-magma-outline" style="width: 100%;">Launch App</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="construction-wrapper">
+        
+        <div class="scan-container">
+            <div class="scan-ring"></div>
+            <div class="scan-ring-inner"></div>
+            <i class="ph-fill ph-cone scan-icon"></i>
+        </div>
+
+        <span class="status-badge">● WORK IN PROGRESS</span>
+
+        <h1>Page Under<br>Construction</h1>
+        
+        <p class="subtitle">
+            We are currently building this section.
+            Content is being written and formatted.
+        </p>
+
+        <div class="action-row">
+            <a href="/" class="btn-secondary">
+                Return to Home
+            </a>
+            <a href="strategies.html" class="btn-secondary">
+                View Strategies
+            </a>
+        </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      
+      <div class="footer-columns">
+        <div class="footer-column">
+          <h3 class="footer-heading">Platform</h3>
+          <ul class="footer-links-list">
+            <li><a href="/">Home</a></li>
+            <li><a href="/strategies">Strategies</a></li>
+            <li><a href="/#live-access">Live Launch</a></li>
+            <li><a href="/#roadmap">Roadmap</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3 class="footer-heading">Resources</h3>
+          <ul class="footer-links-list">
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/access">Access</a></li>
+            <li><a href="/#faq">FAQ</a></li>
+            <li><a href="/docs" target="_blank">Lite paper</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3 class="footer-heading">Contact</h3>
+          <ul class="footer-links-list">
+            <li><a href="mailto:info@g12labs.com">info@g12labs.com</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-main" style="border: none; padding: 20px 0;">
+        <img src="fulllogo_transparent_nobuffer.png" alt="" class="footer-main-logo-img" />
+      </div>
+
+      <div class="footer-bottom" style="border: none;">
+        <a href="#" class="footer-back-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <span>↑ Back to top</span>
+        </a>
+
+        <div class="footer-bottom-right">
+          <span>© 2026 G12 Labs</span>
+          <span class="sep">·</span>
+          <a href="/legal">Terms</a>
+          <span class="sep">·</span>
+          <a href="/privacy">Privacy</a>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      // Fade-in
+      window.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('is-loaded');
+      });
+
+      // Navbar Logic (Scroll & Mobile)
+      const header = document.getElementById('siteHeader');
+      const navToggle = document.getElementById('navToggle');
+      const navMenu = document.getElementById('navMenu');
+
+      function onScroll() {
+        if (window.scrollY > 8) header.classList.add('scrolled');
+        else header.classList.remove('scrolled');
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      navToggle.addEventListener('click', () => {
+        const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+        navToggle.setAttribute('aria-expanded', !expanded);
+        navMenu.classList.toggle('open', !expanded);
+      });
+    })();
+  </script>
+
+</body>
+</html>
