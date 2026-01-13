@@ -4,342 +4,2187 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Access Terminal — G12 Labs</title>
+  <meta name="description" content="Connect your wallet to access G12 Labs institutional-grade DeFi yield strategies on Arbitrum & Base.">
+  <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-  
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
 
   <style>
-    /* =========================================
-       1. CORE TOKENS
-       ========================================= */
+    /* =========================================================
+       DESIGN TOKENS - G12 LABS
+       ========================================================= */
     :root {
-      --bg-root: #050505;
-      --bg-panel: #0A0A0A;
-      --border: rgba(255, 255, 255, 0.08);
-      --accent: #E85A04; /* Magma */
-      --accent-dim: rgba(232, 90, 4, 0.1);
-      --text-main: #FFFFFF;
-      --text-muted: #888888;
+      --magma-core: #E85A04;
+      --magma-light: #FF9E66;
+      --magma-dark: #4A1500;
+      --magma-dim: rgba(232, 90, 4, 0.1);
+      
+      --base-blue: #0052FF;
+      --base-dim: rgba(0, 82, 255, 0.1);
+      
+      --success: #10B981;
+      --success-dim: rgba(16, 185, 129, 0.1);
+      --error: #EF4444;
+      --error-dim: rgba(239, 68, 68, 0.1);
+      --warning: #F59E0B;
+      --neutral: #6B7280;
+      
+      /* Dark Theme (Default) */
+      --bg-root: #05070b;
+      --bg-surface: #0e1116;
+      --bg-card: #121820;
+      --bg-hover: #1a222d;
+      --border: #1f2329;
+      --border-light: #2d333b;
+      --text-main: #ffffff;
+      --text-muted: #9aa4b2;
+      --text-dim: #6b7280;
+      
+      /* Component */
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+      
+      --transition: 0.2s ease;
+    }
+    
+    /* Light Theme */
+    [data-theme="light"] {
+      --bg-root: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-card: #ffffff;
+      --bg-hover: #f1f5f9;
+      --border: #e2e8f0;
+      --border-light: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
+      font-family: 'Inter', -apple-system, sans-serif;
       background: var(--bg-root);
       color: var(--text-main);
-      font-family: 'Inter', sans-serif;
-      height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+      transition: background var(--transition), color var(--transition);
+    }
+    
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* =========================================================
+       LOGIN VIEW - SPLIT LAYOUT (PRIVY STYLE)
+       ========================================================= */
+    #login-view {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    
+    #login-view.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.02);
+    }
+
+    /* Left Panel */
+    .login-left {
+      width: 45%;
+      min-width: 480px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 80px;
+      background: var(--bg-root);
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 60px;
+    }
+    
+    .brand-header img {
+      height: 32px;
+    }
+    
+    .brand-header span {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.05em;
+    }
+
+    .login-hero h1 {
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-bottom: 20px;
+    }
+    
+    .login-hero p {
+      font-size: 17px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 48px;
+      max-width: 420px;
+    }
+
+    #connect-container {
+      max-width: 380px;
+    }
+
+    .trust-row {
+      display: flex;
+      gap: 28px;
+      margin-top: 56px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+    }
+    
+    .trust-item i {
+      font-size: 16px;
+      color: var(--magma-core);
+    }
+
+    /* Right Panel - Preview */
+    .login-right {
+      flex: 1;
+      background: linear-gradient(135deg, #0a0f15 0%, #111827 100%);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       overflow: hidden;
     }
-
-    /* =========================================
-       2. LOGIN SPLIT LAYOUT
-       ========================================= */
-    #login-view {
-        position: absolute; inset: 0; z-index: 50;
-        display: flex;
-        transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    #login-view.hidden {
-        opacity: 0; pointer-events: none; transform: scale(1.02);
+    
+    [data-theme="light"] .login-right {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
     }
 
-    /* --- LEFT PANEL (ACTION) --- */
-    .split-left {
-        width: 40%; min-width: 480px;
-        background: var(--bg-root);
-        border-right: 1px solid var(--border);
-        display: flex; flex-direction: column; justify-content: center;
-        padding: 60px 80px;
-        position: relative;
-        z-index: 2;
+    .grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(circle at center, black 30%, transparent 70%);
     }
 
-    .brand-logo { margin-bottom: 40px; }
-    .brand-logo img { height: 32px; }
-
-    .hero-text h1 {
-        font-size: 48px; font-weight: 600; letter-spacing: -1.5px;
-        line-height: 1.1; margin-bottom: 24px;
-    }
-    .hero-text p {
-        font-size: 16px; color: var(--text-muted); line-height: 1.6;
-        margin-bottom: 48px; max-width: 400px;
-    }
-
-    .trust-badges {
-        margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--border);
-        display: flex; gap: 24px; opacity: 0.6;
-    }
-    .badge-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #666; font-family: 'JetBrains Mono'; text-transform: uppercase; }
-
-    /* --- RIGHT PANEL (VISUAL) --- */
-    .split-right {
-        flex: 1;
-        background: radial-gradient(circle at center, #111 0%, #000 100%);
-        position: relative;
-        display: flex; align-items: center; justify-content: center;
-        overflow: hidden;
-        perspective: 2000px; /* Pour la 3D */
-    }
-
-    /* Grille technique en fond */
-    .grid-bg {
-        position: absolute; inset: 0;
-        background-image: 
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-        background-size: 50px 50px;
-        mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
-    }
-
-    /* La Carte "Dashboard Preview" Flottante */
-    .floating-dashboard {
-        width: 600px; height: 400px;
-        background: rgba(15, 15, 15, 0.7);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        box-shadow: 
-            0 50px 100px -20px rgba(0,0,0,0.8),
-            0 0 0 1px rgba(255,255,255,0.05);
-        padding: 30px;
-        display: flex; flex-direction: column;
-        
-        /* 3D Transform Initiale */
-        transform: rotateY(-12deg) rotateX(6deg);
-        transition: transform 0.4s ease-out;
+    .preview-card {
+      width: 520px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: var(--shadow-lg);
+      transform: perspective(1000px) rotateY(-8deg) rotateX(4deg);
+      transition: transform 0.4s ease;
     }
     
-    /* Effet interactif au survol de la zone de droite */
-    .split-right:hover .floating-dashboard {
-        transform: rotateY(-5deg) rotateX(2deg); /* Se redresse un peu */
+    .login-right:hover .preview-card {
+      transform: perspective(1000px) rotateY(-3deg) rotateX(1deg);
     }
 
-    /* Contenu de la fausse carte */
-    .fd-header { display: flex; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
-    .fd-nav { display: flex; gap: 10px; }
-    .fd-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; }
-    .fd-dot.active { background: var(--accent); }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
     
-    .fd-stat-row { display: flex; gap: 20px; margin-bottom: 30px; }
-    .fd-stat { flex: 1; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-    .fd-label { font-size: 10px; text-transform: uppercase; color: #666; margin-bottom: 5px; }
-    .fd-val { font-family: 'JetBrains Mono'; font-size: 20px; color: white; }
-
-    .fd-graph {
-        flex: 1; border-radius: 12px;
-        background: linear-gradient(180deg, rgba(232,90,4,0.1) 0%, transparent 100%);
-        border-top: 2px solid var(--accent);
-        position: relative; overflow: hidden;
+    .preview-dots {
+      display: flex;
+      gap: 8px;
     }
-    /* Ligne animée CSS */
-    .fd-line {
-        position: absolute; bottom: 0; left: 0; right: 0; top: 0;
-        background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cGF0aCBkPSJNMCAxMDAgQzMwIDgwIDcwIDkwIDEwMCAyMCIgc3Ryb2tlPSIjRTg1QTA0IiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiIC8+PC9zdmc+');
-        background-size: 100% 100%;
-        opacity: 0.8;
+    
+    .preview-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #334155;
+    }
+    
+    .preview-dot.active {
+      background: var(--magma-core);
+    }
+    
+    .preview-label {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.5);
     }
 
-
-    /* =========================================
-       3. REAL APP (DASHBOARD)
-       ========================================= */
-    #app-view {
-        position: absolute; inset: 0; z-index: 10;
-        display: flex; opacity: 0; pointer-events: none;
-        transition: opacity 0.8s ease 0.3s; /* Delay pour laisser le login partir */
+    .preview-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
     }
-    #app-view.visible { opacity: 1; pointer-events: all; }
-
-    .app-sidebar {
-        width: 280px; background: var(--bg-panel); border-right: 1px solid var(--border);
-        padding: 30px; display: flex; flex-direction: column; justify-content: space-between;
+    
+    .preview-stat {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 16px;
     }
-    .app-content { flex: 1; background: var(--bg-root); padding: 40px; overflow-y: auto; }
+    
+    .preview-stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+    
+    .preview-stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    .preview-stat-value.accent {
+      color: var(--magma-core);
+    }
 
-    /* Nav Links */
+    .preview-chart {
+      height: 100px;
+      background: linear-gradient(180deg, rgba(232,90,4,0.12) 0%, transparent 100%);
+      border-top: 2px solid var(--magma-core);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .preview-chart svg {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 80%;
+    }
+
+    /* =========================================================
+       DASHBOARD VIEW
+       ========================================================= */
+    #dashboard-view {
+      display: none;
+      min-height: 100vh;
+    }
+    
+    #dashboard-view.visible {
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 50;
+      transition: background var(--transition), border var(--transition);
+    }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+    }
+    
+    .sidebar-brand img {
+      height: 28px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+    
+    .nav-section {
+      margin-bottom: 24px;
+    }
+    
+    .nav-section-title {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      padding: 8px 12px;
+      margin-bottom: 4px;
+    }
+
     .nav-item {
-        padding: 12px; margin-bottom: 4px; border-radius: 8px; color: var(--text-muted);
-        display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      font-size: 14px;
+      font-weight: 500;
     }
-    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.05); color: white; }
-    .nav-item.active { color: var(--accent); }
+    
+    .nav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+    
+    .nav-item.active {
+      background: var(--magma-dim);
+      color: var(--magma-core);
+    }
+    
+    .nav-item i {
+      font-size: 20px;
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--magma-core), var(--magma-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      color: #fff;
+    }
+    
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .user-address {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-main);
+    }
+    
+    .user-network {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .user-network .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 260px;
+      min-height: 100vh;
+    }
+
+    /* Top Bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      transition: background var(--transition), border var(--transition);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    
+    .topbar-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+      border-color: var(--border-light);
+    }
+    
+    .topbar-btn i {
+      font-size: 20px;
+    }
+
+    .theme-toggle {
+      position: relative;
+    }
+    
+    .theme-toggle .ph-sun { display: none; }
+    .theme-toggle .ph-moon { display: block; }
+    
+    [data-theme="light"] .theme-toggle .ph-sun { display: block; }
+    [data-theme="light"] .theme-toggle .ph-moon { display: none; }
+
+    /* Content Area */
+    .content-area {
+      padding: 32px;
+    }
+
+    /* Dashboard Panels */
+    .panel-section {
+      display: none;
+    }
+    
+    .panel-section.active {
+      display: block;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      transition: all var(--transition);
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .card-title i {
+      color: var(--text-dim);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      transition: all var(--transition);
+    }
+    
+    .stat-card:hover {
+      border-color: var(--border-light);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+    
+    .stat-change {
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .stat-change.positive {
+      color: var(--success);
+    }
+    
+    .stat-change.negative {
+      color: var(--error);
+    }
+
+    /* Two Column Layout */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    /* Chart Container */
+    .chart-container {
+      height: 280px;
+      position: relative;
+    }
+
+    /* Vault Cards */
+    .vault-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .vault-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: all var(--transition);
+    }
+    
+    .vault-card:hover {
+      border-color: var(--border-light);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .vault-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .vault-name {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .vault-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .vault-icon.arb {
+      background: var(--magma-dim);
+      color: var(--magma-core);
+    }
+    
+    .vault-icon.base {
+      background: var(--base-dim);
+      color: var(--base-blue);
+    }
+    
+    .vault-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .vault-network {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .vault-apy {
+      text-align: right;
+    }
+    
+    .vault-apy-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    
+    .vault-apy-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--success);
+    }
+    
+    .vault-body {
+      padding: 24px;
+    }
+    
+    .vault-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .vault-stat-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    
+    .vault-stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+    
+    .vault-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: none;
+    }
+    
+    .btn-primary {
+      background: var(--magma-core);
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #d14f00;
+    }
+    
+    .btn-secondary {
+      background: var(--bg-hover);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+    
+    .btn-sm {
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+    
+    .btn-block {
+      width: 100%;
+    }
+
+    /* Table */
+    .table-container {
+      overflow-x: auto;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .data-table th,
+    .data-table td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .data-table th {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      background: var(--bg-hover);
+    }
+    
+    .data-table td {
+      font-size: 14px;
+      color: var(--text-main);
+    }
+    
+    .data-table tr:hover td {
+      background: var(--bg-hover);
+    }
+    
+    .tx-hash {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--magma-core);
+    }
+    
+    .tx-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .tx-type.deposit {
+      background: var(--success-dim);
+      color: var(--success);
+    }
+    
+    .tx-type.withdraw {
+      background: var(--error-dim);
+      color: var(--error);
+    }
+    
+    .tx-type.pending {
+      background: var(--magma-dim);
+      color: var(--magma-core);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    
+    .empty-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      background: var(--bg-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: var(--text-dim);
+    }
+    
+    .empty-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .empty-text {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Settings Panel */
+    .settings-grid {
+      display: grid;
+      gap: 24px;
+    }
+    
+    .settings-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+    }
+    
+    .settings-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .settings-title i {
+      color: var(--text-dim);
+    }
+    
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .setting-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    
+    .setting-info h4 {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .setting-info p {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* Toggle Switch */
+    .toggle {
+      position: relative;
+      width: 48px;
+      height: 26px;
+    }
+    
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 26px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    
+    .toggle input:checked + .toggle-slider {
+      background: var(--magma-core);
+    }
+    
+    .toggle input:checked + .toggle-slider::before {
+      transform: translateX(22px);
+    }
+
+    /* Loading State */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-hover) 25%, var(--border) 50%, var(--bg-hover) 75%);
+      background-size: 200% 100%;
+      animation: skeleton 1.5s infinite;
+      border-radius: 4px;
+      color: transparent !important;
+    }
+    
+    @keyframes skeleton {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--bg-surface);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-light);
+    }
 
     /* Responsive */
-    @media (max-width: 1000px) {
-        .split-right { display: none; }
-        .split-left { width: 100%; padding: 40px; }
+    @media (max-width: 1200px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .vault-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 1024px) {
+      .login-left {
+        width: 100%;
+        min-width: auto;
+        padding: 40px;
+      }
+      
+      .login-right {
+        display: none;
+      }
+      
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .mobile-toggle {
+        display: flex !important;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+      
+      .content-area {
+        padding: 20px;
+      }
+      
+      .topbar {
+        padding: 12px 20px;
+      }
+    }
+
+    .mobile-toggle {
+      display: none;
+    }
+    
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    
+    .modal-overlay.active {
+      display: flex;
+    }
+    
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      width: 100%;
+      max-width: 480px;
+      padding: 32px;
+      position: relative;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--bg-hover);
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-close:hover {
+      color: var(--text-main);
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .modal-desc {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    .input-label {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: block;
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      font-size: 15px;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all var(--transition);
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: var(--magma-core);
+    }
+    
+    .input-helper {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .max-btn {
+      color: var(--magma-core);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .max-btn:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-
+  <!-- =============================================
+       LOGIN VIEW
+       ============================================= -->
   <div id="login-view">
+    <div class="login-left">
+      <div class="brand-header">
+        <img src="logo_g12.svg" alt="G12 Labs">
+        <span>G12 LABS</span>
+      </div>
+
+      <div class="login-hero">
+        <h1>Systematic DeFi.<br>Zero Friction.</h1>
+        <p>Connect your wallet or sign in with email to access our institutional-grade yield strategies on Arbitrum & Base.</p>
+      </div>
+
+      <div id="connect-container"></div>
+
+      <div class="trust-row">
+        <div class="trust-item">
+          <i class="ph ph-shield-checkered"></i>
+          <span>Audited</span>
+        </div>
+        <div class="trust-item">
+          <i class="ph ph-lock-key"></i>
+          <span>Non-Custodial</span>
+        </div>
+        <div class="trust-item">
+          <i class="ph ph-lightning"></i>
+          <span>Automated</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-right">
+      <div class="grid-pattern"></div>
+      <div class="preview-card">
+        <div class="preview-header">
+          <div class="preview-dots">
+            <div class="preview-dot active"></div>
+            <div class="preview-dot"></div>
+            <div class="preview-dot"></div>
+          </div>
+          <span class="preview-label">Dashboard Preview</span>
+        </div>
+        <div class="preview-stats">
+          <div class="preview-stat">
+            <div class="preview-stat-label">Portfolio Value</div>
+            <div class="preview-stat-value">$—</div>
+          </div>
+          <div class="preview-stat">
+            <div class="preview-stat-label">Net APY</div>
+            <div class="preview-stat-value accent">—%</div>
+          </div>
+        </div>
+        <div class="preview-chart">
+          <svg viewBox="0 0 100 50" preserveAspectRatio="none">
+            <path d="M0 45 Q20 40, 30 35 T50 30 T70 20 T100 10" stroke="#E85A04" stroke-width="1.5" fill="none" opacity="0.8"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =============================================
+       DASHBOARD VIEW
+       ============================================= -->
+  <div id="dashboard-view">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-brand">
+          <img src="logo_g12.svg" alt="G12 Labs">
+          <span>G12 LABS</span>
+        </a>
+      </div>
       
-      <div class="split-left">
-          <div class="brand-logo">
-              <img src="logo_g12.svg" alt="G12 Labs">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Menu</div>
+          <div class="nav-item active" data-panel="overview">
+            <i class="ph ph-squares-four"></i>
+            <span>Overview</span>
           </div>
-
-          <div class="hero-text">
-              <h1>Systematic DeFi.<br>Zero Friction.</h1>
-              <p>Connect your wallet or sign in with email to access our institutional-grade yield strategies on Arbitrum & Base.</p>
+          <div class="nav-item" data-panel="vaults">
+            <i class="ph ph-vault"></i>
+            <span>Vaults</span>
           </div>
-
-          <div id="connect-button-container" style="max-width: 320px;"></div>
-
-          <div class="trust-badges">
-              <div class="badge-item"><i class="ph ph-shield-check"></i> AUDITED</div>
-              <div class="badge-item"><i class="ph ph-lock-key"></i> NON-CUSTODIAL</div>
-              <div class="badge-item"><i class="ph ph-lightning"></i> AUTOMATED</div>
+          <div class="nav-item" data-panel="transactions">
+            <i class="ph ph-arrows-left-right"></i>
+            <span>Transactions</span>
           </div>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">Resources</div>
+          <a href="strategies.html" class="nav-item">
+            <i class="ph ph-chart-line-up"></i>
+            <span>Strategies</span>
+          </a>
+          <a href="docs.html" class="nav-item">
+            <i class="ph ph-book-open"></i>
+            <span>Documentation</span>
+          </a>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">Account</div>
+          <div class="nav-item" data-panel="settings">
+            <i class="ph ph-gear"></i>
+            <span>Settings</span>
+          </div>
+        </div>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-card">
+          <div class="user-avatar" id="user-avatar">0x</div>
+          <div class="user-info">
+            <div class="user-address" id="user-address">0x...</div>
+            <div class="user-network">
+              <span class="dot"></span>
+              <span id="user-network">Connected</span>
+            </div>
+          </div>
+        </div>
       </div>
+    </aside>
 
-      <div class="split-right">
-          <div class="grid-bg"></div>
-          
-          <div class="floating-dashboard">
-              <div class="fd-header">
-                  <div class="fd-nav">
-                      <div class="fd-dot active"></div>
-                      <div class="fd-dot"></div>
-                  </div>
-                  <div style="font-size: 10px; color: #666; font-family: 'JetBrains Mono';">LIVE MONITOR</div>
-              </div>
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="topbar-btn mobile-toggle" id="mobile-menu-btn">
+            <i class="ph ph-list"></i>
+          </button>
+          <h1 class="page-title" id="page-title">Overview</h1>
+        </div>
+        <div class="topbar-right">
+          <button class="topbar-btn theme-toggle" id="theme-toggle" title="Toggle theme">
+            <i class="ph ph-moon"></i>
+            <i class="ph ph-sun"></i>
+          </button>
+          <button class="topbar-btn" id="refresh-btn" title="Refresh data">
+            <i class="ph ph-arrows-clockwise"></i>
+          </button>
+          <button class="topbar-btn" id="logout-btn" title="Disconnect wallet">
+            <i class="ph ph-sign-out"></i>
+          </button>
+        </div>
+      </header>
 
-              <div class="fd-stat-row">
-                  <div class="fd-stat">
-                      <div class="fd-label">Total Value Locked</div>
-                      <div class="fd-val">$1,245,050</div>
-                  </div>
-                  <div class="fd-stat">
-                      <div class="fd-label">Net APY</div>
-                      <div class="fd-val" style="color: var(--accent);">+14.2%</div>
-                  </div>
+      <!-- Content Area -->
+      <div class="content-area">
+        <!-- Overview Panel -->
+        <section class="panel-section active" id="panel-overview">
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">
+                <i class="ph ph-wallet"></i>
+                Total Balance
               </div>
-
-              <div class="fd-graph">
-                  <div class="fd-line"></div>
+              <div class="stat-value" id="stat-balance">$0.00</div>
+              <div class="stat-change positive" id="stat-balance-change">
+                <i class="ph ph-trend-up"></i>
+                <span>—</span>
               </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">
+                <i class="ph ph-chart-line-up"></i>
+                Net APY
+              </div>
+              <div class="stat-value" id="stat-apy">—%</div>
+              <div class="stat-change" id="stat-apy-note">
+                <span>Weighted average</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">
+                <i class="ph ph-coins"></i>
+                Total Deposits
+              </div>
+              <div class="stat-value" id="stat-deposits">$0.00</div>
+              <div class="stat-change" id="stat-deposits-count">
+                <span>0 transactions</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">
+                <i class="ph ph-trophy"></i>
+                Total Earnings
+              </div>
+              <div class="stat-value" id="stat-earnings">$0.00</div>
+              <div class="stat-change positive" id="stat-earnings-change">
+                <i class="ph ph-trend-up"></i>
+                <span>Since first deposit</span>
+              </div>
+            </div>
           </div>
-      </div>
-  </div>
 
-
-  <div id="app-view">
-      <aside class="app-sidebar">
-          <div>
-              <div style="margin-bottom: 40px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                  <img src="logo_g12.svg" height="24"> G12 LABS
+          <!-- Charts & Activity -->
+          <div class="two-col">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="ph ph-chart-line"></i>
+                  Portfolio Performance
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-sm btn-secondary chart-range active" data-range="1W">1W</button>
+                  <button class="btn btn-sm btn-secondary chart-range" data-range="1M">1M</button>
+                  <button class="btn btn-sm btn-secondary chart-range" data-range="ALL">ALL</button>
+                </div>
               </div>
-              <nav>
-                  <div class="nav-item active"><i class="ph ph-squares-four"></i> Overview</div>
-                  <div class="nav-item" onclick="window.location.href='strategies.html'"><i class="ph ph-chart-line-up"></i> Strategies</div>
-                  <div class="nav-item" onclick="window.location.href='docs.html'"><i class="ph ph-book"></i> Documentation</div>
-              </nav>
+              <div class="chart-container" id="portfolio-chart"></div>
+            </div>
+            
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i class="ph ph-pie-chart"></i>
+                  Allocation
+                </div>
+              </div>
+              <div class="chart-container" id="allocation-chart"></div>
+            </div>
           </div>
-          <div class="nav-item" onclick="window.location.href='index.html'">
-              <i class="ph ph-sign-out"></i> Disconnect
-          </div>
-      </aside>
 
-      <main class="app-content">
-          <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
-              <h1 style="font-size: 24px;">Portfolio Overview</h1>
-              <div style="font-family: 'JetBrains Mono'; font-size: 12px; color: #888; border: 1px solid var(--border); padding: 8px 16px; border-radius: 20px;">
-                  <span style="color: var(--accent);">●</span> <span id="userAddress">0x...</span>
+          <!-- Quick Actions -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <i class="ph ph-lightning"></i>
+                Quick Actions
               </div>
-          </header>
-
-          <div style="background: var(--bg-panel); border: 1px solid var(--border); padding: 24px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
-              <div>
-                  <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Zero Funds?</h3>
-                  <p style="font-size: 14px; color: var(--text-muted);">Purchase USDC directly via bank transfer (Low Fees).</p>
-              </div>
-              <a href="https://widget.mtpelerin.com/?type=web&lang=fr&tab=buy&bdc=USDC&net=ARBITRUM&amt=500&cur=EUR" 
+            </div>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+              <button class="btn btn-primary" id="quick-deposit-btn">
+                <i class="ph ph-plus-circle"></i>
+                Deposit
+              </button>
+              <button class="btn btn-secondary" id="quick-redeem-btn">
+                <i class="ph ph-minus-circle"></i>
+                Redeem
+              </button>
+              <a href="https://widget.mtpelerin.com/?type=web&lang=en&tab=buy&bdc=USDC&net=ARBITRUM&amt=500&cur=EUR" 
                  target="_blank" 
-                 style="background: white; color: black; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; transition: 0.2s;">
-                 Buy USDC
+                 class="btn btn-secondary">
+                <i class="ph ph-credit-card"></i>
+                Buy USDC
               </a>
+            </div>
           </div>
+        </section>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-             <div style="background: var(--bg-panel); height: 200px; border-radius: 16px; border: 1px solid var(--border); padding: 20px;">
-                <div style="color: #666; font-size: 12px; text-transform: uppercase;">Allocation</div>
-             </div>
-             <div style="background: var(--bg-panel); height: 200px; border-radius: 16px; border: 1px solid var(--border); padding: 20px;">
-                <div style="color: #666; font-size: 12px; text-transform: uppercase;">Performance</div>
-             </div>
+        <!-- Vaults Panel -->
+        <section class="panel-section" id="panel-vaults">
+          <div class="vault-grid">
+            <!-- DeFi Yield Vault -->
+            <div class="vault-card" id="vault-arb">
+              <div class="vault-header">
+                <div class="vault-name">
+                  <div class="vault-icon arb">
+                    <i class="ph ph-chart-line-up"></i>
+                  </div>
+                  <div>
+                    <div class="vault-title">DeFi Yield</div>
+                    <div class="vault-network">Arbitrum</div>
+                  </div>
+                </div>
+                <div class="vault-apy">
+                  <div class="vault-apy-label">Net APY</div>
+                  <div class="vault-apy-value" id="vault-arb-apy">—%</div>
+                </div>
+              </div>
+              <div class="vault-body">
+                <div class="vault-stats">
+                  <div>
+                    <div class="vault-stat-label">Your Balance</div>
+                    <div class="vault-stat-value" id="vault-arb-balance">$0.00</div>
+                  </div>
+                  <div>
+                    <div class="vault-stat-label">Share Price</div>
+                    <div class="vault-stat-value" id="vault-arb-shareprice">$1.0000</div>
+                  </div>
+                  <div>
+                    <div class="vault-stat-label">Total AUM</div>
+                    <div class="vault-stat-value" id="vault-arb-aum">$—</div>
+                  </div>
+                </div>
+                <div class="vault-actions">
+                  <button class="btn btn-primary btn-sm" data-action="deposit" data-vault="arb">
+                    <i class="ph ph-plus"></i> Deposit
+                  </button>
+                  <button class="btn btn-secondary btn-sm" data-action="redeem" data-vault="arb">
+                    <i class="ph ph-minus"></i> Redeem
+                  </button>
+                  <a href="strategies.html" class="btn btn-secondary btn-sm">
+                    <i class="ph ph-info"></i> Details
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stable Yield Vault -->
+            <div class="vault-card" id="vault-base">
+              <div class="vault-header">
+                <div class="vault-name">
+                  <div class="vault-icon base">
+                    <i class="ph ph-shield-check"></i>
+                  </div>
+                  <div>
+                    <div class="vault-title">Stable Yield</div>
+                    <div class="vault-network">Base</div>
+                  </div>
+                </div>
+                <div class="vault-apy">
+                  <div class="vault-apy-label">Net APY</div>
+                  <div class="vault-apy-value" id="vault-base-apy">—%</div>
+                </div>
+              </div>
+              <div class="vault-body">
+                <div class="vault-stats">
+                  <div>
+                    <div class="vault-stat-label">Your Balance</div>
+                    <div class="vault-stat-value" id="vault-base-balance">$0.00</div>
+                  </div>
+                  <div>
+                    <div class="vault-stat-label">Share Price</div>
+                    <div class="vault-stat-value" id="vault-base-shareprice">$1.0000</div>
+                  </div>
+                  <div>
+                    <div class="vault-stat-label">Total AUM</div>
+                    <div class="vault-stat-value" id="vault-base-aum">$—</div>
+                  </div>
+                </div>
+                <div class="vault-actions">
+                  <button class="btn btn-primary btn-sm" data-action="deposit" data-vault="base">
+                    <i class="ph ph-plus"></i> Deposit
+                  </button>
+                  <button class="btn btn-secondary btn-sm" data-action="redeem" data-vault="base">
+                    <i class="ph ph-minus"></i> Redeem
+                  </button>
+                  <a href="strategies.html" class="btn btn-secondary btn-sm">
+                    <i class="ph ph-info"></i> Details
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
-      </main>
+        </section>
+
+        <!-- Transactions Panel -->
+        <section class="panel-section" id="panel-transactions">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">
+                <i class="ph ph-clock-counter-clockwise"></i>
+                Transaction History
+              </div>
+            </div>
+            <div class="table-container" id="tx-table-container">
+              <div class="empty-state" id="tx-empty">
+                <div class="empty-icon">
+                  <i class="ph ph-receipt"></i>
+                </div>
+                <div class="empty-title">No transactions yet</div>
+                <p class="empty-text">Your deposit and withdrawal history will appear here once you start using the vaults.</p>
+                <button class="btn btn-primary" id="tx-deposit-btn">
+                  <i class="ph ph-plus-circle"></i>
+                  Make your first deposit
+                </button>
+              </div>
+              <table class="data-table" id="tx-table" style="display: none;">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Vault</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Transaction</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="tx-tbody">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Settings Panel -->
+        <section class="panel-section" id="panel-settings">
+          <div class="settings-grid">
+            <div class="settings-section">
+              <h3 class="settings-title">
+                <i class="ph ph-palette"></i>
+                Appearance
+              </h3>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <h4>Dark Mode</h4>
+                  <p>Switch between light and dark themes</p>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="setting-dark-mode" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h3 class="settings-title">
+                <i class="ph ph-bell"></i>
+                Notifications
+              </h3>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <h4>Transaction Alerts</h4>
+                  <p>Get notified when transactions complete</p>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="setting-tx-alerts" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <h4>Performance Updates</h4>
+                  <p>Weekly performance summary notifications</p>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="setting-perf-updates">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h3 class="settings-title">
+                <i class="ph ph-wallet"></i>
+                Wallet
+              </h3>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <h4>Connected Address</h4>
+                  <p id="settings-address" class="mono">0x...</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="copy-address-btn">
+                  <i class="ph ph-copy"></i>
+                  Copy
+                </button>
+              </div>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <h4>Disconnect Wallet</h4>
+                  <p>End your current session</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="settings-logout-btn" style="color: var(--error);">
+                  <i class="ph ph-sign-out"></i>
+                  Disconnect
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
   </div>
 
+  <!-- Deposit Modal -->
+  <div class="modal-overlay" id="deposit-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('deposit-modal')">
+        <i class="ph ph-x"></i>
+      </button>
+      <h2 class="modal-title">Deposit Funds</h2>
+      <p class="modal-desc">Deposit USDC into the vault to start earning yield.</p>
+      
+      <div class="input-group">
+        <label class="input-label">Select Vault</label>
+        <select class="input-field" id="deposit-vault-select">
+          <option value="arb">DeFi Yield (Arbitrum)</option>
+          <option value="base">Stable Yield (Base)</option>
+        </select>
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">Amount (USDC)</label>
+        <input type="number" class="input-field" id="deposit-amount" placeholder="0.00" step="0.01">
+        <div class="input-helper">
+          <span>Balance: <span id="deposit-wallet-balance">0.00</span> USDC</span>
+          <span class="max-btn" id="deposit-max-btn">MAX</span>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary btn-block" id="deposit-confirm-btn">
+        <i class="ph ph-check-circle"></i>
+        Confirm Deposit
+      </button>
+    </div>
+  </div>
 
+  <!-- Redeem Modal -->
+  <div class="modal-overlay" id="redeem-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('redeem-modal')">
+        <i class="ph ph-x"></i>
+      </button>
+      <h2 class="modal-title">Request Redemption</h2>
+      <p class="modal-desc">Request to withdraw your funds. Subject to 72h cooldown period.</p>
+      
+      <div class="input-group">
+        <label class="input-label">Select Vault</label>
+        <select class="input-field" id="redeem-vault-select">
+          <option value="arb">DeFi Yield (Arbitrum)</option>
+          <option value="base">Stable Yield (Base)</option>
+        </select>
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label">Amount (Shares)</label>
+        <input type="number" class="input-field" id="redeem-amount" placeholder="0.00" step="0.0001">
+        <div class="input-helper">
+          <span>Your shares: <span id="redeem-share-balance">0.00</span></span>
+          <span class="max-btn" id="redeem-max-btn">MAX</span>
+        </div>
+      </div>
+      
+      <div style="background: var(--warning); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px; color: var(--warning); font-weight: 600; font-size: 13px;">
+          <i class="ph ph-warning"></i>
+          72-Hour Cooldown
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+          After requesting, you'll need to wait 72 hours before claiming your funds.
+        </p>
+      </div>
+      
+      <button class="btn btn-primary btn-block" id="redeem-confirm-btn">
+        <i class="ph ph-clock"></i>
+        Request Redemption
+      </button>
+    </div>
+  </div>
+
+  <!-- =============================================
+       THIRDWEB SDK + APP LOGIC
+       ============================================= -->
   <script type="module">
     import React from "https://esm.sh/react@18.2.0";
     import ReactDOM from "https://esm.sh/react-dom@18.2.0/client";
-    import { ThirdwebProvider, ConnectButton, darkTheme } from "https://esm.sh/thirdweb@5.14.0/react";
+    import { ThirdwebProvider, ConnectButton, darkTheme, lightTheme, useActiveAccount, useDisconnect } from "https://esm.sh/thirdweb@5.14.0/react";
     import { createThirdwebClient } from "https://esm.sh/thirdweb@5.14.0";
     import { createWallet, inAppWallet } from "https://esm.sh/thirdweb@5.14.0/wallets";
     import { arbitrum, base } from "https://esm.sh/thirdweb@5.14.0/chains";
+    import { getContract, readContract } from "https://esm.sh/thirdweb@5.14.0";
+    import { balanceOf } from "https://esm.sh/thirdweb@5.14.0/extensions/erc20";
 
-    // 🔴 REMPLACE CECI PAR TON CLIENT ID 🔴
-    const CLIENT_ID = "YOUR_CLIENT_ID"; 
-
+    // Thirdweb Client
+    const CLIENT_ID = "ef76c96ae163aba05ebd7e20d94b81fd";
     const client = createThirdwebClient({ clientId: CLIENT_ID });
 
+    // Wallet options
     const wallets = [
-        inAppWallet({ auth: { options: ["google", "email", "passkey"] } }),
-        createWallet("io.metamask"),
-        createWallet("com.coinbase.wallet"),
-        createWallet("me.rainbow"),
+      inAppWallet({ auth: { options: ["google", "email", "passkey"] } }),
+      createWallet("io.metamask"),
+      createWallet("com.coinbase.wallet"),
+      createWallet("me.rainbow"),
+      createWallet("io.rabby"),
     ];
 
-    const customTheme = darkTheme({
-        colors: {
-            accentText: "#E85A04",
-            accentButtonBg: "#E85A04",
-            primaryButtonBg: "#E85A04",
-            primaryButtonText: "#FFFFFF",
-            modalBg: "#0A0A0A",
-        }
-    });
+    // Vault contracts (replace with actual addresses)
+    const VAULT_CONTRACTS = {
+      arb: {
+        address: "0x...", // Replace with actual Arbitrum vault
+        chain: arbitrum,
+        shareToken: "0x...",
+      },
+      base: {
+        address: "0x...", // Replace with actual Base vault
+        chain: base,
+        shareToken: "0x...",
+      }
+    };
 
-    function App() {
-        return React.createElement(ThirdwebProvider, {}, 
-            React.createElement(ConnectButton, {
-                client: client,
-                wallets: wallets,
-                theme: customTheme,
-                chains: [arbitrum, base],
-                connectButton: {
-                    label: "Launch App",
-                    style: {
-                        width: "100%",
-                        padding: "16px",
-                        fontWeight: "600",
-                        fontSize: "16px",
-                        borderRadius: "8px",
-                    }
-                },
-                onConnect: (wallet) => {
-                    const address = wallet.getAccount().address;
-                    document.getElementById('userAddress').innerText = address.slice(0,6) + "..." + address.slice(-4);
-                    
-                    // TRANSITION
-                    document.getElementById('login-view').classList.add('hidden');
-                    document.getElementById('app-view').classList.add('visible');
-                }
-            })
-        );
+    // API endpoint
+    const API_URL = "https://ucrvaqztvfnphhoqcbpo.supabase.co/functions/v1/FIRECRAWL_DATA";
+
+    // State
+    let connectedAddress = null;
+    let portfolioChart = null;
+    let allocationChart = null;
+    let userData = {
+      balances: { arb: 0, base: 0 },
+      shares: { arb: 0, base: 0 },
+      transactions: []
+    };
+
+    // Theme handling
+    function getStoredTheme() {
+      return localStorage.getItem('g12-theme') || 'dark';
+    }
+    
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('g12-theme', theme);
+      document.getElementById('setting-dark-mode').checked = theme === 'dark';
+      
+      // Reinit charts with new theme
+      if (portfolioChart) initCharts();
     }
 
-    const root = ReactDOM.createRoot(document.getElementById("connect-button-container"));
-    root.render(React.createElement(App));
-  </script>
+    // Initialize theme
+    setTheme(getStoredTheme());
 
+    // Theme toggle
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+    
+    document.getElementById('setting-dark-mode').addEventListener('change', (e) => {
+      setTheme(e.target.checked ? 'dark' : 'light');
+    });
+
+    // Navigation
+    document.querySelectorAll('.nav-item[data-panel]').forEach(item => {
+      item.addEventListener('click', () => {
+        const panel = item.getAttribute('data-panel');
+        
+        // Update nav
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+        
+        // Update panels
+        document.querySelectorAll('.panel-section').forEach(p => p.classList.remove('active'));
+        document.getElementById(`panel-${panel}`).classList.add('active');
+        
+        // Update title
+        document.getElementById('page-title').textContent = item.querySelector('span').textContent;
+        
+        // Close mobile menu
+        document.getElementById('sidebar').classList.remove('open');
+      });
+    });
+
+    // Mobile menu
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    // Modal functions
+    window.openModal = function(modalId) {
+      document.getElementById(modalId).classList.add('active');
+    };
+    
+    window.closeModal = function(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    };
+
+    // Quick action buttons
+    document.getElementById('quick-deposit-btn').addEventListener('click', () => openModal('deposit-modal'));
+    document.getElementById('quick-redeem-btn').addEventListener('click', () => openModal('redeem-modal'));
+    document.getElementById('tx-deposit-btn')?.addEventListener('click', () => openModal('deposit-modal'));
+
+    // Vault action buttons
+    document.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-action');
+        const vault = btn.getAttribute('data-vault');
+        
+        if (action === 'deposit') {
+          document.getElementById('deposit-vault-select').value = vault;
+          openModal('deposit-modal');
+        } else if (action === 'redeem') {
+          document.getElementById('redeem-vault-select').value = vault;
+          openModal('redeem-modal');
+        }
+      });
+    });
+
+    // Close modals on backdrop click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.classList.remove('active');
+        }
+      });
+    });
+
+    // Copy address
+    document.getElementById('copy-address-btn').addEventListener('click', async () => {
+      if (connectedAddress) {
+        await navigator.clipboard.writeText(connectedAddress);
+        const btn = document.getElementById('copy-address-btn');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="ph ph-check"></i> Copied!';
+        setTimeout(() => btn.innerHTML = originalHTML, 2000);
+      }
+    });
+
+    // API helpers
+    async function fetchVaultData(network) {
+      try {
+        const url = new URL(API_URL);
+        url.searchParams.set("action", "get");
+        url.searchParams.set("network", network);
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error(`API error ${res.status}`);
+        return await res.json();
+      } catch (err) {
+        console.error(`Failed to fetch ${network} data:`, err);
+        return null;
+      }
+    }
+
+    // Format helpers
+    function fmtUsd(v) {
+      if (v == null || Number.isNaN(Number(v))) return "$—";
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(v));
+    }
+    
+    function fmtSharePrice(v) {
+      if (v == null || Number.isNaN(Number(v))) return "$—";
+      return "$" + Number(v).toFixed(Number(v) < 10 ? 4 : 2);
+    }
+    
+    function fmtPercent(v) {
+      if (v == null) return "—%";
+      const n = Number(v);
+      if (Number.isNaN(n)) return "—%";
+      return (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+    }
+
+    // Initialize charts
+    function initCharts() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#9aa4b2' : '#64748b';
+      const borderColor = isDark ? '#1f2329' : '#e2e8f0';
+      const bgColor = isDark ? '#0e1116' : '#ffffff';
+
+      // Portfolio chart
+      const portfolioEl = document.getElementById('portfolio-chart');
+      if (portfolioEl) {
+        if (portfolioChart) portfolioChart.dispose();
+        portfolioChart = echarts.init(portfolioEl);
+        
+        portfolioChart.setOption({
+          backgroundColor: 'transparent',
+          tooltip: {
+            trigger: 'axis',
+            backgroundColor: bgColor,
+            borderColor: borderColor,
+            textStyle: { color: isDark ? '#fff' : '#111' }
+          },
+          grid: { left: 50, right: 20, top: 20, bottom: 30 },
+          xAxis: {
+            type: 'category',
+            data: [],
+            axisLine: { lineStyle: { color: borderColor } },
+            axisLabel: { color: textColor, fontSize: 11 }
+          },
+          yAxis: {
+            type: 'value',
+            axisLine: { show: false },
+            splitLine: { lineStyle: { color: borderColor, type: 'dashed' } },
+            axisLabel: { color: textColor, fontSize: 11 }
+          },
+          series: [{
+            type: 'line',
+            smooth: true,
+            showSymbol: false,
+            data: [],
+            lineStyle: { color: '#E85A04', width: 2 },
+            areaStyle: {
+              opacity: 0.15,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#E85A04' },
+                { offset: 1, color: 'transparent' }
+              ])
+            }
+          }],
+          graphic: [{
+            type: 'text',
+            left: 'center',
+            top: 'middle',
+            style: { text: 'No data yet', fill: textColor, fontSize: 14 }
+          }]
+        });
+      }
+
+      // Allocation chart
+      const allocationEl = document.getElementById('allocation-chart');
+      if (allocationEl) {
+        if (allocationChart) allocationChart.dispose();
+        allocationChart = echarts.init(allocationEl);
+        
+        allocationChart.setOption({
+          backgroundColor: 'transparent',
+          tooltip: {
+            trigger: 'item',
+            backgroundColor: bgColor,
+            borderColor: borderColor,
+            textStyle: { color: isDark ? '#fff' : '#111' }
+          },
+          legend: {
+            orient: 'vertical',
+            right: 20,
+            top: 'center',
+            textStyle: { color: textColor }
+          },
+          series: [{
+            type: 'pie',
+            radius: ['50%', '75%'],
+            center: ['35%', '50%'],
+            avoidLabelOverlap: false,
+            label: { show: false },
+            emphasis: {
+              label: { show: true, fontSize: 14, fontWeight: 'bold' }
+            },
+            data: [
+              { value: 0, name: 'DeFi Yield', itemStyle: { color: '#E85A04' } },
+              { value: 0, name: 'Stable Yield', itemStyle: { color: '#0052FF' } }
+            ]
+          }],
+          graphic: [{
+            type: 'text',
+            left: 'center',
+            top: 'middle',
+            style: { text: 'No allocation', fill: textColor, fontSize: 14 }
+          }]
+        });
+      }
+    }
+
+    // Update dashboard with vault data
+    async function updateVaultData() {
+      // Fetch vault data from API
+      const [arbData, baseData] = await Promise.all([
+        fetchVaultData('arbitrum'),
+        fetchVaultData('base')
+      ]);
+
+      // Update Arbitrum vault card
+      if (arbData) {
+        document.getElementById('vault-arb-apy').textContent = fmtPercent(arbData.monthly_return * 12);
+        document.getElementById('vault-arb-shareprice').textContent = fmtSharePrice(arbData.share_price);
+        document.getElementById('vault-arb-aum').textContent = fmtUsd(arbData.aum);
+      }
+
+      // Update Base vault card
+      if (baseData) {
+        document.getElementById('vault-base-apy').textContent = fmtPercent(baseData.monthly_return * 12);
+        document.getElementById('vault-base-shareprice').textContent = fmtSharePrice(baseData.share_price);
+        document.getElementById('vault-base-aum').textContent = fmtUsd(baseData.aum);
+      }
+    }
+
+    // Check user vault positions
+    async function checkUserPositions(address) {
+      // This would query the blockchain for user's vault token balances
+      // For now, showing empty state
+      userData.balances = { arb: 0, base: 0 };
+      userData.shares = { arb: 0, base: 0 };
+      
+      updateDashboardUI();
+    }
+
+    // Update dashboard UI based on user data
+    function updateDashboardUI() {
+      const totalBalance = userData.balances.arb + userData.balances.base;
+      
+      document.getElementById('stat-balance').textContent = fmtUsd(totalBalance);
+      document.getElementById('vault-arb-balance').textContent = fmtUsd(userData.balances.arb);
+      document.getElementById('vault-base-balance').textContent = fmtUsd(userData.balances.base);
+      
+      // Update allocation chart
+      if (allocationChart && totalBalance > 0) {
+        allocationChart.setOption({
+          series: [{
+            data: [
+              { value: userData.balances.arb, name: 'DeFi Yield', itemStyle: { color: '#E85A04' } },
+              { value: userData.balances.base, name: 'Stable Yield', itemStyle: { color: '#0052FF' } }
+            ]
+          }],
+          graphic: []
+        });
+      }
+      
+      // Show/hide transaction empty state
+      if (userData.transactions.length > 0) {
+        document.getElementById('tx-empty').style.display = 'none';
+        document.getElementById('tx-table').style.display = 'table';
+        // Populate table...
+      }
+    }
+
+    // Logout function
+    function handleLogout() {
+      connectedAddress = null;
+      document.getElementById('login-view').classList.remove('hidden');
+      document.getElementById('dashboard-view').classList.remove('visible');
+    }
+
+    // React Connect Button Component
+    function ConnectApp() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      
+      const customTheme = isDark ? darkTheme({
+        colors: {
+          accentText: "#E85A04",
+          accentButtonBg: "#E85A04",
+          primaryButtonBg: "#E85A04",
+          primaryButtonText: "#FFFFFF",
+          modalBg: "#0e1116",
+          borderColor: "#1f2329",
+        }
+      }) : lightTheme({
+        colors: {
+          accentText: "#E85A04",
+          accentButtonBg: "#E85A04",
+          primaryButtonBg: "#E85A04",
+          primaryButtonText: "#FFFFFF",
+        }
+      });
+
+      return React.createElement(ThirdwebProvider, {}, 
+        React.createElement(ConnectButton, {
+          client: client,
+          wallets: wallets,
+          theme: customTheme,
+          chains: [arbitrum, base],
+          connectButton: {
+            label: "Get Started",
+            style: {
+              width: "100%",
+              padding: "18px 24px",
+              fontWeight: "600",
+              fontSize: "16px",
+              borderRadius: "12px",
+            }
+          },
+          detailsButton: {
+            style: { display: 'none' }
+          },
+          onConnect: async (wallet) => {
+            const account = wallet.getAccount();
+            if (account) {
+              connectedAddress = account.address;
+              const shortAddr = connectedAddress.slice(0,6) + "..." + connectedAddress.slice(-4);
+              
+              // Update UI
+              document.getElementById('user-address').textContent = shortAddr;
+              document.getElementById('user-avatar').textContent = connectedAddress.slice(2,4).toUpperCase();
+              document.getElementById('settings-address').textContent = connectedAddress;
+              
+              // Transition to dashboard
+              document.getElementById('login-view').classList.add('hidden');
+              document.getElementById('dashboard-view').classList.add('visible');
+              
+              // Initialize dashboard
+              initCharts();
+              await updateVaultData();
+              await checkUserPositions(connectedAddress);
+            }
+          },
+          onDisconnect: () => {
+            handleLogout();
+          }
+        })
+      );
+    }
+
+    // Mount React app
+    const container = document.getElementById('connect-container');
+    if (container) {
+      const root = ReactDOM.createRoot(container);
+      root.render(React.createElement(ConnectApp));
+    }
+
+    // Logout buttons
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+    document.getElementById('settings-logout-btn').addEventListener('click', handleLogout);
+
+    // Refresh button
+    document.getElementById('refresh-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('refresh-btn');
+      btn.querySelector('i').classList.add('ph-spin');
+      await updateVaultData();
+      if (connectedAddress) await checkUserPositions(connectedAddress);
+      setTimeout(() => btn.querySelector('i').classList.remove('ph-spin'), 1000);
+    });
+
+    // Chart range buttons
+    document.querySelectorAll('.chart-range').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.chart-range').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        // Update chart range...
+      });
+    });
+
+    // Window resize handler
+    window.addEventListener('resize', () => {
+      if (portfolioChart) portfolioChart.resize();
+      if (allocationChart) allocationChart.resize();
+    });
+  </script>
 </body>
 </html>
