@@ -552,9 +552,10 @@
 .info-icon:hover::after {
   content: attr(data-tooltip);
   position: absolute;
-  left: 50%;
+  right: 0;
+  left: auto;
   bottom: calc(100% + 8px);
-  transform: translateX(-50%);
+  transform: none;
   background: #4F46E5;
   color: white;
   padding: 8px 12px;
@@ -565,14 +566,18 @@
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   font-family: 'Inter', sans-serif;
+  max-width: 200px;
+  white-space: normal;
+  text-align: left;
 }
 
 .info-icon:hover::before {
   content: '';
   position: absolute;
-  left: 50%;
+  right: 20px;
+  left: auto;
   bottom: calc(100% + 2px);
-  transform: translateX(-50%);
+  transform: none;
   border: 6px solid transparent;
   border-top-color: #4F46E5;
   z-index: 1000;
@@ -624,6 +629,10 @@
         background: #F3F4F6;
         color: #555; font-size: 14px; line-height: 1.6;
     }
+    .fees-content a:hover {
+  color: var(--magma-core) !important;
+  border-color: var(--magma-core) !important;
+}
 
     /* =========================================
        FOOTER (EXACT COPY)
@@ -785,6 +794,12 @@
       </span>
       <span class="fee-value skeleton" id="hwm-arb">—</span>
     </div>
+    <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #E5E7EB; text-align: right;">
+  <a href="https://g12labs.com/docs/#architecture" target="_blank" style="font-size: 11px; color: #6B7280; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;">
+    <span>Learn More</span>
+    <i class="ph ph-arrow-right" style="font-size: 12px;"></i>
+  </a>
+</div>
   </div>
 </div>
           <button class="btn-deposit" onclick="window.location.href='https://vitejs-vite-smye2exm.vercel.app/">Deposit USDC</button>
@@ -1263,6 +1278,7 @@ if (config) {
   </script>
 </body>
 </html>
+
 
 
 
