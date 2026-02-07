@@ -590,8 +590,8 @@
           <span>G12 Labs DeFi Yield</span>
         </div>
         <div class="vault-badges">
-          <span class="badge">Network: Arbitrum</span>
-          <span class="badge">Symbol: G12</span>
+          <span class="badge">Network: Ethereum</span>
+          <span class="badge">Symbol: bG12</span>
           <span class="badge">Timelock: 3 days</span>
         </div>
       </div>
@@ -622,7 +622,7 @@
             <span class="stat-val skeleton" id="depositors-arb">—</span>
           </div>
           <div class="stat-row">
-            <span class="stat-label">Avg Monthly Return</span>
+            <span class="stat-label">Daily Performance</span>
             <span class="stat-val skeleton" style="color:#10B981" id="monthly-arb">—</span>
           </div>
           <div class="stat-row">
@@ -828,9 +828,15 @@
       });
     })();
   </script>
-
+<!-- Supabase Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const API_URL = "https://ucrvaqztvfnphhoqcbpo.supabase.co/functions/v1/FIRECRAWL_DATA";
+   // Configuration Supabase
+const SUPABASE_URL = "https://ucrvaqztvfnphhoqcbpo.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcnZhcXp0dmZucGhob3FjYnBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTY2MzQsImV4cCI6MjA4MjkzMjYzNH0.l_983umaG_ojeDjXJ4DqWhPNEw9RotNApGLpl_ASkZk";
+
+// Initialize Supabase Client
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const VAULT_MAP = {
       defi:   { network: "arbitrum", color: "#E85A04", ids: { aum: "aum-arb", dep: "depositors-arb", mon: "monthly-arb", sp: "shareprice-arb" }, chartId: "chart-defi" },
@@ -1005,36 +1011,123 @@
       inst.resize();
     }
 
-    async function loadVault(type) {
-      const cfg = VAULT_MAP[type];
-      if (!cfg) return;
-      
-      const snap = await api("get", cfg.network);
-      safeText(cfg.ids.aum, fmtUsd(snap.aum));
-      safeText(cfg.ids.dep, (snap.depositors ?? "—").toString());
-      safeText(cfg.ids.sp, fmtSharePrice(snap.share_price));
-      
-      const monEl = document.getElementById(cfg.ids.mon);
-      if (monEl) {
-        monEl.textContent = fmtMonthly(snap.monthly_return);
-        monEl.classList.remove('skeleton');
-        setMonthlyColor(monEl, snap.monthly_return);
+  async function loadVault(type) {
+  const cfg = VAULT_MAP[type];
+  if (!cfg) return;
+  
+  // Si c'est le vault DeFi (Arbitrum), on utilise Supabase
+  if (type === 'defi') {
+    try {
+      // 1. Récupère le vault
+      const { data: vault } = await supabase
+        .from('vaults')
+        .select('id')
+        .eq('symbol', 'bG12')
+        .single();
+
+      if (!vault) throw new Error('Vault not found');
+
+      // 2. Récupère le dernier snapshot
+      const { data: latestSnapshot } = await supabase
+        .from('vault_snapshots')
+        .select('*')
+        .eq('vault_id', vault.id)
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .single();
+
+      // 3. Affiche les données principales
+      safeText(cfg.ids.aum, fmtUsd(latestSnapshot?.total_aum));
+      safeText(cfg.ids.dep, (latestSnapshot?.depositors ?? "—").toString());
+      safeText(cfg.ids.sp, fmtSharePrice(latestSnapshot?.share_price));
+
+      // 4. Calcule la performance journalière (24h)
+      const oneDayAgo = new Date();
+      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+      const { data: daySnapshots } = await supabase
+        .from('vault_snapshots')
+        .select('share_price, timestamp')
+        .eq('vault_id', vault.id)
+        .gte('timestamp', oneDayAgo.toISOString())
+        .order('timestamp', { ascending: true });
+
+      let dailyPerf = null;
+      if (daySnapshots && daySnapshots.length >= 2) {
+        const startPrice = daySnapshots[0].share_price;
+        const endPrice = daySnapshots[daySnapshots.length - 1].share_price;
+        dailyPerf = ((endPrice - startPrice) / startPrice) * 100;
       }
 
-      const rows = await api("history", cfg.network);
+      const monEl = document.getElementById(cfg.ids.mon);
+      if (monEl) {
+        monEl.textContent = fmtMonthly(dailyPerf);
+        monEl.classList.remove('skeleton');
+        setMonthlyColor(monEl, dailyPerf);
+      }
+
+      // 5. Récupère l'historique pour le graphique
+      const { data: historySnapshots } = await supabase
+        .from('vault_snapshots')
+        .select('timestamp, share_price, total_aum')
+        .eq('vault_id', vault.id)
+        .order('timestamp', { ascending: true });
+
+      // Convertit au format attendu
+      const aumPts = (historySnapshots || []).map(s => ({
+        t: new Date(s.timestamp).getTime(),
+        v: Number(s.total_aum)
+      }));
+
+      const sharePts = (historySnapshots || []).map(s => ({
+        t: new Date(s.timestamp).getTime(),
+        v: Number(s.share_price)
+      }));
+
       state.data[type] = {
-        // Si c'est 'stable' on met 'aum', sinon 'share_price'
-        metric: type === 'stable' ? 'aum' : 'share_price',
+        metric: 'share_price',
         range: "1W",
         series: {
-          aum: toPointArray(rows, "aum"),
-          share_price: toPointArray(rows, "share_price")
+          aum: aumPts,
+          share_price: sharePts
         }
       };
 
       if (!state.charts[type]) state.charts[type] = echarts.init(document.getElementById(cfg.chartId));
       render(type);
+
+    } catch (error) {
+      console.error('Error loading DeFi vault:', error);
     }
+  } 
+  // Sinon, garde l'ancien système pour le vault Base (stable)
+  else {
+    const snap = await api("get", cfg.network);
+    safeText(cfg.ids.aum, fmtUsd(snap.aum));
+    safeText(cfg.ids.dep, (snap.depositors ?? "—").toString());
+    safeText(cfg.ids.sp, fmtSharePrice(snap.share_price));
+    
+    const monEl = document.getElementById(cfg.ids.mon);
+    if (monEl) {
+      monEl.textContent = fmtMonthly(snap.monthly_return);
+      monEl.classList.remove('skeleton');
+      setMonthlyColor(monEl, snap.monthly_return);
+    }
+
+    const rows = await api("history", cfg.network);
+    state.data[type] = {
+      metric: type === 'stable' ? 'aum' : 'share_price',
+      range: "1W",
+      series: {
+        aum: toPointArray(rows, "aum"),
+        share_price: toPointArray(rows, "share_price")
+      }
+    };
+
+    if (!state.charts[type]) state.charts[type] = echarts.init(document.getElementById(cfg.chartId));
+    render(type);
+  }
+}
 
     window.addEventListener("load", () => Promise.all([loadVault("defi"), loadVault("stable")]));
     window.addEventListener("resize", () => Object.values(state.charts).forEach(c => c.resize()));
@@ -1042,3 +1135,4 @@
 </body>
 
 </html>
+
