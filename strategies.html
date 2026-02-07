@@ -460,6 +460,123 @@
         padding-bottom: 12px; border-bottom: 1px solid #E5E7EB;
     }
     .stat-row:last-child { border-bottom: none; }
+
+    /* ACCORDÉON FEES */
+.fees-section {
+  margin-top: 12px;
+  border-top: 1px solid #E5E7EB;
+  padding-top: 12px;
+}
+
+.fees-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 0;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+
+.fees-header:hover {
+  opacity: 0.7;
+}
+
+.fees-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fees-chevron {
+  transition: transform 0.3s ease;
+  font-size: 16px;
+  color: #9CA3AF;
+}
+
+.fees-chevron.open {
+  transform: rotate(180deg);
+}
+
+.fees-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.fees-content.open {
+  max-height: 300px;
+}
+
+.fee-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 12px;
+}
+
+.fee-label {
+  color: #6B7280;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fee-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* TOOLTIP INFO */
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #E5E7EB;
+  color: #6B7280;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: help;
+  position: relative;
+}
+
+.info-icon:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  background: #4F46E5;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-family: 'Inter', sans-serif;
+}
+
+.info-icon:hover::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #4F46E5;
+  z-index: 1000;
+}
     
     .stat-label { font-size: 13px; color: #666; font-weight: 500; }
     .stat-val { font-family: 'JetBrains Mono'; font-size: 15px; font-weight: 700; color: #111; }
@@ -710,6 +827,37 @@
               <div class="risk-dot"></div><div class="risk-dot"></div>
             </div>
           </div>
+
+          <!-- FEES SECTION -->
+<div class="fees-section">
+  <div class="fees-header" onclick="toggleFees()">
+    <span class="fees-title">
+      <span class="fees-chevron" id="fees-chevron">▼</span>
+      Fees & Costs
+    </span>
+  </div>
+  <div class="fees-content" id="fees-content">
+    <div class="fee-item">
+      <span class="fee-label">Management Fee</span>
+      <span class="fee-value skeleton" id="mgmt-fee-arb">—</span>
+    </div>
+    <div class="fee-item">
+      <span class="fee-label">Performance Fee</span>
+      <span class="fee-value skeleton" id="perf-fee-arb">—</span>
+    </div>
+    <div class="fee-item">
+      <span class="fee-label">Exit Fee</span>
+      <span class="fee-value skeleton" id="exit-fee-arb">—</span>
+    </div>
+    <div class="fee-item">
+      <span class="fee-label">
+        High Watermark
+        <span class="info-icon" data-tooltip="Share price under which performance fees cannot be claimed">i</span>
+      </span>
+      <span class="fee-value skeleton" id="hwm-arb">—</span>
+    </div>
+  </div>
+</div>
 
           <button class="btn-deposit" onclick="window.location.href='https://vitejs-vite-smye2exm.vercel.app/">Deposit USDC</button>
           
@@ -1017,6 +1165,20 @@
       inst.resize();
     }
 
+    // Toggle Fees Section
+function toggleFees() {
+  const content = document.getElementById('fees-content');
+  const chevron = document.getElementById('fees-chevron');
+  
+  if (content.classList.contains('open')) {
+    content.classList.remove('open');
+    chevron.classList.remove('open');
+  } else {
+    content.classList.add('open');
+    chevron.classList.add('open');
+  }
+}
+
     async function loadVault(type) {
       const cfg = VAULT_MAP[type];
       if (!cfg) return;
@@ -1058,6 +1220,32 @@
             safeText(cfg.ids.dep, latestSnapshot.depositors.toString());
             safeText(cfg.ids.sp, fmtSharePrice(latestSnapshot.share_price));
           }
+
+          const { data: config } = await supabaseClient
+  .from('vault_configurations')
+  .select('*')
+  .eq('vault_id', vault.id)
+  .single();
+
+console.log("⚙️ Configuration:", config);
+
+if (config) {
+  // Management Fee (annuel)
+  const mgmtFee = config.management_fee ? (config.management_fee * 100).toFixed(2) + '%' : '—';
+  safeText('mgmt-fee-arb', mgmtFee);
+  
+  // Performance Fee
+  const perfFee = config.performance_fee ? (config.performance_fee * 100).toFixed(2) + '%' : '—';
+  safeText('perf-fee-arb', perfFee);
+  
+  // Exit Fee
+  const exitFee = config.exit_fee ? (config.exit_fee * 100).toFixed(2) + '%' : '—';
+  safeText('exit-fee-arb', exitFee);
+  
+  // High Watermark
+  const hwm = config.high_water_mark ? '$' + Number(config.high_water_mark).toFixed(4) : '—';
+  safeText('hwm-arb', hwm);
+}
 
           const oneDayAgo = new Date();
           oneDayAgo.setDate(oneDayAgo.getDate() - 1);
@@ -1149,6 +1337,7 @@
   </script>
 </body>
 </html>
+
 
 
 
