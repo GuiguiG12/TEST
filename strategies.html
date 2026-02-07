@@ -827,381 +827,327 @@
         if (window.innerWidth >= 1024) closeMenu();
       });
     })();
-  </script>
-<!-- Supabase Client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <script>
-   // Configuration Supabase
-const SUPABASE_URL = "https://ucrvaqztvfnphhoqcbpo.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcnZhcXp0dmZucGhob3FjYnBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTY2MzQsImV4cCI6MjA4MjkzMjYzNH0.l_983umaG_ojeDjXJ4DqWhPNEw9RotNApGLpl_ASkZk";
-const API_URL = "https://ucrvaqztvfnphhoqcbpo.supabase.co/functions/v1/FIRECRAWL_DATA"; // Pour le vault Base
+    // Configuration
+    const SUPABASE_URL = "https://ucrvaqztvfnphhoqcbpo.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcnZhcXp0dmZucGhob3FjYnBvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjczNTY2MzQsImV4cCI6MjA4MjkzMjYzNH0.l_983umaG_ojeDjXJ4DqWhPNEw9RotNApGLpl_ASkZk";
+    const API_URL = "https://ucrvaqztvfnphhoqcbpo.supabase.co/functions/v1/FIRECRAWL_DATA";
 
-// Initialize Supabase Client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let supabaseClient = null;
 
-console.log("🚀 Supabase initialized");
-
-const VAULT_MAP = {
-  defi:   { network: "arbitrum", color: "#E85A04", ids: { aum: "aum-arb", dep: "depositors-arb", mon: "monthly-arb", sp: "shareprice-arb" }, chartId: "chart-defi" },
-  stable: { network: "base",     color: "#0052FF", ids: { aum: "aum-base", dep: "depositors-base", mon: "monthly-base", sp: "shareprice-base" }, chartId: "chart-stable" }
-};
-
-const state = {
-  charts: {},
-  data: {},
-};
-
-const nfUsd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
-
-function safeText(id, value) {
-  const el = document.getElementById(id);
-  if (el) {
-    console.log(`✅ Setting ${id} to:`, value);
-    el.textContent = value;
-    el.classList.remove('skeleton');
-  } else {
-    console.warn(`⚠️ Element not found: ${id}`);
-  }
-}
-
-function fmtUsd(v) {
-  if (v == null || Number.isNaN(Number(v))) return "$—";
-  return nfUsd.format(Number(v));
-}
-
-function fmtSharePrice(v) {
-  if (v == null || Number.isNaN(Number(v))) return "$—";
-  return "$" + Number(v).toFixed(Number(v) < 10 ? 4 : 2);
-}
-
-function fmtMonthly(v) {
-  if (v == null) return "—";
-  const n = Number(v);
-  if (Number.isNaN(n)) return "—";
-  return (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
-}
-
-function setMonthlyColor(el, raw) {
-  if (!el) return;
-  const n = Number(raw);
-  if (!Number.isNaN(n)) el.style.color = n >= 0 ? "#10B981" : "#EF4444";
-}
-
-async function api(action, network) {
-  const u = new URL(API_URL);
-  u.searchParams.set("action", action);
-  u.searchParams.set("network", network);
-  const res = await fetch(u.toString());
-  if (!res.ok) throw new Error(`API error ${res.status}`);
-  return await res.json();
-}
-
-function toPointArray(rows, field) {
-  const pts = [];
-  for (const r of rows || []) {
-    const t = new Date(r.scraped_at).getTime();
-    const v = r[field];
-    if (!t || v == null || Number.isNaN(Number(v))) continue;
-    pts.push({ t, v: Number(v) });
-  }
-  pts.sort((a, b) => a.t - b.t);
-  return pts;
-}
-
-function filterByRange(points, range) {
-  if (range === "ALL") return points;
-  const now = Date.now();
-  const ms = range === "1W" ? 604800000 : range === "1M" ? 2592000000 : 604800000;
-  const cut = now - ms;
-  return points.filter(p => p.t >= cut);
-}
-
-function fmtTooltipDate(ts) {
-  return new Date(ts).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
-}
-
-function chartOption(metric, pts, color, emptyText) {
-  const x = pts.map(p => new Date(p.t).toLocaleDateString("en-GB", {day:"2-digit", month:"short"}));
-  const y = pts.map(p => p.v);
-  const isShare = metric === "share_price";
-
-  return {
-    backgroundColor: "transparent",
-    tooltip: {
-      trigger: "axis",
-      backgroundColor: "#FFFFFF",
-      borderColor: "#E5E7EB",
-      borderWidth: 1,
-      textStyle: { color: "#111", fontSize: 13 },
-      formatter: function(params) {
-        if (!params.length) return "";
-        const idx = params[0].dataIndex;
-        const p = pts[idx];
-        const vtxt = isShare ? fmtSharePrice(p.v) : fmtUsd(p.v);
-        return `<strong>${fmtTooltipDate(p.t)}</strong><br/>${vtxt}`;
-      }
-    },
-    grid: { left: 10, right: 10, top: 20, bottom: 20, containLabel: true },
-    xAxis: {
-      type: "category",
-      boundaryGap: false,
-      data: x,
-      axisLine: { lineStyle: { color: "#D1D5DB" } },
-      axisLabel: { color: "#6B7280", fontSize: 11 },
-      axisTick: { show: false }
-    },
-    yAxis: {
-      type: "value",
-      show: true,
-      scale: true,
-      boundaryGap: ['20%', '20%'],
-      splitLine: { 
-        show: true, 
-        lineStyle: { color: "#E5E7EB", type: "dashed" } 
-      },
-      axisLabel: { color: "#9CA3AF", fontSize: 11 }
-    },
-    series: [{
-      type: "line",
-      smooth: true,
-      showSymbol: false,
-      data: y,
-      lineStyle: { color: color, width: 2 },
-      areaStyle: {
-        opacity: 0.1,
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: color },
-          { offset: 1, color: "rgba(255,255,255,0)" }
-        ])
-      }
-    }],
-    graphic: emptyText ? [{
-      type: "text", left: "center", top: "middle",
-      style: { text: emptyText, fontSize: 14, fill: "#9CA3AF" }
-    }] : []
-  };
-}
-
-function setActiveButtons(container, selector, matchFn) {
-  container.querySelectorAll(selector).forEach(btn => btn.classList.toggle("active", matchFn(btn)));
-}
-
-window.setChartMetric = function(type, metric) {
-  if (!state.data[type]) return;
-  state.data[type].metric = metric;
-  const wrap = document.getElementById(VAULT_MAP[type].chartId)?.parentElement;
-  setActiveButtons(wrap, ".metric-btns .chart-btn", btn => btn.getAttribute("onclick").includes(`'${metric}'`));
-  render(type);
-};
-
-window.updateChartRange = function(type, range) {
-  if (!state.data[type]) return;
-  state.data[type].range = range;
-  const wrap = document.getElementById(VAULT_MAP[type].chartId)?.parentElement;
-  setActiveButtons(wrap, ".range-btns .chart-btn", btn => btn.textContent.trim() === range);
-  render(type);
-};
-
-function render(type) {
-  const cfg = VAULT_MAP[type];
-  const inst = state.charts[type];
-  const d = state.data[type];
-  if (!cfg || !inst || !d) return;
-
-  const metric = d.metric || "share_price";
-  const range = d.range || "1W";
-  const pts = filterByRange(d.series?.[metric] || [], range);
-  const emptyText = pts.length < 2 ? "Waiting for data..." : "";
-  
-  console.log(`📊 Rendering ${type} chart:`, { metric, range, points: pts.length });
-  
-  inst.setOption(chartOption(metric, pts.length ? pts : [{t:Date.now(),v:0}], cfg.color, emptyText), true);
-  inst.resize();
-}
-
-async function loadVault(type) {
-  const cfg = VAULT_MAP[type];
-  if (!cfg) return;
-  
-  console.log(`🔄 Loading vault: ${type}`);
-  
-  // Si c'est le vault DeFi (Arbitrum), on utilise Supabase
-  if (type === 'defi') {
-    try {
-      console.log("📡 Fetching from Supabase...");
-      
-      // 1. Récupère le vault
-      const { data: vault, error: vaultError } = await supabase
-        .from('vaults')
-        .select('id')
-        .eq('symbol', 'bG12')
-        .single();
-
-      if (vaultError) {
-        console.error("❌ Vault error:", vaultError);
-        throw vaultError;
-      }
-
-      if (!vault) {
-        console.error("❌ Vault not found");
-        throw new Error('Vault not found');
-      }
-
-      console.log("✅ Vault found:", vault);
-
-      // 2. Récupère le dernier snapshot
-      const { data: latestSnapshot, error: snapshotError } = await supabase
-        .from('vault_snapshots')
-        .select('*')
-        .eq('vault_id', vault.id)
-        .order('timestamp', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (snapshotError) {
-        console.error("❌ Snapshot error:", snapshotError);
-      }
-
-      console.log("📸 Latest snapshot:", latestSnapshot);
-
-      // 3. Affiche les données principales
-      if (latestSnapshot) {
-        safeText(cfg.ids.aum, fmtUsd(latestSnapshot.total_aum));
-        safeText(cfg.ids.dep, (latestSnapshot.depositors ?? "—").toString());
-        safeText(cfg.ids.sp, fmtSharePrice(latestSnapshot.share_price));
+    // Initialize Supabase après que la lib soit chargée
+    window.addEventListener('load', () => {
+      if (window.supabase) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("✅ Supabase initialized");
+        // Lance le chargement des vaults
+        Promise.all([loadVault("defi"), loadVault("stable")]);
       } else {
-        console.warn("⚠️ No snapshot found");
+        console.error("❌ Supabase library not loaded!");
       }
+    });
 
-      // 4. Calcule la performance journalière (24h)
-      const oneDayAgo = new Date();
-      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    const VAULT_MAP = {
+      defi:   { network: "arbitrum", color: "#E85A04", ids: { aum: "aum-arb", dep: "depositors-arb", mon: "monthly-arb", sp: "shareprice-arb" }, chartId: "chart-defi" },
+      stable: { network: "base",     color: "#0052FF", ids: { aum: "aum-base", dep: "depositors-base", mon: "monthly-base", sp: "shareprice-base" }, chartId: "chart-stable" }
+    };
 
-      const { data: daySnapshots, error: dayError } = await supabase
-        .from('vault_snapshots')
-        .select('share_price, timestamp')
-        .eq('vault_id', vault.id)
-        .gte('timestamp', oneDayAgo.toISOString())
-        .order('timestamp', { ascending: true });
+    const state = { charts: {}, data: {} };
+    const nfUsd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
 
-      if (dayError) {
-        console.error("❌ Day snapshots error:", dayError);
+    function safeText(id, value) {
+      const el = document.getElementById(id);
+      if (el) {
+        console.log(`✅ Setting ${id} to:`, value);
+        el.textContent = value;
+        el.classList.remove('skeleton');
       }
+    }
 
-      console.log("📅 Day snapshots:", daySnapshots?.length || 0);
+    function fmtUsd(v) {
+      if (v == null || Number.isNaN(Number(v))) return "$—";
+      return nfUsd.format(Number(v));
+    }
 
-      let dailyPerf = null;
-      if (daySnapshots && daySnapshots.length >= 2) {
-        const startPrice = daySnapshots[0].share_price;
-        const endPrice = daySnapshots[daySnapshots.length - 1].share_price;
-        dailyPerf = ((endPrice - startPrice) / startPrice) * 100;
-        console.log("📈 Daily performance calculated:", dailyPerf);
+    function fmtSharePrice(v) {
+      if (v == null || Number.isNaN(Number(v))) return "$—";
+      return "$" + Number(v).toFixed(Number(v) < 10 ? 4 : 2);
+    }
+
+    function fmtMonthly(v) {
+      if (v == null) return "—";
+      const n = Number(v);
+      if (Number.isNaN(n)) return "—";
+      return (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
+    }
+
+    function setMonthlyColor(el, raw) {
+      if (!el) return;
+      const n = Number(raw);
+      if (!Number.isNaN(n)) el.style.color = n >= 0 ? "#10B981" : "#EF4444";
+    }
+
+    async function api(action, network) {
+      const u = new URL(API_URL);
+      u.searchParams.set("action", action);
+      u.searchParams.set("network", network);
+      const res = await fetch(u.toString());
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      return await res.json();
+    }
+
+    function toPointArray(rows, field) {
+      const pts = [];
+      for (const r of rows || []) {
+        const t = new Date(r.scraped_at).getTime();
+        const v = r[field];
+        if (!t || v == null || Number.isNaN(Number(v))) continue;
+        pts.push({ t, v: Number(v) });
+      }
+      pts.sort((a, b) => a.t - b.t);
+      return pts;
+    }
+
+    function filterByRange(points, range) {
+      if (range === "ALL") return points;
+      const now = Date.now();
+      const ms = range === "1W" ? 604800000 : range === "1M" ? 2592000000 : 604800000;
+      const cut = now - ms;
+      return points.filter(p => p.t >= cut);
+    }
+
+    function fmtTooltipDate(ts) {
+      return new Date(ts).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    }
+
+    function chartOption(metric, pts, color, emptyText) {
+      const x = pts.map(p => new Date(p.t).toLocaleDateString("en-GB", {day:"2-digit", month:"short"}));
+      const y = pts.map(p => p.v);
+      const isShare = metric === "share_price";
+
+      return {
+        backgroundColor: "transparent",
+        tooltip: {
+          trigger: "axis",
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          borderWidth: 1,
+          textStyle: { color: "#111", fontSize: 13 },
+          formatter: function(params) {
+            if (!params.length) return "";
+            const idx = params[0].dataIndex;
+            const p = pts[idx];
+            const vtxt = isShare ? fmtSharePrice(p.v) : fmtUsd(p.v);
+            return `<strong>${fmtTooltipDate(p.t)}</strong><br/>${vtxt}`;
+          }
+        },
+        grid: { left: 10, right: 10, top: 20, bottom: 20, containLabel: true },
+        xAxis: {
+          type: "category",
+          boundaryGap: false,
+          data: x,
+          axisLine: { lineStyle: { color: "#D1D5DB" } },
+          axisLabel: { color: "#6B7280", fontSize: 11 },
+          axisTick: { show: false }
+        },
+        yAxis: {
+          type: "value",
+          show: true,
+          scale: true,
+          boundaryGap: ['20%', '20%'],
+          splitLine: { show: true, lineStyle: { color: "#E5E7EB", type: "dashed" } },
+          axisLabel: { color: "#9CA3AF", fontSize: 11 }
+        },
+        series: [{
+          type: "line",
+          smooth: true,
+          showSymbol: false,
+          data: y,
+          lineStyle: { color: color, width: 2 },
+          areaStyle: {
+            opacity: 0.1,
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: color },
+              { offset: 1, color: "rgba(255,255,255,0)" }
+            ])
+          }
+        }],
+        graphic: emptyText ? [{ type: "text", left: "center", top: "middle", style: { text: emptyText, fontSize: 14, fill: "#9CA3AF" } }] : []
+      };
+    }
+
+    function setActiveButtons(container, selector, matchFn) {
+      container.querySelectorAll(selector).forEach(btn => btn.classList.toggle("active", matchFn(btn)));
+    }
+
+    window.setChartMetric = function(type, metric) {
+      if (!state.data[type]) return;
+      state.data[type].metric = metric;
+      const wrap = document.getElementById(VAULT_MAP[type].chartId)?.parentElement;
+      setActiveButtons(wrap, ".metric-btns .chart-btn", btn => btn.getAttribute("onclick").includes(`'${metric}'`));
+      render(type);
+    };
+
+    window.updateChartRange = function(type, range) {
+      if (!state.data[type]) return;
+      state.data[type].range = range;
+      const wrap = document.getElementById(VAULT_MAP[type].chartId)?.parentElement;
+      setActiveButtons(wrap, ".range-btns .chart-btn", btn => btn.textContent.trim() === range);
+      render(type);
+    };
+
+    function render(type) {
+      const cfg = VAULT_MAP[type];
+      const inst = state.charts[type];
+      const d = state.data[type];
+      if (!cfg || !inst || !d) return;
+
+      const metric = d.metric || "share_price";
+      const range = d.range || "1W";
+      const pts = filterByRange(d.series?.[metric] || [], range);
+      const emptyText = pts.length < 2 ? "Waiting for data..." : "";
+      
+      console.log(`📊 Rendering ${type}:`, { metric, range, points: pts.length });
+      
+      inst.setOption(chartOption(metric, pts.length ? pts : [{t:Date.now(),v:0}], cfg.color, emptyText), true);
+      inst.resize();
+    }
+
+    async function loadVault(type) {
+      const cfg = VAULT_MAP[type];
+      if (!cfg) return;
+      
+      console.log(`🔄 Loading vault: ${type}`);
+      
+      if (type === 'defi') {
+        try {
+          if (!supabaseClient) {
+            console.error("❌ Supabase client not initialized");
+            return;
+          }
+
+          console.log("📡 Fetching from Supabase...");
+          
+          const { data: vault, error: vaultError } = await supabaseClient
+            .from('vaults')
+            .select('id')
+            .eq('symbol', 'bG12')
+            .single();
+
+          if (vaultError) throw vaultError;
+          if (!vault) throw new Error('Vault not found');
+
+          console.log("✅ Vault found:", vault);
+
+          const { data: latestSnapshot } = await supabaseClient
+            .from('vault_snapshots')
+            .select('*')
+            .eq('vault_id', vault.id)
+            .order('timestamp', { ascending: false })
+            .limit(1)
+            .single();
+
+          console.log("📸 Latest snapshot:", latestSnapshot);
+
+          if (latestSnapshot) {
+            safeText(cfg.ids.aum, fmtUsd(latestSnapshot.total_aum));
+            safeText(cfg.ids.dep, latestSnapshot.depositors.toString());
+            safeText(cfg.ids.sp, fmtSharePrice(latestSnapshot.share_price));
+          }
+
+          const oneDayAgo = new Date();
+          oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+          const { data: daySnapshots } = await supabaseClient
+            .from('vault_snapshots')
+            .select('share_price, timestamp')
+            .eq('vault_id', vault.id)
+            .gte('timestamp', oneDayAgo.toISOString())
+            .order('timestamp', { ascending: true });
+
+          let dailyPerf = null;
+          if (daySnapshots && daySnapshots.length >= 2) {
+            const startPrice = daySnapshots[0].share_price;
+            const endPrice = daySnapshots[daySnapshots.length - 1].share_price;
+            dailyPerf = ((endPrice - startPrice) / startPrice) * 100;
+          }
+
+          const monEl = document.getElementById(cfg.ids.mon);
+          if (monEl) {
+            monEl.textContent = fmtMonthly(dailyPerf);
+            monEl.classList.remove('skeleton');
+            setMonthlyColor(monEl, dailyPerf);
+          }
+
+          const { data: historySnapshots } = await supabaseClient
+            .from('vault_snapshots')
+            .select('timestamp, share_price, total_aum')
+            .eq('vault_id', vault.id)
+            .order('timestamp', { ascending: true });
+
+          const aumPts = (historySnapshots || []).map(s => ({
+            t: new Date(s.timestamp).getTime(),
+            v: Number(s.total_aum)
+          }));
+
+          const sharePts = (historySnapshots || []).map(s => ({
+            t: new Date(s.timestamp).getTime(),
+            v: Number(s.share_price)
+          }));
+
+          state.data[type] = {
+            metric: 'share_price',
+            range: "1W",
+            series: { aum: aumPts, share_price: sharePts }
+          };
+
+          if (!state.charts[type]) state.charts[type] = echarts.init(document.getElementById(cfg.chartId));
+          render(type);
+
+          console.log("✅ DeFi vault loaded");
+
+        } catch (error) {
+          console.error('❌ Error loading DeFi vault:', error);
+        }
       } else {
-        console.warn("⚠️ Not enough snapshots for daily performance (need 2+, got", daySnapshots?.length || 0, ")");
-      }
+        try {
+          const snap = await api("get", cfg.network);
+          safeText(cfg.ids.aum, fmtUsd(snap.aum));
+          safeText(cfg.ids.dep, (snap.depositors ?? "—").toString());
+          safeText(cfg.ids.sp, fmtSharePrice(snap.share_price));
+          
+          const monEl = document.getElementById(cfg.ids.mon);
+          if (monEl) {
+            monEl.textContent = fmtMonthly(snap.monthly_return);
+            monEl.classList.remove('skeleton');
+            setMonthlyColor(monEl, snap.monthly_return);
+          }
 
-      const monEl = document.getElementById(cfg.ids.mon);
-      if (monEl) {
-        monEl.textContent = fmtMonthly(dailyPerf);
-        monEl.classList.remove('skeleton');
-        setMonthlyColor(monEl, dailyPerf);
-      }
+          const rows = await api("history", cfg.network);
+          state.data[type] = {
+            metric: 'aum',
+            range: "1W",
+            series: {
+              aum: toPointArray(rows, "aum"),
+              share_price: toPointArray(rows, "share_price")
+            }
+          };
 
-      // 5. Récupère l'historique pour le graphique
-      const { data: historySnapshots, error: historyError } = await supabase
-        .from('vault_snapshots')
-        .select('timestamp, share_price, total_aum')
-        .eq('vault_id', vault.id)
-        .order('timestamp', { ascending: true });
-
-      if (historyError) {
-        console.error("❌ History error:", historyError);
-      }
-
-      console.log("📜 History snapshots:", historySnapshots?.length || 0);
-
-      // Convertit au format attendu
-      const aumPts = (historySnapshots || []).map(s => ({
-        t: new Date(s.timestamp).getTime(),
-        v: Number(s.total_aum)
-      }));
-
-      const sharePts = (historySnapshots || []).map(s => ({
-        t: new Date(s.timestamp).getTime(),
-        v: Number(s.share_price)
-      }));
-
-      console.log("📊 Chart data prepared:", { aum: aumPts.length, share: sharePts.length });
-
-      state.data[type] = {
-        metric: 'share_price',
-        range: "1W",
-        series: {
-          aum: aumPts,
-          share_price: sharePts
+          if (!state.charts[type]) state.charts[type] = echarts.init(document.getElementById(cfg.chartId));
+          render(type);
+        } catch (error) {
+          console.error("❌ Error loading Base vault:", error);
         }
-      };
-
-      if (!state.charts[type]) {
-        console.log("🎨 Initializing chart for", type);
-        state.charts[type] = echarts.init(document.getElementById(cfg.chartId));
       }
-      render(type);
-
-      console.log("✅ DeFi vault loaded successfully");
-
-    } catch (error) {
-      console.error('❌ Error loading DeFi vault:', error);
     }
-  } 
-  // Sinon, garde l'ancien système pour le vault Base (stable)
-  else {
-    try {
-      console.log("📡 Fetching from API (Base vault)...");
-      const snap = await api("get", cfg.network);
-      console.log("📸 API snapshot:", snap);
-      
-      safeText(cfg.ids.aum, fmtUsd(snap.aum));
-      safeText(cfg.ids.dep, (snap.depositors ?? "—").toString());
-      safeText(cfg.ids.sp, fmtSharePrice(snap.share_price));
-      
-      const monEl = document.getElementById(cfg.ids.mon);
-      if (monEl) {
-        monEl.textContent = fmtMonthly(snap.monthly_return);
-        monEl.classList.remove('skeleton');
-        setMonthlyColor(monEl, snap.monthly_return);
-      }
 
-      const rows = await api("history", cfg.network);
-      console.log("📜 API history rows:", rows?.length || 0);
-      
-      state.data[type] = {
-        metric: type === 'stable' ? 'aum' : 'share_price',
-        range: "1W",
-        series: {
-          aum: toPointArray(rows, "aum"),
-          share_price: toPointArray(rows, "share_price")
-        }
-      };
-
-      if (!state.charts[type]) state.charts[type] = echarts.init(document.getElementById(cfg.chartId));
-      render(type);
-      
-      console.log("✅ Base vault loaded successfully");
-    } catch (error) {
-      console.error("❌ Error loading Base vault:", error);
-    }
-  }
-}
-
-window.addEventListener("load", () => {
-  console.log("🚀 Page loaded, loading vaults...");
-  Promise.all([loadVault("defi"), loadVault("stable")]);
-});
-window.addEventListener("resize", () => Object.values(state.charts).forEach(c => c.resize()));
+    window.addEventListener("resize", () => Object.values(state.charts).forEach(c => c.resize()));
   </script>
 </body>
-
 </html>
+
 
 
